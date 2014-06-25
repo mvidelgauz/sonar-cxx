@@ -14,8 +14,8 @@ import json
 from sitedefs import SONAR_HOME, SONAR_VERSIONS, START_SCRIPT, STOP_SCRIPT
 
 SONAR_URL = "http://localhost:9000"
-LOGFILE_TMPL = os.path.join(SONAR_HOME, "sonar-%s", "logs", "sonar.log")
-SONAR_PLUGINS_TMPL = os.path.join(SONAR_HOME, "sonar-%s", "extensions", "plugins")
+LOGFILE_TMPL = os.path.join(SONAR_HOME, "sonarqube-%s", "logs", "sonar.log")
+SONAR_PLUGINS_TMPL = os.path.join(SONAR_HOME, "sonarqube-%s", "extensions", "plugins")
 SONAR_ERROR_RE = re.compile(".* ERROR .*")
 SONAR_WARN_RE = re.compile(".* WARN .*")
 INDENT = "    "
