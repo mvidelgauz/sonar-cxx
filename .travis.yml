@@ -10,7 +10,7 @@ install:
 
 before_script:
         - cp sonar-cxx-plugin/src/test/integration/sitedefs_sample.py sonar-cxx-plugin/src/test/integration/sitedefs.py
-        - pip install requests
+        - sudo pip install requests
 
 script:
         - mvn test
