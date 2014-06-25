@@ -4,4 +4,8 @@ jdk:
   - oraclejdk7
   - openjdk6
 
+
+install:
+        ./setup_sonar.sh
+
 script: mvn test
