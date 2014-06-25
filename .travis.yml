@@ -6,11 +6,11 @@ jdk:
 
 
 install:
-        ./setup_sonar.sh
+        - ./setup_sonar.sh
 
 before_script:
-        cp sonar-cxx-plugin/src/test/integration/sitedefs_sample.py sonar-cxx-plugin/src/test/integration/sitedefs.py
+        - cp sonar-cxx-plugin/src/test/integration/sitedefs_sample.py sonar-cxx-plugin/src/test/integration/sitedefs.py
 
 script:
-        mvn test
-        PATH=$PATH:/tmp/sonar-runner-2.4/bin sonar-cxx-plugin/src/test/integration/smoketest
+        - mvn test
+        - PATH=$PATH:/tmp/sonar-runner-2.4/bin sonar-cxx-plugin/src/test/integration/smoketest
