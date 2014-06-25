@@ -13,5 +13,6 @@ before_script:
         - sudo pip install requests
 
 script:
+        - mvn install -DskipTests=true
         - mvn test
         - PATH=$PATH:/tmp/sonar-runner-2.4/bin sonar-cxx-plugin/src/test/integration/smoketest
