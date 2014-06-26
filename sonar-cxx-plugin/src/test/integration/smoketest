@@ -253,8 +253,11 @@ def checkMetrics():
 
     rc = False
     try:
-        r = requests.get(SONAR_URL + "/api/resources?resource=" + PROJECT_KEY + "&metrics="
-                         + ",".join(EXP_MEASURES.keys()))
+        url = (SONAR_URL + "/api/resources?resource=" + PROJECT_KEY + "&metrics="
+               + ",".join(EXP_MEASURES.keys()))
+        print url
+        r = requests.get(url)
+        print r.text
         gotMeasures = _toSimpleDict(json.loads(r.text)[0]["msr"])
 
         rc, diff = diffDicts(EXP_MEASURES, gotMeasures)
