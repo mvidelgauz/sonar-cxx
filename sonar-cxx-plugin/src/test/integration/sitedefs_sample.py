@@ -9,7 +9,7 @@
 import os
 
 SONAR_HOME = "/tmp/"
-SONAR_VERSIONS = ["4.3.2"]
+SONAR_VERSIONS = ["4.2"]
 
 # for Windows, 32 bit:
 #START_SCRIPT = os.path.join(SONAR_HOME, "sonar-%s", "bin", "windows-x86-32", "StartNTService.bat")
