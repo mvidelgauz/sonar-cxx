@@ -15,4 +15,4 @@ before_script:
 script:
         - mvn install -DskipTests=true
         - mvn test
-        - PATH=$PATH:/tmp/sonar-runner-2.4/bin sonar-cxx-plugin/src/test/integration/smoketest
+        - RAILS_ENV=production PATH=$PATH:/tmp/sonar-runner-2.4/bin sonar-cxx-plugin/src/test/integration/smoketest
