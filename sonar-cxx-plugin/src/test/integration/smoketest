@@ -255,9 +255,7 @@ def checkMetrics():
     try:
         url = (SONAR_URL + "/api/resources?resource=" + PROJECT_KEY + "&metrics="
                + ",".join(EXP_MEASURES.keys()))
-        print url
         r = requests.get(url)
-        print r.text
         gotMeasures = _toSimpleDict(json.loads(r.text)[0]["msr"])
 
         rc, diff = diffDicts(EXP_MEASURES, gotMeasures)
@@ -292,4 +290,4 @@ if __name__ == "__main__":
     print INDENT + "Tests succeded for: " + GREEN + ", ".join(goodversions) + RESET
     print INDENT + "Tests failed for: " + RED + ", ".join(badversions) + RESET
 
-    sys.exit(len(badversions) == 0)
+    sys.exit(len(badversions) != 0)
