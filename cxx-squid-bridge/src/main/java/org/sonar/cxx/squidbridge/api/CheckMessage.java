@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -26,9 +26,13 @@ package org.sonar.cxx.squidbridge.api;
 import java.text.MessageFormat;
 import java.util.Locale;
 import org.apache.commons.lang.builder.ToStringBuilder;
-import org.sonar.check.Message;
 
-public class CheckMessage implements Message {
+/**
+ * Create a message for a check
+ *
+ * @see CodeCheck
+ */
+public class CheckMessage {
 
   private Integer line;
   private Double cost;
@@ -36,8 +40,14 @@ public class CheckMessage implements Message {
   private final Object check;
   private final String defaultMessage;
   private final Object[] messageArguments;
-  private Boolean bypassExclusion;
 
+  /**
+   * Create a message for a check. Defines default message with optional message arguments.
+   *
+   * @param check check that lead to this message
+   * @param message default message text (can contain placeholders for arguments)
+   * @param messageArguments additional arguments to format the message (message must contain placeholders)
+   */
   public CheckMessage(Object check, String message, Object... messageArguments) {
     this.check = check;
     this.defaultMessage = message;
@@ -45,68 +55,92 @@ public class CheckMessage implements Message {
   }
 
   /**
-   * @deprecated replaced by the other constructor since 2.12. See SONAR-2875.
+   * Define node in the source code tree to which this message belongs.
+   *
+   * @param sourceCode node in the source code tree to which this message belongs
    */
-  @Deprecated
-  public CheckMessage(CodeCheck check, String message, Object... messageArguments) {
-    this((Object) check, message, messageArguments);
-  }
-
   public void setSourceCode(SourceCode sourceCode) {
     this.sourceCode = sourceCode;
   }
 
+  /**
+   * Get node in the source code tree to which this message belongs.
+   *
+   * @return node in the source code tree to which this message belongs
+   */
   public SourceCode getSourceCode() {
     return sourceCode;
   }
 
+  /**
+   * Define line in the source code to which this message belongs.
+   *
+   * @param line line in the source code to which this message belongs
+   */
   public void setLine(int line) {
     this.line = line;
   }
 
-  @Override
+  /**
+   * Get line in the source code to which this message belongs.
+   *
+   * @return line in the source code to which this message belongs
+   */
   public Integer getLine() {
     return line;
   }
 
+  /**
+   * Defines the cost for fixing the issue.
+   *
+   * @param cost cost for fixing the issue
+   */
   public void setCost(double cost) {
     this.cost = cost;
   }
 
+  /**
+   * Get the cost for fixing the issue.
+   *
+   * @return cost for fixing the issue
+   */
   public Double getCost() {
     return cost;
   }
 
-  public void setBypassExclusion(boolean bypassExclusion) {
-    this.bypassExclusion = bypassExclusion;
-  }
-
-  public boolean isBypassExclusion() {
-    return bypassExclusion == null ? false : bypassExclusion;
-  }
-
   /**
-   * @deprecated replaced by getCheck() since SQ version 2.12. Warning, to be called only if check is CodeCheck.
+   * Get the related check.
+   *
+   * @return the related check
    */
-  @Override
-  @Deprecated
-  public CodeCheck getChecker() {
-    return (CodeCheck) check;
-  }
-
   public Object getCheck() {
     return check;
   }
 
+  /**
+   * Get the default message text.
+   *
+   * @return default message text (can contain placeholders for arguments)
+   */
   public String getDefaultMessage() {
     return defaultMessage;
   }
 
+  /**
+   * Get additional arguments to format the message.
+   *
+   * @return additional arguments to format the message
+   */
   public Object[] getMessageArguments() {
     return messageArguments;
   }
 
-  @Override
+  /**
+   * Get the formatted text (default message with parameters).
+   *
+   * @param locale locale to use for formatting
+   * @return formatted text (default message with parameters)
+   */
   public String getText(Locale locale) {
     return formatDefaultMessage();
   }
@@ -117,6 +151,11 @@ public class CheckMessage implements Message {
       .append("line", line).toString();
   }
 
+  /**
+   * Format the default message, replaces placeholder with arguments.
+   *
+   * @return message with resolved parameters
+   */
   public String formatDefaultMessage() {
     if (messageArguments.length == 0) {
       return defaultMessage;

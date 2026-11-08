@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -28,18 +28,19 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import org.sonar.api.batch.sensor.SensorContext;
 import org.sonar.api.batch.sensor.SensorDescriptor;
 import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.measures.CoreMetrics;
 import org.sonar.api.measures.Metric;
-import org.sonar.api.resources.Qualifiers;
 import org.sonar.api.scanner.sensor.ProjectSensor;
+import org.sonar.cxx.sensors.utils.CxxReportSensor;
 
 public class CxxUnitTestResultsImportSensor implements ProjectSensor {
 
   private final WildcardPatternFileProvider wildcardPatternFileProvider
-                                              = new WildcardPatternFileProvider(new File("."), File.separator);
+    = new WildcardPatternFileProvider(new File("."), File.separator);
   private final CxxUnitTestResultsAggregator unitTestResultsAggregator;
   private SensorContext context;
 
@@ -48,33 +49,28 @@ public class CxxUnitTestResultsImportSensor implements ProjectSensor {
   }
 
   public static List<PropertyDefinition> properties() {
-    var category = "CXX External Analyzers";
     return Collections.unmodifiableList(Arrays.asList(
       PropertyDefinition.builder(UnitTestConfiguration.VISUAL_STUDIO_TEST_RESULTS_PROPERTY_KEY)
         .multiValues(true)
         .name("VSTest Report(s)")
-        .description(
-          "Paths to VSTest reports. Multiple paths may be comma-delimited, or included via wildcards."
-            + " Note that while measures such as the number of tests are displayed at project level, no drilldown"
-            + " is available."
-            + " In the SonarQube UI, enter one entry per field."
-        )
-        .category(category)
+        .description("""
+          Paths to VSTest reports. Multiple paths may be comma-delimited, or included via wildcards. \
+          Note that while measures such as the number of tests are displayed at project level, no drilldown \
+          is available. In the SonarQube UI, enter one entry per field.""")
+        .category(CxxReportSensor.CATEGORY)
         .subCategory("Visual C++")
-        .onQualifiers(Qualifiers.PROJECT)
+        .onConfigScopes(Set.of(PropertyDefinition.ConfigScope.PROJECT))
         .build(),
       PropertyDefinition.builder(UnitTestConfiguration.NUNIT_TEST_RESULTS_PROPERTY_KEY)
         .multiValues(true)
         .name("NUnit Report(s)")
-        .description(
-          "Paths to NUnit execution reports. Multiple paths may be comma-delimited, or included via wildcards."
-            + " Note that while measures such as the number of tests are displayed at project level, no drilldown"
-            + " is available."
-            + " In the SonarQube UI, enter one entry per field."
-        )
-        .category(category)
+        .description("""
+          Paths to NUnit execution reports. Multiple paths may be comma-delimited, or included via wildcards. \
+          Note that while measures such as the number of tests are displayed at project level, no drilldown \
+          is available. In the SonarQube UI, enter one entry per field.""")
+        .category(CxxReportSensor.CATEGORY)
         .subCategory("NUnit")
-        .onQualifiers(Qualifiers.PROJECT)
+        .onConfigScopes(Set.of(PropertyDefinition.ConfigScope.PROJECT))
         .build()
     ));
   }
@@ -95,7 +91,7 @@ public class CxxUnitTestResultsImportSensor implements ProjectSensor {
 
   public void analyze(UnitTestResults unitTestResults, UnitTestConfiguration unitTestConf) {
     var aggregatedResults = unitTestResultsAggregator.aggregate(wildcardPatternFileProvider,
-                                                            unitTestResults, unitTestConf);
+      unitTestResults, unitTestConf);
     if (aggregatedResults != null) {
       saveMetric(CoreMetrics.TESTS, aggregatedResults.tests());
       saveMetric(CoreMetrics.TEST_ERRORS, aggregatedResults.errors());

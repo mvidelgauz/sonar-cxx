@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,7 +19,7 @@
  */
 package org.sonar.cxx.checks.regex;
 
-import com.sonar.sslr.api.Token;
+import com.sonar.cxx.sslr.api.Token;
 import java.util.regex.Pattern;
 import org.sonar.cxx.squidbridge.checks.SquidCheck;
 
@@ -79,8 +79,8 @@ class CommentContainsPatternChecker {
   private boolean isLetterAround(String line, int start) {
     int end = start + pattern.length();
 
-    var pre = start > 0 ? Character.isLetter(line.charAt(start - 1)) : false;
-    var post = end < line.length() - 1 ? Character.isLetter(line.charAt(end)) : false;
+    var pre = (start > 0) && Character.isLetter(line.charAt(start - 1));
+    var post = (end < line.length() - 1) && Character.isLetter(line.charAt(end));
 
     return pre || post;
   }

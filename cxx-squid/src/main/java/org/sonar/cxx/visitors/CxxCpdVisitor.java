@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,11 +19,11 @@
  */
 package org.sonar.cxx.visitors;
 
-import com.sonar.sslr.api.AstAndTokenVisitor;
-import com.sonar.sslr.api.AstNode;
-import com.sonar.sslr.api.GenericTokenType;
-import com.sonar.sslr.api.Grammar;
-import com.sonar.sslr.api.Token;
+import com.sonar.cxx.sslr.api.AstAndTokenVisitor;
+import com.sonar.cxx.sslr.api.AstNode;
+import com.sonar.cxx.sslr.api.GenericTokenType;
+import com.sonar.cxx.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.Token;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;

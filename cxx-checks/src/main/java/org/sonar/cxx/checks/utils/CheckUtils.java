@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,21 +19,22 @@
  */
 package org.sonar.cxx.checks.utils;
 
-import com.sonar.sslr.api.AstNode;
-import com.sonar.sslr.api.GenericTokenType;
+import com.sonar.cxx.sslr.api.AstNode;
+import com.sonar.cxx.sslr.api.GenericTokenType;
 import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+import javax.annotation.Nonnull;
 import org.sonar.cxx.parser.CxxGrammarImpl;
 import org.sonar.cxx.parser.CxxKeyword;
 import org.sonar.cxx.parser.CxxPunctuator;
 
-public class CheckUtils {
+public final class CheckUtils {
 
   private CheckUtils() {
   }
 
-  public static Pattern compileUserRegexp(String regexp, int flags) {
+  public static Pattern compileUserRegexp(@Nonnull String regexp, int flags) {
     Objects.requireNonNull(regexp, "regular expression has to be non null");
     if (regexp.isEmpty()) {
       throw new IllegalStateException("Empty regular expression");

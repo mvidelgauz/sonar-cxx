@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,8 +19,9 @@
  */
 package org.sonar.cxx.checks.xpath;
 
-import com.sonar.sslr.api.AstNode;
-import com.sonar.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.AstNode;
+import com.sonar.cxx.sslr.api.Grammar;
+import javax.annotation.Nullable;
 import org.sonar.api.utils.PathUtils;
 import org.sonar.api.utils.WildcardPattern;
 import org.sonar.check.Priority;
@@ -83,11 +84,11 @@ public class XPathCheck extends AbstractXPathCheck<Grammar> {
   }
 
   @Override
-  public void visitFile(AstNode fileNode) {
+  public void visitFile(@Nullable AstNode fileNode) {
     if (!matchFilePattern.isEmpty()) {
       var pattern = WildcardPattern.create(matchFilePattern);
-      String path = PathUtils.sanitize(getContext().getInputFile().file().getPath());
-      if (!compare(invertFilePattern, pattern.match(path))) {
+      String path = PathUtils.sanitize(getContext().getFile().getPath());
+      if (!compare(invertFilePattern, path != null && pattern.match(path))) {
         return;
       }
     }

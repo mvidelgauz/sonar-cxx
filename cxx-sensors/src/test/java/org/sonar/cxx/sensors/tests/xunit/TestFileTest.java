@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,74 +19,74 @@
  */
 package org.sonar.cxx.sensors.tests.xunit;
 
-import static org.junit.Assert.assertEquals;
-import org.junit.Before;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class TestFileTest {
+class TestFileTest {
 
   private TestFile testFile;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     testFile = new TestFile("test.cpp");
   }
 
   @Test
-  public void newBornTestFileShouldHaveVirginStatistics() {
-    assertEquals(0, testFile.getTests());
-    assertEquals(0, testFile.getErrors());
-    assertEquals(0, testFile.getFailures());
-    assertEquals(0, testFile.getSkipped());
-    assertEquals(0, testFile.getExecutionTime());
+  void newBornTestFileShouldHaveVirginStatistics() {
+    assertThat(testFile.getTests()).isZero();
+    assertThat(testFile.getErrors()).isZero();
+    assertThat(testFile.getFailures()).isZero();
+    assertThat(testFile.getSkipped()).isZero();
+    assertThat(testFile.getExecutionTime()).isZero();
   }
 
   @Test
-  public void addingTestCaseShouldIncrementStatistics() {
+  void addingTestCaseShouldIncrementStatistics() {
     int testBefore = testFile.getTests();
     long timeBefore = testFile.getExecutionTime();
 
     final int EXEC_TIME = 10;
     testFile.add(new TestCase("name", EXEC_TIME, "status", "stack", "msg",
-                              "classname", "tcfilename", "tsname"));
+      "classname", "tcfilename", "tsname"));
 
-    assertEquals(testFile.getTests(), testBefore + 1);
-    assertEquals(testFile.getExecutionTime(), timeBefore + EXEC_TIME);
+    assertThat(testBefore + 1).isEqualTo(testFile.getTests());
+    assertThat(timeBefore + EXEC_TIME).isEqualTo(testFile.getExecutionTime());
   }
 
   @Test
-  public void addingAnErroneousTestCaseShouldIncrementErrorStatistic() {
+  void addingAnErroneousTestCaseShouldIncrementErrorStatistic() {
     int errorsBefore = testFile.getErrors();
     TestCase error = mock(TestCase.class);
     when(error.isError()).thenReturn(true);
 
     testFile.add(error);
 
-    assertEquals(testFile.getErrors(), errorsBefore + 1);
+    assertThat(errorsBefore + 1).isEqualTo(testFile.getErrors());
   }
 
   @Test
-  public void addingAFailedTestCaseShouldIncrementFailedStatistic() {
+  void addingAFailedTestCaseShouldIncrementFailedStatistic() {
     int failedBefore = testFile.getFailures();
     TestCase failedTC = mock(TestCase.class);
     when(failedTC.isFailure()).thenReturn(true);
 
     testFile.add(failedTC);
 
-    assertEquals(testFile.getFailures(), failedBefore + 1);
+    assertThat(failedBefore + 1).isEqualTo(testFile.getFailures());
   }
 
   @Test
-  public void addingASkippedTestCaseShouldIncrementSkippedStatistic() {
+  void addingASkippedTestCaseShouldIncrementSkippedStatistic() {
     int skippedBefore = testFile.getSkipped();
     TestCase skippedTC = mock(TestCase.class);
     when(skippedTC.isSkipped()).thenReturn(true);
 
     testFile.add(skippedTC);
 
-    assertEquals(testFile.getSkipped(), skippedBefore + 1);
+    assertThat(skippedBefore + 1).isEqualTo(testFile.getSkipped());
   }
 
 }

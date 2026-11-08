@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,86 +20,137 @@
 package org.sonar.cxx.utils;
 
 import java.util.List;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
-public class CxxReportIssueTest {
+class CxxReportIssueTest {
 
   @Test
-  public void reportLocationEquality() {
-    var location0 = new CxxReportLocation("path0.cpp", "1", null, "Boolean value assigned to pointer.");
-    var location1 = new CxxReportLocation("path0.cpp", "1", null, "Boolean value assigned to pointer.");
-    assertEquals(location0, location1);
-    assertEquals(location0.hashCode(), location1.hashCode());
+  void reportLocationEquality() {
+    var location0 = new CxxReportLocation(
+      "path0.cpp", "1", null, "Boolean value assigned to pointer."
+    );
+    var location1 = new CxxReportLocation(
+      "path0.cpp", "1", null, "Boolean value assigned to pointer."
+    );
+    assertThat(location1)
+      .isEqualTo(location0)
+      .hasSameHashCodeAs(location0);
 
-    var location2 = new CxxReportLocation("path2.cpp", "1", null, "Exception thrown in destructor.");
-    assertNotEquals(location2, location0);
-    assertNotEquals(location2.hashCode(), location0.hashCode());
+    var location2 = new CxxReportLocation(
+      "path2.cpp", "1", null, "Exception thrown in destructor."
+    );
+    assertThat(location0).isNotEqualTo(location2);
+    assertThat(location0.hashCode()).isNotEqualTo(location2.hashCode());
 
-    assertNotEquals(location2, location1);
-    assertNotEquals(location2.hashCode(), location1.hashCode());
+    assertThat(location1).isNotEqualTo(location2);
+    assertThat(location1.hashCode()).isNotEqualTo(location2.hashCode());
   }
 
   @Test
-  public void reportIssueEquality() {
-    var issue0 = new CxxReportIssue("nullPointer", "path0.cpp", "1", null, "Null pointer dereference: ptr");
+  void reportIssueEquality() {
+    var issue0 = new CxxReportIssue(
+      "nullPointer", "path0.cpp", "1", null, "Null pointer dereference: ptr"
+    );
     issue0.addLocation("path0.cpp", "1", null, "Assignment &apos;ptr=nullptr&apos;, assigned value is 0");
 
-    var issue1 = new CxxReportIssue("exceptThrowInDestructor", "path2.cpp", "1", null, "Exception thrown in destructor.");
-    var issue2 = new CxxReportIssue("exceptThrowInDestructor", "path2.cpp", "1", null, "Exception thrown in destructor.");
+    var issue1 = new CxxReportIssue(
+      "exceptThrowInDestructor", "path2.cpp", "1", null, "Exception thrown in destructor."
+    );
+    var issue2 = new CxxReportIssue(
+      "exceptThrowInDestructor", "path2.cpp", "1", null, "Exception thrown in destructor."
+    );
 
-    assertEquals(issue1, issue2);
-    assertEquals(issue1.hashCode(), issue2.hashCode());
+    assertThat(issue2)
+      .isEqualTo(issue1)
+      .hasSameHashCodeAs(issue1);
 
-    assertNotEquals(issue0, issue1);
-    assertNotEquals(issue0.hashCode(), issue1.hashCode());
+    assertThat(issue1).isNotEqualTo(issue0);
+    assertThat(issue1.hashCode()).isNotEqualTo(issue0.hashCode());
 
-    assertNotEquals(issue0, issue2);
-    assertNotEquals(issue0.hashCode(), issue2.hashCode());
+    assertThat(issue2).isNotEqualTo(issue0);
+    assertThat(issue2.hashCode()).isNotEqualTo(issue0.hashCode());
   }
 
   @Test
-  public void reportIssueEqualityConsideringFlow() {
-    var issue0 = new CxxReportIssue("exceptThrowInDestructor", "path2.cpp", "1", null, "Exception thrown in destructor.");
+  void reportMappedInfo() {
+    var issue0 = new CxxReportIssue(
+      "nullPointer", "path0.cpp", "1", null, "issueInfo"
+    );
+    issue0.addLocation("path0.cpp", "1", null, "locInfo");
+    issue0.addMappedInfo();
+    assertThat(issue0.getRuleId()).isEqualTo("nullPointer");
+    assertThat(issue0.getLocations().get(0).getInfo()).isEqualTo("Unknown 'nullPointer': issueInfo");
+  }
+
+  @Test
+  void reportIssueEqualityConsideringFlow() {
+    var issue0 = new CxxReportIssue(
+      "exceptThrowInDestructor", "path2.cpp", "1", null, "Exception thrown in destructor."
+    );
     issue0.addFlowElement("path0.cpp", "1", null, "a");
     issue0.addFlowElement("path1.cpp", "1", null, "b");
     issue0.addFlowElement("path2.cpp", "1", null, "c");
 
-    var issue1 = new CxxReportIssue("exceptThrowInDestructor", "path2.cpp", "1", null, "Exception thrown in destructor.");
+    var issue1 = new CxxReportIssue(
+      "exceptThrowInDestructor", "path2.cpp", "1", null, "Exception thrown in destructor."
+    );
     issue1.addFlowElement("path0.cpp", "1", null, "a");
     issue1.addFlowElement("path1.cpp", "1", null, "b");
     issue1.addFlowElement("path2.cpp", "1", null, "c");
 
-    var issue2 = new CxxReportIssue("exceptThrowInDestructor", "path2.cpp", "1", null, "Exception thrown in destructor.");
+    var issue2 = new CxxReportIssue(
+      "exceptThrowInDestructor", "path2.cpp", "1", null, "Exception thrown in destructor."
+    );
     issue2.addFlowElement("path1.cpp", "1", null, "b");
     issue2.addFlowElement("path2.cpp", "1", null, "c");
 
-    var issue3 = new CxxReportIssue("exceptThrowInDestructor", "path2.cpp", "1", null, "Exception thrown in destructor.");
+    var issue3 = new CxxReportIssue(
+      "exceptThrowInDestructor", "path2.cpp", "1", null, "Exception thrown in destructor."
+    );
 
-    assertEquals(issue0, issue1);
-    assertEquals(issue0.hashCode(), issue1.hashCode());
+    assertThat(issue1)
+      .isEqualTo(issue0)
+      .hasSameHashCodeAs(issue0);
 
-    assertNotEquals(issue0, issue2);
-    assertNotEquals(issue0.hashCode(), issue2.hashCode());
+    assertThat(issue2).isNotEqualTo(issue0);
+    assertThat(issue2.hashCode()).isNotEqualTo(issue0.hashCode());
 
-    assertNotEquals(issue1, issue2);
-    assertNotEquals(issue1.hashCode(), issue2.hashCode());
+    assertThat(issue2).isNotEqualTo(issue1);
+    assertThat(issue2.hashCode()).isNotEqualTo(issue1.hashCode());
 
-    assertNotEquals(issue0, issue3);
-    assertNotEquals(issue0.hashCode(), issue3.hashCode());
+    assertThat(issue3).isNotEqualTo(issue0);
+    assertThat(issue3.hashCode()).isNotEqualTo(issue0.hashCode());
   }
 
   @Test
-  public void reportIssueFlowOrder() {
-    var issue0 = new CxxReportIssue("exceptThrowInDestructor", "path2.cpp", "1", null, "Exception thrown in destructor.");
+  void reportIssueFlowOrder() {
+    var issue0 = new CxxReportIssue(
+      "exceptThrowInDestructor", "path2.cpp", "1", null, "Exception thrown in destructor."
+    );
     issue0.addFlowElement("path0.cpp", "1", null, "a");
     issue0.addFlowElement("path1.cpp", "2", null, "b");
     issue0.addFlowElement("path2.cpp", "3", null, "c");
 
     List<CxxReportLocation> flow = issue0.getFlow();
-    assertEquals(new CxxReportLocation("path2.cpp", "3", null, "c"), flow.get(0));
-    assertEquals(new CxxReportLocation("path1.cpp", "2", null, "b"), flow.get(1));
-    assertEquals(new CxxReportLocation("path0.cpp", "1", null, "a"), flow.get(2));
+    assertThat(flow.get(0)).isEqualTo(new CxxReportLocation("path2.cpp", "3", null, "c"));
+    assertThat(flow.get(1)).isEqualTo(new CxxReportLocation("path1.cpp", "2", null, "b"));
+    assertThat(flow.get(2)).isEqualTo(new CxxReportLocation("path0.cpp", "1", null, "a"));
+  }
+
+  @Test
+  void reportIssueWithCheckClassStoresAndReturnsIt() {
+    var issue = new CxxReportIssue(
+      "nullPointer", CxxReportIssueTest.class, "path0.cpp", "1", null, "Null pointer dereference: ptr"
+    );
+    assertThat(issue.getCheckClass()).isEqualTo(CxxReportIssueTest.class);
+  }
+
+  @Test
+  void reportIssueWithoutCheckClassDefaultsToNull() {
+    var issue = new CxxReportIssue(
+      "nullPointer", "path0.cpp", "1", null, "Null pointer dereference: ptr"
+    );
+    assertThat(issue.getCheckClass()).isNull();
   }
 }

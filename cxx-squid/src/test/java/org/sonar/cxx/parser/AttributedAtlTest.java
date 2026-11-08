@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,12 +19,12 @@
  */
 package org.sonar.cxx.parser;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class AttributedAtlTest extends ParserBaseTestHelper {
+class AttributedAtlTest extends ParserBaseTestHelper {
 
   @Test
-  public void vcAtlDeclaration() {
+  void vcAtlDeclaration() {
     setRootRule(CxxGrammarImpl.declaration);
 
     assertThatParser()
@@ -32,7 +32,7 @@ public class AttributedAtlTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void vcAtlEnum() {
+  void vcAtlEnum() {
     setRootRule(CxxGrammarImpl.enumSpecifier);
 
     assertThatParser()
@@ -40,7 +40,7 @@ public class AttributedAtlTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void vcAtlClass() {
+  void vcAtlClass() {
     setRootRule(CxxGrammarImpl.classSpecifier);
 
     assertThatParser()
@@ -49,7 +49,7 @@ public class AttributedAtlTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void vcAtlMember() {
+  void vcAtlMember() {
     setRootRule(CxxGrammarImpl.memberSpecification);
 
     assertThatParser()
@@ -57,7 +57,7 @@ public class AttributedAtlTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void vcAtlRealWorldExample() {
+  void vcAtlRealWorldExample() {
     setRootRule(CxxGrammarImpl.translationUnit);
 
     assertThatParser()

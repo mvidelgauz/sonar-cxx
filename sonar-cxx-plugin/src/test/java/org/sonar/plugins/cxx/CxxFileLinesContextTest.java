@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,34 +20,31 @@
 package org.sonar.plugins.cxx;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.batch.rule.ActiveRules;
 import org.sonar.api.batch.rule.CheckFactory;
-import org.sonar.api.batch.sensor.internal.SensorContextTester;
-import org.sonar.api.issue.NoSonarFilter;
+import com.sonarsource.scanner.engine.sensor.test.fixtures.SensorContextTester;
+import org.sonar.scanner.plugin.api.impl.sensor.issue.DefaultNoSonarFilter;
 import org.sonar.api.measures.CoreMetrics;
 import org.sonar.api.measures.FileLinesContext;
 import org.sonar.api.measures.FileLinesContextFactory;
 
-public class CxxFileLinesContextTest {
+class CxxFileLinesContextTest {
 
   private FileLinesContextForTesting fileLinesContext;
 
-  @Before
-  public void setUp() throws IOException {
+  @BeforeEach
+  void setUp() {
     ActiveRules rules = mock(ActiveRules.class);
     var checkFactory = new CheckFactory(rules);
     FileLinesContextFactory fileLinesContextFactory = mock(FileLinesContextFactory.class);
@@ -59,12 +56,12 @@ public class CxxFileLinesContextTest {
     var inputFile = TestUtils.buildInputFile(baseDir, "ncloc.cc");
     context.fileSystem().add(inputFile);
 
-    var sensor = new CxxSquidSensor(fileLinesContextFactory, checkFactory, new NoSonarFilter(), null);
+    var sensor = new CxxSquidSensor(fileLinesContextFactory, checkFactory, new DefaultNoSonarFilter(), null);
     sensor.execute(context);
   }
 
   @Test
-  public void TestLinesOfCode() throws UnsupportedEncodingException, IOException {
+  void testLinesOfCode() {
     Set<Integer> linesOfCode = Stream.of(
       8, 10, 14, 16, 17, 21, 22, 23, 26, 31, 34, 35, 42, 44, 45, 49, 51, 53, 55, 56,
       58, 59, 63, 65, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 79, 82, 84, 86, 87, 89,
@@ -75,7 +72,7 @@ public class CxxFileLinesContextTest {
   }
 
   @Test
-  public void TestExecutableLinesOfCode() throws UnsupportedEncodingException, IOException {
+  void testExecutableLinesOfCode() {
     assertThat(fileLinesContext.executableLines).containsExactlyInAnyOrder(
       10, 26, 34, 35, 56, 59, 69, 70, 72, 73,
       75, 76, 79, 87, 90, 98, 102, 118, 119, 126);
@@ -88,7 +85,7 @@ public class CxxFileLinesContextTest {
 
     @Override
     public void setIntValue(String metricKey, int line, int value) {
-      Assert.assertEquals(1, value);
+      assertThat(value).isEqualTo(1);
 
       switch (metricKey) {
         case CoreMetrics.NCLOC_DATA_KEY:
@@ -98,13 +95,13 @@ public class CxxFileLinesContextTest {
           executableLines.add(line);
           break;
         default:
-          Assert.fail("Unsupported metric key " + metricKey);
+          fail("Unsupported metric key " + metricKey);
       }
     }
 
     @Override
     public void setStringValue(String metricKey, int line, String value) {
-      Assert.fail("unexpected method called: setStringValue()");
+      fail("unexpected method called: setStringValue()");
     }
 
     @Override

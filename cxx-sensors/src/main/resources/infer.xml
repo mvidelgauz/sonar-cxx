@@ -20,6 +20,18 @@ Follow these steps to make your custom rules available in SonarQube:
     </description>
   </rule>
   <rule>
+    <key>unknown</key>
+    <name>Unknown Infer rule</name>
+    <description>
+      <![CDATA[
+<p>
+By activating this rule, unknown rules in the reports are not discarded but mapped to this rule. This helps to identify unknown rules, e.g. from newer versions of a tool.
+</p>
+      ]]>
+    </description>
+    <severity>INFO</severity>
+  </rule>
+  <rule>
     <key>ANALYSIS_STOPS</key>
     <name>ANALYSIS_STOPS</name>
     <description>
@@ -29,8 +41,6 @@ ANALYSIS_STOPS (disabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>ARRAY_OUT_OF_BOUNDS_L1</key>
@@ -42,8 +52,6 @@ ARRAY_OUT_OF_BOUNDS_L1 (disabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>ARRAY_OUT_OF_BOUNDS_L2</key>
@@ -55,8 +63,6 @@ ARRAY_OUT_OF_BOUNDS_L2 (disabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>ARRAY_OUT_OF_BOUNDS_L3</key>
@@ -68,8 +74,6 @@ ARRAY_OUT_OF_BOUNDS_L3 (disabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>Abduction_case_not_implemented</key>
@@ -81,8 +85,6 @@ Abduction_case_not_implemented (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>Array_of_pointsto</key>
@@ -94,8 +96,6 @@ Array_of_pointsto (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>Assert_failure</key>
@@ -107,8 +107,6 @@ Assert_failure (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>BIABD_USE_AFTER_FREE</key>
@@ -120,8 +118,6 @@ BIABD_USE_AFTER_FREE (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>BUFFER_OVERRUN_L1</key>
@@ -133,8 +129,6 @@ BUFFER_OVERRUN_L1 (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>BUFFER_OVERRUN_L2</key>
@@ -146,8 +140,6 @@ BUFFER_OVERRUN_L2 (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>BUFFER_OVERRUN_L3</key>
@@ -159,8 +151,6 @@ BUFFER_OVERRUN_L3 (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>BUFFER_OVERRUN_L4</key>
@@ -172,8 +162,6 @@ BUFFER_OVERRUN_L4 (disabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>BUFFER_OVERRUN_L5</key>
@@ -185,8 +173,6 @@ BUFFER_OVERRUN_L5 (disabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>BUFFER_OVERRUN_R2</key>
@@ -198,8 +184,6 @@ BUFFER_OVERRUN_R2 (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>BUFFER_OVERRUN_S2</key>
@@ -211,8 +195,6 @@ BUFFER_OVERRUN_S2 (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>BUFFER_OVERRUN_T1</key>
@@ -224,8 +206,6 @@ BUFFER_OVERRUN_T1 (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>BUFFER_OVERRUN_U5</key>
@@ -237,8 +217,6 @@ BUFFER_OVERRUN_U5 (disabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>Bad_footprint</key>
@@ -250,8 +228,6 @@ Bad_footprint (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>CAPTURED_STRONG_SELF</key>
@@ -263,8 +239,6 @@ CAPTURED_STRONG_SELF (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>CHECKERS_ALLOCATES_MEMORY</key>
@@ -276,8 +250,6 @@ CHECKERS_ALLOCATES_MEMORY (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>CHECKERS_ANNOTATION_REACHABILITY_ERROR</key>
@@ -289,8 +261,6 @@ CHECKERS_ANNOTATION_REACHABILITY_ERROR (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>CHECKERS_CALLS_EXPENSIVE_METHOD</key>
@@ -302,8 +272,6 @@ CHECKERS_CALLS_EXPENSIVE_METHOD (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>CHECKERS_EXPENSIVE_OVERRIDES_UNANNOTATED</key>
@@ -315,8 +283,6 @@ CHECKERS_EXPENSIVE_OVERRIDES_UNANNOTATED (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>CHECKERS_FRAGMENT_RETAINS_VIEW</key>
@@ -328,8 +294,6 @@ CHECKERS_FRAGMENT_RETAINS_VIEW (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>CHECKERS_IMMUTABLE_CAST</key>
@@ -341,8 +305,6 @@ CHECKERS_IMMUTABLE_CAST (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>CHECKERS_PRINTF_ARGS</key>
@@ -354,8 +316,6 @@ CHECKERS_PRINTF_ARGS (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>CLASS_CAST_EXCEPTION</key>
@@ -367,8 +327,6 @@ CLASS_CAST_EXCEPTION (disabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>CLASS_LOAD</key>
@@ -380,8 +338,6 @@ CLASS_LOAD (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>COMPARING_FLOAT_FOR_EQUALITY</key>
@@ -393,8 +349,6 @@ COMPARING_FLOAT_FOR_EQUALITY (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>COMPONENT_FACTORY_FUNCTION</key>
@@ -406,8 +360,6 @@ COMPONENT_FACTORY_FUNCTION (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>COMPONENT_FILE_CYCLOMATIC_COMPLEXITY</key>
@@ -419,8 +371,6 @@ COMPONENT_FILE_CYCLOMATIC_COMPLEXITY (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>COMPONENT_FILE_LINE_COUNT</key>
@@ -432,8 +382,6 @@ COMPONENT_FILE_LINE_COUNT (disabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>COMPONENT_INITIALIZER_WITH_SIDE_EFFECTS</key>
@@ -445,8 +393,6 @@ COMPONENT_INITIALIZER_WITH_SIDE_EFFECTS (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>COMPONENT_WITH_MULTIPLE_FACTORY_METHODS</key>
@@ -458,8 +404,6 @@ COMPONENT_WITH_MULTIPLE_FACTORY_METHODS (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>COMPONENT_WITH_UNCONVENTIONAL_SUPERCLASS</key>
@@ -471,8 +415,6 @@ COMPONENT_WITH_UNCONVENTIONAL_SUPERCLASS (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>CONDITION_ALWAYS_FALSE</key>
@@ -484,8 +426,6 @@ CONDITION_ALWAYS_FALSE (disabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>CONDITION_ALWAYS_TRUE</key>
@@ -497,8 +437,6 @@ CONDITION_ALWAYS_TRUE (disabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>CONSTANT_ADDRESS_DEREFERENCE</key>
@@ -510,8 +448,6 @@ CONSTANT_ADDRESS_DEREFERENCE (disabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>CREATE_INTENT_FROM_URI</key>
@@ -523,8 +459,6 @@ CREATE_INTENT_FROM_URI (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>CROSS_SITE_SCRIPTING</key>
@@ -536,8 +470,6 @@ CROSS_SITE_SCRIPTING (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>Cannot_star</key>
@@ -549,8 +481,6 @@ Cannot_star (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>Codequery</key>
@@ -562,8 +492,6 @@ Codequery (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>DANGLING_POINTER_DEREFERENCE</key>
@@ -575,8 +503,6 @@ DANGLING_POINTER_DEREFERENCE (disabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>DEADLOCK</key>
@@ -588,8 +514,6 @@ DEADLOCK (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>DEAD_STORE</key>
@@ -601,8 +525,6 @@ DEAD_STORE (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>DEALLOCATE_STACK_VARIABLE</key>
@@ -614,8 +536,6 @@ DEALLOCATE_STACK_VARIABLE (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>DEALLOCATE_STATIC_MEMORY</key>
@@ -627,8 +547,6 @@ DEALLOCATE_STATIC_MEMORY (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>DEALLOCATION_MISMATCH</key>
@@ -640,8 +558,6 @@ DEALLOCATION_MISMATCH (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>DIVIDE_BY_ZERO</key>
@@ -653,8 +569,6 @@ DIVIDE_BY_ZERO (disabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>DO_NOT_REPORT</key>
@@ -666,8 +580,6 @@ DO_NOT_REPORT (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>EMPTY_VECTOR_ACCESS</key>
@@ -679,8 +591,6 @@ EMPTY_VECTOR_ACCESS (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>ERADICATE_BAD_NESTED_CLASS_ANNOTATION</key>
@@ -692,8 +602,6 @@ ERADICATE_BAD_NESTED_CLASS_ANNOTATION (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>ERADICATE_CONDITION_REDUNDANT</key>
@@ -705,8 +613,6 @@ ERADICATE_CONDITION_REDUNDANT (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>ERADICATE_CONDITION_REDUNDANT_NONNULL</key>
@@ -718,8 +624,6 @@ ERADICATE_CONDITION_REDUNDANT_NONNULL (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>ERADICATE_FIELD_NOT_INITIALIZED</key>
@@ -731,8 +635,6 @@ ERADICATE_FIELD_NOT_INITIALIZED (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>ERADICATE_FIELD_NOT_NULLABLE</key>
@@ -744,8 +646,6 @@ ERADICATE_FIELD_NOT_NULLABLE (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>ERADICATE_FIELD_OVER_ANNOTATED</key>
@@ -757,8 +657,6 @@ ERADICATE_FIELD_OVER_ANNOTATED (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>ERADICATE_INCONSISTENT_SUBCLASS_PARAMETER_ANNOTATION</key>
@@ -770,8 +668,6 @@ ERADICATE_INCONSISTENT_SUBCLASS_PARAMETER_ANNOTATION (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>ERADICATE_INCONSISTENT_SUBCLASS_RETURN_ANNOTATION</key>
@@ -783,8 +679,6 @@ ERADICATE_INCONSISTENT_SUBCLASS_RETURN_ANNOTATION (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>ERADICATE_META_CLASS_CAN_BE_NULLSAFE</key>
@@ -796,8 +690,6 @@ ERADICATE_META_CLASS_CAN_BE_NULLSAFE (disabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>ERADICATE_META_CLASS_IS_NULLSAFE</key>
@@ -809,8 +701,6 @@ ERADICATE_META_CLASS_IS_NULLSAFE (disabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>ERADICATE_META_CLASS_NEEDS_IMPROVEMENT</key>
@@ -822,8 +712,6 @@ ERADICATE_META_CLASS_NEEDS_IMPROVEMENT (disabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>ERADICATE_NULLABLE_DEREFERENCE</key>
@@ -835,8 +723,6 @@ ERADICATE_NULLABLE_DEREFERENCE (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>ERADICATE_PARAMETER_NOT_NULLABLE</key>
@@ -848,8 +734,6 @@ ERADICATE_PARAMETER_NOT_NULLABLE (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>ERADICATE_REDUNDANT_NESTED_CLASS_ANNOTATION</key>
@@ -861,8 +745,6 @@ ERADICATE_REDUNDANT_NESTED_CLASS_ANNOTATION (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>ERADICATE_RETURN_NOT_NULLABLE</key>
@@ -874,8 +756,6 @@ ERADICATE_RETURN_NOT_NULLABLE (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>ERADICATE_RETURN_OVER_ANNOTATED</key>
@@ -887,8 +767,6 @@ ERADICATE_RETURN_OVER_ANNOTATED (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>ERADICATE_UNCHECKED_USAGE_IN_NULLSAFE</key>
@@ -900,8 +778,6 @@ ERADICATE_UNCHECKED_USAGE_IN_NULLSAFE (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>ERADICATE_UNVETTED_THIRD_PARTY_IN_NULLSAFE</key>
@@ -913,8 +789,6 @@ ERADICATE_UNVETTED_THIRD_PARTY_IN_NULLSAFE (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>EXECUTION_TIME_COMPLEXITY_INCREASE</key>
@@ -926,8 +800,6 @@ EXECUTION_TIME_COMPLEXITY_INCREASE (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>EXECUTION_TIME_COMPLEXITY_INCREASE_UI_THREAD</key>
@@ -939,8 +811,6 @@ EXECUTION_TIME_COMPLEXITY_INCREASE_UI_THREAD (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>EXECUTION_TIME_UNREACHABLE_AT_EXIT</key>
@@ -952,8 +822,6 @@ EXECUTION_TIME_UNREACHABLE_AT_EXIT (disabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>EXPENSIVE_EXECUTION_TIME</key>
@@ -965,8 +833,6 @@ EXPENSIVE_EXECUTION_TIME (disabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>EXPENSIVE_EXECUTION_TIME_UI_THREAD</key>
@@ -978,8 +844,6 @@ EXPENSIVE_EXECUTION_TIME_UI_THREAD (disabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>EXPENSIVE_LOOP_INVARIANT_CALL</key>
@@ -991,8 +855,6 @@ EXPENSIVE_LOOP_INVARIANT_CALL (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>EXPOSED_INSECURE_INTENT_HANDLING</key>
@@ -1004,8 +866,6 @@ EXPOSED_INSECURE_INTENT_HANDLING (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>Failure_exe</key>
@@ -1017,8 +877,6 @@ Failure_exe (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>GLOBAL_VARIABLE_INITIALIZED_WITH_FUNCTION_OR_METHOD_CALL</key>
@@ -1030,8 +888,6 @@ GLOBAL_VARIABLE_INITIALIZED_WITH_FUNCTION_OR_METHOD_CALL (disabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>GUARDEDBY_VIOLATION</key>
@@ -1043,8 +899,6 @@ GUARDEDBY_VIOLATION (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>IMPURE_FUNCTION</key>
@@ -1056,8 +910,6 @@ IMPURE_FUNCTION (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>INEFFICIENT_KEYSET_ITERATOR</key>
@@ -1069,8 +921,6 @@ INEFFICIENT_KEYSET_ITERATOR (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>INFERBO_ALLOC_IS_BIG</key>
@@ -1082,8 +932,6 @@ INFERBO_ALLOC_IS_BIG (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>INFERBO_ALLOC_IS_NEGATIVE</key>
@@ -1095,8 +943,6 @@ INFERBO_ALLOC_IS_NEGATIVE (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>INFERBO_ALLOC_IS_ZERO</key>
@@ -1108,8 +954,6 @@ INFERBO_ALLOC_IS_ZERO (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>INFERBO_ALLOC_MAY_BE_BIG</key>
@@ -1121,8 +965,6 @@ INFERBO_ALLOC_MAY_BE_BIG (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>INFERBO_ALLOC_MAY_BE_NEGATIVE</key>
@@ -1134,8 +976,6 @@ INFERBO_ALLOC_MAY_BE_NEGATIVE (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>INFERBO_ALLOC_MAY_BE_TAINTED</key>
@@ -1147,8 +987,6 @@ INFERBO_ALLOC_MAY_BE_TAINTED (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>INFINITE_EXECUTION_TIME</key>
@@ -1160,8 +998,6 @@ INFINITE_EXECUTION_TIME (disabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>INHERENTLY_DANGEROUS_FUNCTION</key>
@@ -1173,8 +1009,6 @@ INHERENTLY_DANGEROUS_FUNCTION (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>INSECURE_INTENT_HANDLING</key>
@@ -1186,8 +1020,6 @@ INSECURE_INTENT_HANDLING (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>INTEGER_OVERFLOW_L1</key>
@@ -1199,8 +1031,6 @@ INTEGER_OVERFLOW_L1 (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>INTEGER_OVERFLOW_L2</key>
@@ -1212,8 +1042,6 @@ INTEGER_OVERFLOW_L2 (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>INTEGER_OVERFLOW_L5</key>
@@ -1225,8 +1053,6 @@ INTEGER_OVERFLOW_L5 (disabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>INTEGER_OVERFLOW_R2</key>
@@ -1238,8 +1064,6 @@ INTEGER_OVERFLOW_R2 (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>INTEGER_OVERFLOW_U5</key>
@@ -1251,8 +1075,6 @@ INTEGER_OVERFLOW_U5 (disabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>INTERFACE_NOT_THREAD_SAFE</key>
@@ -1264,8 +1086,6 @@ INTERFACE_NOT_THREAD_SAFE (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>INVARIANT_CALL</key>
@@ -1277,8 +1097,6 @@ INVARIANT_CALL (disabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>IVAR_NOT_NULL_CHECKED</key>
@@ -1290,8 +1108,6 @@ IVAR_NOT_NULL_CHECKED (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>Internal_error</key>
@@ -1303,8 +1119,6 @@ Internal_error (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>JAVASCRIPT_INJECTION</key>
@@ -1316,8 +1130,6 @@ JAVASCRIPT_INJECTION (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>LOCKLESS_VIOLATION</key>
@@ -1329,8 +1141,6 @@ LOCKLESS_VIOLATION (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>LOCK_CONSISTENCY_VIOLATION</key>
@@ -1342,8 +1152,6 @@ LOCK_CONSISTENCY_VIOLATION (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>LOGGING_PRIVATE_DATA</key>
@@ -1355,8 +1163,6 @@ LOGGING_PRIVATE_DATA (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>Leak_after_array_abstraction</key>
@@ -1368,8 +1174,6 @@ Leak_after_array_abstraction (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>Leak_in_footprint</key>
@@ -1381,8 +1185,6 @@ Leak_in_footprint (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>MEMORY_LEAK</key>
@@ -1394,8 +1196,6 @@ MEMORY_LEAK (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>MISSING_REQUIRED_PROP</key>
@@ -1407,8 +1207,6 @@ MISSING_REQUIRED_PROP (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>MIXED_SELF_WEAKSELF</key>
@@ -1420,8 +1218,6 @@ MIXED_SELF_WEAKSELF (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>MULTIPLE_WEAKSELF</key>
@@ -1433,8 +1229,6 @@ MULTIPLE_WEAKSELF (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>MUTABLE_LOCAL_VARIABLE_IN_COMPONENT_FILE</key>
@@ -1446,8 +1240,6 @@ MUTABLE_LOCAL_VARIABLE_IN_COMPONENT_FILE (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>Missing_fld</key>
@@ -1459,8 +1251,6 @@ Missing_fld (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>NULLPTR_DEREFERENCE</key>
@@ -1472,8 +1262,6 @@ NULLPTR_DEREFERENCE (disabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>NULL_DEREFERENCE</key>
@@ -1485,8 +1273,6 @@ NULL_DEREFERENCE (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>NULL_TEST_AFTER_DEREFERENCE</key>
@@ -1498,8 +1284,6 @@ NULL_TEST_AFTER_DEREFERENCE (disabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>PARAMETER_NOT_NULL_CHECKED</key>
@@ -1511,8 +1295,6 @@ PARAMETER_NOT_NULL_CHECKED (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>POINTER_SIZE_MISMATCH</key>
@@ -1524,8 +1306,6 @@ POINTER_SIZE_MISMATCH (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>PRECONDITION_NOT_FOUND</key>
@@ -1537,8 +1317,6 @@ PRECONDITION_NOT_FOUND (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>PRECONDITION_NOT_MET</key>
@@ -1550,8 +1328,6 @@ PRECONDITION_NOT_MET (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>PREMATURE_NIL_TERMINATION_ARGUMENT</key>
@@ -1563,8 +1339,6 @@ PREMATURE_NIL_TERMINATION_ARGUMENT (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>PULSE_MEMORY_LEAK</key>
@@ -1576,8 +1350,6 @@ PULSE_MEMORY_LEAK (disabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>PURE_FUNCTION</key>
@@ -1589,8 +1361,6 @@ PURE_FUNCTION (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>QUANDARY_TAINT_ERROR</key>
@@ -1602,8 +1372,6 @@ QUANDARY_TAINT_ERROR (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>REGISTERED_OBSERVER_BEING_DEALLOCATED</key>
@@ -1615,8 +1383,6 @@ REGISTERED_OBSERVER_BEING_DEALLOCATED (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>RESOURCE_LEAK</key>
@@ -1628,8 +1394,6 @@ RESOURCE_LEAK (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>RETAIN_CYCLE</key>
@@ -1641,8 +1405,6 @@ RETAIN_CYCLE (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>RETURN_EXPRESSION_REQUIRED</key>
@@ -1654,8 +1416,6 @@ RETURN_EXPRESSION_REQUIRED (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>RETURN_STATEMENT_MISSING</key>
@@ -1667,8 +1427,6 @@ RETURN_STATEMENT_MISSING (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>RETURN_VALUE_IGNORED</key>
@@ -1680,8 +1438,6 @@ RETURN_VALUE_IGNORED (disabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>SHELL_INJECTION</key>
@@ -1693,8 +1449,6 @@ SHELL_INJECTION (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>SHELL_INJECTION_RISK</key>
@@ -1706,8 +1460,6 @@ SHELL_INJECTION_RISK (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>SKIP_FUNCTION</key>
@@ -1719,8 +1471,6 @@ SKIP_FUNCTION (disabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>SKIP_POINTER_DEREFERENCE</key>
@@ -1732,8 +1482,6 @@ SKIP_POINTER_DEREFERENCE (disabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>SQL_INJECTION</key>
@@ -1745,8 +1493,6 @@ SQL_INJECTION (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>SQL_INJECTION_RISK</key>
@@ -1758,8 +1504,6 @@ SQL_INJECTION_RISK (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>STACK_VARIABLE_ADDRESS_ESCAPE</key>
@@ -1771,8 +1515,6 @@ STACK_VARIABLE_ADDRESS_ESCAPE (disabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>STARVATION</key>
@@ -1784,8 +1526,6 @@ STARVATION (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>STATIC_INITIALIZATION_ORDER_FIASCO</key>
@@ -1797,8 +1537,6 @@ STATIC_INITIALIZATION_ORDER_FIASCO (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>STRICT_MODE_VIOLATION</key>
@@ -1810,8 +1548,6 @@ STRICT_MODE_VIOLATION (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>STRONG_SELF_NOT_CHECKED</key>
@@ -1823,8 +1559,6 @@ STRONG_SELF_NOT_CHECKED (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>Symexec_memory_error</key>
@@ -1836,8 +1570,6 @@ Symexec_memory_error (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>THREAD_SAFETY_VIOLATION</key>
@@ -1849,8 +1581,6 @@ THREAD_SAFETY_VIOLATION (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>TOPL_ERROR</key>
@@ -1862,8 +1592,6 @@ TOPL_ERROR (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>UNARY_MINUS_APPLIED_TO_UNSIGNED_EXPRESSION</key>
@@ -1875,8 +1603,6 @@ UNARY_MINUS_APPLIED_TO_UNSIGNED_EXPRESSION (disabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>UNINITIALIZED_VALUE</key>
@@ -1888,8 +1614,6 @@ UNINITIALIZED_VALUE (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>UNREACHABLE_CODE</key>
@@ -1901,8 +1625,6 @@ UNREACHABLE_CODE (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>UNTRUSTED_BUFFER_ACCESS</key>
@@ -1914,8 +1636,6 @@ UNTRUSTED_BUFFER_ACCESS (disabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>UNTRUSTED_DESERIALIZATION</key>
@@ -1927,8 +1647,6 @@ UNTRUSTED_DESERIALIZATION (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>UNTRUSTED_DESERIALIZATION_RISK</key>
@@ -1940,8 +1658,6 @@ UNTRUSTED_DESERIALIZATION_RISK (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>UNTRUSTED_ENVIRONMENT_CHANGE_RISK</key>
@@ -1953,8 +1669,6 @@ UNTRUSTED_ENVIRONMENT_CHANGE_RISK (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>UNTRUSTED_FILE</key>
@@ -1966,8 +1680,6 @@ UNTRUSTED_FILE (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>UNTRUSTED_FILE_RISK</key>
@@ -1979,8 +1691,6 @@ UNTRUSTED_FILE_RISK (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>UNTRUSTED_HEAP_ALLOCATION</key>
@@ -1992,8 +1702,6 @@ UNTRUSTED_HEAP_ALLOCATION (disabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>UNTRUSTED_INTENT_CREATION</key>
@@ -2005,8 +1713,6 @@ UNTRUSTED_INTENT_CREATION (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>UNTRUSTED_URL_RISK</key>
@@ -2018,8 +1724,6 @@ UNTRUSTED_URL_RISK (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>UNTRUSTED_VARIABLE_LENGTH_ARRAY</key>
@@ -2031,8 +1735,6 @@ UNTRUSTED_VARIABLE_LENGTH_ARRAY (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>USER_CONTROLLED_SQL_RISK</key>
@@ -2044,8 +1746,6 @@ USER_CONTROLLED_SQL_RISK (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>USE_AFTER_DELETE</key>
@@ -2057,8 +1757,6 @@ USE_AFTER_DELETE (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>USE_AFTER_FREE</key>
@@ -2070,8 +1768,6 @@ USE_AFTER_FREE (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>USE_AFTER_LIFETIME</key>
@@ -2083,8 +1779,6 @@ USE_AFTER_LIFETIME (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>Unknown_proc</key>
@@ -2096,8 +1790,6 @@ Unknown_proc (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>VECTOR_INVALIDATION</key>
@@ -2109,8 +1801,6 @@ VECTOR_INVALIDATION (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>WEAK_SELF_IN_NO_ESCAPE_BLOCK</key>
@@ -2122,8 +1812,6 @@ WEAK_SELF_IN_NO_ESCAPE_BLOCK (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>Wrong_argument_number</key>
@@ -2135,7 +1823,5 @@ Wrong_argument_number (enabled by default)
     </description>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
   </rule>
 </rules>

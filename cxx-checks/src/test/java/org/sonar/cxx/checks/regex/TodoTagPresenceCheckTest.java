@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,24 +20,21 @@
 package org.sonar.cxx.checks.regex;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.sonar.cxx.CxxAstScanner;
 import org.sonar.cxx.checks.CxxFileTesterHelper;
 import org.sonar.cxx.squidbridge.api.SourceFile;
 import org.sonar.cxx.squidbridge.checks.CheckMessagesVerifierRule;
 
-public class TodoTagPresenceCheckTest {
+class TodoTagPresenceCheckTest {
 
-  @Rule
-  public CheckMessagesVerifierRule checkMessagesVerifier = new CheckMessagesVerifierRule();
+  private final CheckMessagesVerifierRule checkMessagesVerifier = new CheckMessagesVerifierRule();
 
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
-  public void detected() throws UnsupportedEncodingException, IOException {
+  void detected() throws IOException {
     var tester = CxxFileTesterHelper.create("src/test/resources/checks/TodoTagPresenceCheck.cc",
-                                        ".");
+      ".");
     SourceFile file = CxxAstScanner.scanSingleInputFile(tester.asInputFile(), new TodoTagPresenceCheck());
 
     checkMessagesVerifier.verify(file.getCheckMessages())

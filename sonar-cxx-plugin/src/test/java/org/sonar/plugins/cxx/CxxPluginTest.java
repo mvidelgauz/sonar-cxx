@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,20 +19,20 @@
  */
 package org.sonar.plugins.cxx;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 import org.sonar.api.Plugin;
 import org.sonar.api.SonarEdition;
 import org.sonar.api.SonarQubeSide;
 import org.sonar.api.SonarRuntime;
-import org.sonar.api.internal.SonarRuntimeImpl;
+import com.sonarsource.scanner.engine.sensor.test.fixtures.TestSonarRuntime;
 import org.sonar.api.utils.Version;
 
-public class CxxPluginTest {
+class CxxPluginTest {
 
   @Test
-  public void testGetExtensions() throws Exception {
-    SonarRuntime runtime = SonarRuntimeImpl.forSonarQube(
+  void testGetExtensions() {
+    SonarRuntime runtime = TestSonarRuntime.forSonarQube(
       Version.create(8, 6),
       SonarQubeSide.SCANNER,
       SonarEdition.COMMUNITY
@@ -40,7 +40,7 @@ public class CxxPluginTest {
     var context = new Plugin.Context(runtime);
     var plugin = new CxxPlugin();
     plugin.define(context);
-    assertThat(context.getExtensions()).hasSize(81);
+    assertThat(context.getExtensions()).hasSize(84);
   }
 
 }

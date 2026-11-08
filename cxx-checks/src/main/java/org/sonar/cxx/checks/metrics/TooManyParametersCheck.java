@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,8 +19,8 @@
  */
 package org.sonar.cxx.checks.metrics;
 
-import com.sonar.sslr.api.AstNode;
-import com.sonar.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.AstNode;
+import com.sonar.cxx.sslr.api.Grammar;
 import org.sonar.check.Priority;
 import org.sonar.check.Rule;
 import org.sonar.check.RuleProperty;

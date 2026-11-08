@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -25,10 +25,10 @@ package org.sonar.cxx.squidbridge.rules;
 
 import com.google.common.annotations.Beta;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import org.sonar.api.server.rule.RulesDefinition.NewRepository;
 import org.sonar.api.server.rule.RulesDefinition.NewRule;
 
@@ -37,12 +37,12 @@ public class ExternalDescriptionLoader {
 
   private final String resourceBasePath;
 
-  public ExternalDescriptionLoader(NewRepository repository, String resourceBasePath) {
+  public ExternalDescriptionLoader(String resourceBasePath) {
     this.resourceBasePath = resourceBasePath;
   }
 
   public static void loadHtmlDescriptions(NewRepository repository, String languageKey) {
-    var loader = new ExternalDescriptionLoader(repository, languageKey);
+    var loader = new ExternalDescriptionLoader(languageKey);
     for (var newRule : repository.rules()) {
       loader.addHtmlDescription(newRule);
     }
@@ -58,7 +58,7 @@ public class ExternalDescriptionLoader {
   @VisibleForTesting
   void addHtmlDescription(NewRule rule, URL resource) {
     try {
-      rule.setHtmlDescription(Resources.toString(resource, Charsets.UTF_8));
+      rule.setHtmlDescription(Resources.toString(resource, StandardCharsets.UTF_8));
     } catch (IOException e) {
       throw new IllegalStateException("Failed to read: " + resource, e);
     }

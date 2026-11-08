@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -21,17 +21,17 @@ package org.sonar.cxx.visitors;
 
 import java.io.IOException;
 import org.assertj.core.api.SoftAssertions;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.sonar.cxx.CxxAstScanner;
 import org.sonar.cxx.CxxFileTesterHelper;
 import org.sonar.cxx.api.CxxMetric;
 import org.sonar.cxx.config.CxxSquidConfiguration;
 import org.sonar.cxx.squidbridge.api.SourceFile;
 
-public class CxxFunctionSizeVisitorTest {
+class CxxFunctionSizeVisitorTest {
 
   @Test
-  public void testPublishMeasuresForFile() throws IOException {
+  void testPublishMeasuresForFile() throws IOException {
 
     CxxSquidConfiguration squidConfig = new CxxSquidConfiguration();
     squidConfig.add(CxxSquidConfiguration.SONAR_PROJECT_PROPERTIES, CxxSquidConfiguration.FUNCTION_SIZE_THRESHOLD,
@@ -48,7 +48,7 @@ public class CxxFunctionSizeVisitorTest {
   }
 
   @Test
-  public void testPublishMeasuresForEmptyFile() throws IOException {
+  void testPublishMeasuresForEmptyFile() throws IOException {
     var tester = CxxFileTesterHelper.create("src/test/resources/metrics/EmptyFile.cc", ".", "");
     SourceFile file = CxxAstScanner.scanSingleInputFile(tester.asInputFile());
 

@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -21,11 +21,11 @@ package org.sonar.cxx.sensors.other;
 
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.sonar.api.config.Configuration;
 import org.sonar.api.server.rule.RulesDefinition;
-import org.sonar.api.server.rule.RulesDefinitionXmlLoader;
-import org.sonar.api.utils.log.Logger;
-import org.sonar.api.utils.log.Loggers;
+import org.sonar.cxx.sensors.utils.RulesDefinitionXmlLoader;
 
 /**
  * Loads the external rules configuration file.
@@ -35,7 +35,7 @@ public class CxxOtherRepository implements RulesDefinition {
   public static final String KEY = "other";
   private static final String NAME = "Other";
 
-  private static final Logger LOG = Loggers.get(CxxOtherRepository.class);
+  private static final Logger LOG = LoggerFactory.getLogger(CxxOtherRepository.class);
 
   private final RulesDefinitionXmlLoader xmlRuleLoader;
   private final Configuration config;
@@ -69,9 +69,9 @@ public class CxxOtherRepository implements RulesDefinition {
           // In case of an error, ignore the whole XML block. The loading happens during the server start,
           // errors are critical and can cause that the server cannot be started anymore.
           var xml = ruleDefs.substring(0, Math.min(ruleDefs.length(), 120))
-            .replaceAll("\\R", "").replaceAll(">[ ]+<", "><");
+            .replaceAll("\\R", "").replaceAll(">\\x20+<", "><");
           LOG.error("Cannot load rule definions for 'sonar.cxx.other.rules', '{}', XML '{}...', skipping",
-                    e.getMessage(), xml);
+            e.getMessage(), xml, e);
         }
       }
     }

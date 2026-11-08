@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,10 +19,11 @@
  */
 package org.sonar.cxx.visitors;
 
-import com.sonar.sslr.api.AstNode;
-import com.sonar.sslr.api.Grammar;
-import org.sonar.api.utils.log.Logger;
-import org.sonar.api.utils.log.Loggers;
+import com.sonar.cxx.sslr.api.AstNode;
+import com.sonar.cxx.sslr.api.Grammar;
+import javax.annotation.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.sonar.cxx.api.CxxMetric;
 import org.sonar.cxx.config.CxxSquidConfiguration;
 import org.sonar.cxx.parser.CxxGrammarImpl;
@@ -33,7 +34,7 @@ import org.sonar.cxx.squidbridge.checks.ChecksHelper;
 
 public class CxxFunctionComplexityVisitor<G extends Grammar> extends SquidAstVisitor<G> {
 
-  private static final Logger LOG = Loggers.get(CxxFunctionComplexityVisitor.class);
+  private static final Logger LOG = LoggerFactory.getLogger(CxxFunctionComplexityVisitor.class);
 
   private final int cyclomaticComplexityThreshold;
 
@@ -42,9 +43,9 @@ public class CxxFunctionComplexityVisitor<G extends Grammar> extends SquidAstVis
 
   public CxxFunctionComplexityVisitor(CxxSquidConfiguration squidConfig) {
     this.cyclomaticComplexityThreshold = squidConfig.getInt(CxxSquidConfiguration.SONAR_PROJECT_PROPERTIES,
-                                                            CxxSquidConfiguration.FUNCTION_COMPLEXITY_THRESHOLD)
+      CxxSquidConfiguration.FUNCTION_COMPLEXITY_THRESHOLD)
       .orElse(10);
-    LOG.debug("'Complex Functions' metric threshold (cyclomatic complexity): " + this.cyclomaticComplexityThreshold);
+    LOG.debug("'Complex Functions' metric threshold (cyclomatic complexity): {}", this.cyclomaticComplexityThreshold);
   }
 
   @Override
@@ -53,7 +54,7 @@ public class CxxFunctionComplexityVisitor<G extends Grammar> extends SquidAstVis
   }
 
   @Override
-  public void visitFile(AstNode astNode) {
+  public void visitFile(@Nullable AstNode astNode) {
     complexFunctions = 0;
     complexFunctionsLoc = 0;
 
@@ -61,7 +62,7 @@ public class CxxFunctionComplexityVisitor<G extends Grammar> extends SquidAstVis
   }
 
   @Override
-  public void leaveFile(AstNode astNode) {
+  public void leaveFile(@Nullable AstNode astNode) {
     super.leaveFile(astNode);
 
     var sourceFile = (SourceFile) getContext().peekSourceCode();

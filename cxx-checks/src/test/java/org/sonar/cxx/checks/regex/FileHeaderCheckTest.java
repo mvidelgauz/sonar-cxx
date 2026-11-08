@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,20 +20,18 @@
 package org.sonar.cxx.checks.regex;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 import org.sonar.cxx.CxxAstScanner;
 import org.sonar.cxx.checks.CxxFileTesterHelper;
 import org.sonar.cxx.squidbridge.api.SourceFile;
 import org.sonar.cxx.squidbridge.checks.CheckMessagesVerifier;
 
-public class FileHeaderCheckTest {
+class FileHeaderCheckTest {
 
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
-  public void test() throws UnsupportedEncodingException, IOException {
+  void test() throws IOException {
     var check = new FileHeaderCheck();
     check.headerFormat = "// copyright 2005";
 
@@ -104,7 +102,7 @@ public class FileHeaderCheckTest {
 
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
-  public void regex() throws UnsupportedEncodingException, IOException {
+  void regex() throws IOException {
     var check = new FileHeaderCheck();
     check.headerFormat = "// copyright \\d\\d\\d";
     check.isRegularExpression = true;
@@ -163,9 +161,10 @@ public class FileHeaderCheckTest {
       "Add or update the header of this file.");
 
     check = new FileHeaderCheck();
-    check.headerFormat = "//\\s*<copyright>\\s*"
-                           + "//\\s*Copyright \\(c\\) (AAA BBB|CCC DDD) GmbH. All rights reserved.\\s*"
-                           + "//\\s*</copyright>\\s*";
+    check.headerFormat = """
+       //\\s*<copyright>\\s*//\\s*Copyright \\(c\\) (AAA BBB|CCC DDD) GmbH. \
+       All rights reserved.\\s*//\\s*</copyright>\\s*
+       """;
     check.isRegularExpression = true;
 
     tester = CxxFileTesterHelper.create("src/test/resources/checks/FileHeaderCheck/Regex7.cc", ".");
@@ -175,13 +174,13 @@ public class FileHeaderCheckTest {
 
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
-  public void should_fail_with_bad_regular_expression() {
+  void shouldFailWithBadRegularExpression() {
     var check = new FileHeaderCheck();
     check.headerFormat = "[";
     check.isRegularExpression = true;
 
-    IllegalStateException e = assertThrows(IllegalStateException.class, check::init);
-    assertThat(e).hasMessage("Unable to compile the regular expression: \"^[\"");
+    IllegalStateException thrown = catchThrowableOfType(IllegalStateException.class, check::init);
+    assertThat(thrown).hasMessage("Unable to compile the regular expression: \"^[\"");
   }
 
 }

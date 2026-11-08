@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,12 +19,12 @@
  */
 package org.sonar.cxx.parser;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class ExceptionHandlingTest extends ParserBaseTestHelper {
+class ExceptionHandlingTest extends ParserBaseTestHelper {
 
   @Test
-  public void exceptionDeclaration() {
+  void exceptionDeclaration() {
     setRootRule(CxxGrammarImpl.exceptionDeclaration);
 
     mockRule(CxxGrammarImpl.typeSpecifierSeq);
@@ -41,7 +41,7 @@ public class ExceptionHandlingTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void exceptionSpecification_reallife() {
+  void exceptionSpecificationReallife() {
     setRootRule(CxxGrammarImpl.noexceptSpecifier);
 
     assertThatParser()
@@ -50,7 +50,7 @@ public class ExceptionHandlingTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void typeIdList() {
+  void typeIdList() {
     setRootRule(CxxGrammarImpl.typeIdList);
 
     mockRule(CxxGrammarImpl.typeId);
@@ -64,7 +64,7 @@ public class ExceptionHandlingTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void noexceptSpecification() {
+  void noexceptSpecification() {
     setRootRule(CxxGrammarImpl.noexceptSpecifier);
 
     mockRule(CxxGrammarImpl.constantExpression);

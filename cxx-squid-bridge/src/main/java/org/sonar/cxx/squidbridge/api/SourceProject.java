@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -21,12 +21,26 @@
  * fork of SSLR Squid Bridge: https://github.com/SonarSource/sslr-squid-bridge/tree/2.6.1
  * Copyright (C) 2010 SonarSource / mailto: sonarqube@googlegroups.com / license: LGPL v3
  */
-package org.sonar.cxx.squidbridge.api;
+package org.sonar.cxx.squidbridge.api; // cxx: in use
 
+import javax.annotation.Nullable;
+
+/**
+ * Defines a project node in the SourceCode tree. The project node is normally the root node.
+ *
+ * @see SourceCode
+ */
 public class SourceProject extends SourceCode {
 
-  public SourceProject(String key) {
-    super(key);
+  /**
+   * Initializes a newly created project node.
+   *
+   * @param key key of the project
+   * @param projectName name of the project
+   *
+   */
+  public SourceProject(String key, @Nullable String projectName) {
+    super(key, projectName);
   }
 
 }

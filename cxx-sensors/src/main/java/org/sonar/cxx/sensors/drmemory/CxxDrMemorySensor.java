@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -24,15 +24,16 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import javax.annotation.CheckForNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.sonar.api.batch.sensor.SensorDescriptor;
 import org.sonar.api.config.PropertyDefinition;
-import org.sonar.api.resources.Qualifiers;
-import org.sonar.api.utils.log.Logger;
-import org.sonar.api.utils.log.Loggers;
 import org.sonar.cxx.sensors.drmemory.DrMemoryParser.DrMemoryError;
 import org.sonar.cxx.sensors.drmemory.DrMemoryParser.DrMemoryError.Location;
 import org.sonar.cxx.sensors.utils.CxxIssuesReportSensor;
+import org.sonar.cxx.sensors.utils.CxxReportSensor;
 import org.sonar.cxx.utils.CxxReportIssue;
 
 /**
@@ -48,32 +49,30 @@ public class CxxDrMemorySensor extends CxxIssuesReportSensor {
   public static final String REPORT_PATH_KEY = "sonar.cxx.drmemory.reportPaths";
   public static final String REPORT_ENCODING_DEF = "sonar.cxx.drmemory.encoding";
   private static final String DEFAULT_ENCODING_DEF = StandardCharsets.UTF_8.name();
-  private static final Logger LOG = Loggers.get(CxxDrMemorySensor.class);
+  private static final Logger LOG = LoggerFactory.getLogger(CxxDrMemorySensor.class);
 
   public static List<PropertyDefinition> properties() {
-    var category = "CXX External Analyzers";
     var subcategory = "Dr. Memory";
     return Collections.unmodifiableList(Arrays.asList(
       PropertyDefinition.builder(REPORT_PATH_KEY)
         .name("Dr. Memory Report(s)")
-        .description(
-          "Comma-separated paths (absolute or relative to the project base directory) to `*.txt` files with"
-            + " `Dr. Memory` issues. Ant patterns are accepted for relative paths."
-        )
-        .category(category)
+        .description("""
+          Comma-separated paths (absolute or relative to the project base directory) to `*.txt` files with \
+          `Dr. Memory` issues. Ant patterns are accepted for relative paths.""")
+        .category(CxxReportSensor.CATEGORY)
         .subCategory(subcategory)
-        .onQualifiers(Qualifiers.PROJECT)
+        .onConfigScopes(Set.of(PropertyDefinition.ConfigScope.PROJECT))
         .multiValues(true)
         .build(),
       PropertyDefinition.builder(REPORT_ENCODING_DEF)
         .defaultValue(DEFAULT_ENCODING_DEF)
         .name("Dr. Memory Report Encoding")
-        .description(
-          "Defines the encoding to be used to read the files from `sonar.cxx.drmemory.reportPaths` (default is `UTF-8`)."
-        )
-        .category(category)
+        .description("""
+                     Defines the encoding to be used to read the files from `sonar.cxx.drmemory.reportPaths` \
+                     (default is `UTF-8`).""")
+        .category(CxxReportSensor.CATEGORY)
         .subCategory(subcategory)
-        .onQualifiers(Qualifiers.PROJECT)
+        .onConfigScopes(Set.of(PropertyDefinition.ConfigScope.PROJECT))
         .build()
     ));
   }
@@ -123,8 +122,8 @@ public class CxxDrMemorySensor extends CxxIssuesReportSensor {
           continue;
         }
         var fileIssue = new CxxReportIssue(error.getType().getId(),
-                                       lastOwnFrame.getFile(), lastOwnFrame.getLine().toString(), null,
-                                       error.getMessage());
+          lastOwnFrame.getFile(), lastOwnFrame.getLine().toString(), null,
+          error.getMessage());
 
         // add all frames as secondary locations
         var frameNr = 0;

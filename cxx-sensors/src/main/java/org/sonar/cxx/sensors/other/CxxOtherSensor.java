@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -23,16 +23,15 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import javax.xml.stream.XMLStreamException;
 import org.codehaus.staxmate.in.SMHierarchicCursor;
 import org.codehaus.staxmate.in.SMInputCursor;
 import org.sonar.api.PropertyType;
 import org.sonar.api.batch.sensor.SensorDescriptor;
 import org.sonar.api.config.PropertyDefinition;
-import org.sonar.api.resources.Qualifiers;
-import org.sonar.api.utils.log.Logger;
-import org.sonar.api.utils.log.Loggers;
 import org.sonar.cxx.sensors.utils.CxxIssuesReportSensor;
+import org.sonar.cxx.sensors.utils.CxxReportSensor;
 import org.sonar.cxx.sensors.utils.InvalidReportException;
 import org.sonar.cxx.sensors.utils.StaxParser;
 import org.sonar.cxx.utils.CxxReportIssue;
@@ -45,21 +44,17 @@ public class CxxOtherSensor extends CxxIssuesReportSensor {
   public static final String REPORT_PATH_KEY = "sonar.cxx.other.reportPaths";
   public static final String RULES_KEY = "sonar.cxx.other.rules";
 
-  private static final Logger LOG = Loggers.get(CxxOtherSensor.class);
-
   public static List<PropertyDefinition> properties() {
     var subcategory = "Other Analyser(s)";
     return Collections.unmodifiableList(Arrays.asList(
       PropertyDefinition.builder(REPORT_PATH_KEY)
         .name("Other Report(s)")
-        .description(
-          "Comma-separated paths (absolute or relative to the project base directory) to `*.xml` files with"
-            + " `other` issues. Ant patterns are accepted for relative paths."
-            + " In the SonarQube UI, enter one entry per field."
-        )
-        .category("CXX External Analyzers")
+        .description("""
+          Comma-separated paths (absolute or relative to the project base directory) to `*.xml` files with `other` \
+          issues. Ant patterns are accepted for relative paths. In the SonarQube UI, enter one entry per field.""")
+        .category(CxxReportSensor.CATEGORY)
         .subCategory(subcategory)
-        .onQualifiers(Qualifiers.PROJECT)
+        .onConfigScopes(Set.of(PropertyDefinition.ConfigScope.PROJECT))
         .multiValues(true)
         .build(),
       PropertyDefinition.builder(RULES_KEY)
@@ -67,7 +62,7 @@ public class CxxOtherSensor extends CxxIssuesReportSensor {
         .description("XML rule definitions for `other` code analyzers. Use a separate field for each tool.")
         .type(PropertyType.TEXT)
         .multiValues(true)
-        .category("CXX External Analyzers")
+        .category(CxxReportSensor.CATEGORY)
         .subCategory(subcategory)
         .build()
     ));

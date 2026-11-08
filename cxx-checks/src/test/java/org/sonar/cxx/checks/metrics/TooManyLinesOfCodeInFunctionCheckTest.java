@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,22 +20,19 @@
 package org.sonar.cxx.checks.metrics;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import org.junit.Test;
-import org.sonar.api.config.internal.MapSettings;
+import org.junit.jupiter.api.Test;
 import org.sonar.cxx.CxxAstScanner;
 import org.sonar.cxx.checks.CxxFileTesterHelper;
 import org.sonar.cxx.squidbridge.api.SourceFile;
 import org.sonar.cxx.squidbridge.checks.CheckMessagesVerifier;
 
-public class TooManyLinesOfCodeInFunctionCheckTest {
+class TooManyLinesOfCodeInFunctionCheckTest {
 
   private final TooManyLinesOfCodeInFunctionCheck check = new TooManyLinesOfCodeInFunctionCheck();
-  private final MapSettings settings = new MapSettings();
 
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
-  public void test() throws UnsupportedEncodingException, IOException {
+  void test() throws IOException {
     check.setMax(6);
     var tester = CxxFileTesterHelper.create("src/test/resources/checks/FunctionLength.cc", ".");
     SourceFile file = CxxAstScanner.scanSingleInputFile(tester.asInputFile(), check);

@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -21,29 +21,38 @@
  * fork of SSLR Squid Bridge: https://github.com/SonarSource/sslr-squid-bridge/tree/2.6.1
  * Copyright (C) 2010 SonarSource / mailto: sonarqube@googlegroups.com / license: LGPL v3
  */
-package org.sonar.cxx.squidbridge.api;
+package org.sonar.cxx.squidbridge.api; // cxx: in use
 
+import javax.annotation.Nullable;
+
+/**
+ * Defines a class node in the SourceCode tree.
+ *
+ * @see SourceCode
+ */
 public class SourceClass extends SourceCode {
 
   /**
-   * This is used only for Java for now, but can be used for other languages. So maybe we should push it down to
-   * SourceCode.
+   * Initializes a newly created class node.
+   *
+   * @param key key of the class
+   * @param className name of the class
    */
-  private boolean suppressWarnings = false;
-
-  public SourceClass(String key) {
-    super(key);
-  }
-
-  public SourceClass(String key, String className) {
+  public SourceClass(String key, @Nullable String className) {
     super(key, className);
   }
 
-  public void setSuppressWarnings(boolean suppressWarnings) {
-    this.suppressWarnings = suppressWarnings;
+  /**
+   * Initializes a newly created class node.
+   *
+   * @param parentKey parent object to use for key generation
+   * @param key key of the class
+   * @param className name of the class
+   *
+   * @param startAtLine line the SourceClass object starts
+   */
+  public SourceClass(SourceCode parentKey, String key, @Nullable String className, int startAtLine) {
+    super(parentKey, key, className, startAtLine);
   }
 
-  public boolean isSuppressWarnings() {
-    return suppressWarnings;
-  }
 }

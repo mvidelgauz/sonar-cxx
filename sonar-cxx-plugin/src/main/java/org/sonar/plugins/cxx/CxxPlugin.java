@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -53,6 +53,7 @@ import org.sonar.cxx.sensors.rats.CxxRatsSensor;
 import org.sonar.cxx.sensors.tests.dotnet.CxxUnitTestResultsAggregator;
 import org.sonar.cxx.sensors.tests.dotnet.CxxUnitTestResultsImportSensor;
 import org.sonar.cxx.sensors.tests.xunit.CxxXunitSensor;
+import org.sonar.cxx.sensors.utils.RulesDefinitionXmlLoader;
 import org.sonar.cxx.sensors.valgrind.CxxValgrindRuleRepository;
 import org.sonar.cxx.sensors.valgrind.CxxValgrindSensor;
 import org.sonar.cxx.sensors.veraxx.CxxVeraxxRuleRepository;
@@ -102,11 +103,12 @@ public final class CxxPlugin implements Plugin {
     context.addExtensions(l);
   }
 
-  static private List<Object> getSensorsImpl() {
+  private static List<Object> getSensorsImpl() {
     var l = new ArrayList<Object>();
 
     // utility classes
     l.add(CxxUnitTestResultsAggregator.class);
+    l.add(RulesDefinitionXmlLoader.class);
 
     // metrics
     l.add(CxxMetricDefinition.class);

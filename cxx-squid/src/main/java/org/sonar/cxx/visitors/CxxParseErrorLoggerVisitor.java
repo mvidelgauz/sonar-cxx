@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,12 +19,12 @@
  */
 package org.sonar.cxx.visitors;
 
-import com.sonar.sslr.api.AstNode;
-import com.sonar.sslr.api.GenericTokenType;
-import com.sonar.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.AstNode;
+import com.sonar.cxx.sslr.api.GenericTokenType;
+import com.sonar.cxx.sslr.api.Grammar;
 import java.util.List;
-import org.sonar.api.utils.log.Logger;
-import org.sonar.api.utils.log.Loggers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.sonar.cxx.parser.CxxGrammarImpl;
 import org.sonar.cxx.parser.CxxPunctuator;
 import org.sonar.cxx.squidbridge.SquidAstVisitor;
@@ -32,11 +32,11 @@ import org.sonar.cxx.squidbridge.SquidAstVisitor;
 public class CxxParseErrorLoggerVisitor<GRAMMAR extends Grammar> extends SquidAstVisitor<GRAMMAR> {
 
   private static final String SYNTAX_ERROR_MSG
-                                = "Source code parser: {} syntax error(s) detected. "
-                                    + "Syntax errors could cause invalid software metric values."
-                                    + " Root cause are typically missing includes, "
-                                    + "missing macros or compiler specific extensions.";
-  private static final Logger LOG = Loggers.get(CxxParseErrorLoggerVisitor.class);
+    = "Source code parser: {} syntax error(s) detected. "
+    + "Syntax errors could cause invalid software metric values."
+    + " Root cause are typically missing includes, "
+    + "missing macros or compiler specific extensions.";
+  private static final Logger LOG = LoggerFactory.getLogger(CxxParseErrorLoggerVisitor.class);
   private static int errors = 0;
 
   public static void finalReport() {
@@ -77,7 +77,7 @@ public class CxxParseErrorLoggerVisitor<GRAMMAR extends Grammar> extends SquidAs
         // part with CURLBR_LEFT is typically an ignored declaration
         if (identifierLine != -1) {
           LOG.debug("[{}:{}]: skip declaration: {}",
-                    getContext().getFile(), identifierLine, sb.toString());
+            getContext().getFile(), identifierLine, sb);
           sb.setLength(0);
           identifierLine = -1;
         }
@@ -89,10 +89,10 @@ public class CxxParseErrorLoggerVisitor<GRAMMAR extends Grammar> extends SquidAs
       }
     }
 
-    if (identifierLine != -1 && sb.length() > 0) {
+    if (identifierLine != -1 && !sb.isEmpty()) {
       // part without CURLBR_LEFT is typically a syntax error
       LOG.debug("[{}:{}]:    syntax error: {}",
-                getContext().getFile(), identifierLine, sb.toString());
+        getContext().getFile(), identifierLine, sb);
     }
   }
 

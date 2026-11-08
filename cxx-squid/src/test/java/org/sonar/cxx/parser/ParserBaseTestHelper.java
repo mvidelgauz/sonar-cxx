@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,9 +19,9 @@
  */
 package org.sonar.cxx.parser;
 
-import com.sonar.sslr.api.AstNode;
-import com.sonar.sslr.api.Grammar;
-import com.sonar.sslr.impl.Parser;
+import com.sonar.cxx.sslr.api.AstNode;
+import com.sonar.cxx.sslr.api.Grammar;
+import com.sonar.cxx.sslr.impl.Parser;
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
@@ -30,8 +30,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import org.sonar.cxx.config.CxxSquidConfiguration;
 import org.sonar.cxx.squidbridge.SquidAstVisitorContextImpl;
-import org.sonar.sslr.grammar.GrammarRuleKey;
-import org.sonar.sslr.tests.ParserAssert;
+import org.sonar.cxx.sslr.grammar.GrammarRuleKey;
+import org.sonar.cxx.sslr.tests.ParserAssert;
 
 /**
  * SquidAstVisitorContext is mock with a fake file path. You can use this base class for preprocessing tokens. You
@@ -45,15 +45,15 @@ public class ParserBaseTestHelper {
 
   public ParserBaseTestHelper() {
     squidConfig = new CxxSquidConfiguration();
-    squidConfig.add(CxxSquidConfiguration.SONAR_PROJECT_PROPERTIES, CxxSquidConfiguration.ERROR_RECOVERY_ENABLED,
-                    "false");
+    squidConfig.add(
+      CxxSquidConfiguration.SONAR_PROJECT_PROPERTIES, CxxSquidConfiguration.ERROR_RECOVERY_ENABLED, "false"
+    );
 
     var file = new File("snippet.cpp").getAbsoluteFile();
     SquidAstVisitorContextImpl<Grammar> context = mock(SquidAstVisitorContextImpl.class);
     when(context.getFile()).thenReturn(file);
 
     p = CxxParser.create(context, squidConfig);
-    //var builder = AstScanner.<Grammar>builder(context).setBaseParser(p);
     g = p.getGrammar();
   }
 
@@ -62,11 +62,11 @@ public class ParserBaseTestHelper {
   }
 
   public void mockRule(GrammarRuleKey ruleKey) {
-    g.rule(ruleKey).mock();
+    g.rule(ruleKey).override(ruleKey.toString());
   }
 
   public ParserAssert assertThatParser() {
-    return org.sonar.sslr.tests.Assertions.assertThat(p);
+    return org.sonar.cxx.sslr.tests.Assertions.assertThat(p);
   }
 
   public String parse(String input) {
@@ -76,8 +76,7 @@ public class ParserBaseTestHelper {
   private String serialize(AstNode root) {
     var values = new LinkedList<String>();
     iterate(root, values);
-    var s = String.join(" ", values);
-    return s;
+    return String.join(" ", values);
   }
 
   private void iterate(@Nullable AstNode node, List<String> values) {

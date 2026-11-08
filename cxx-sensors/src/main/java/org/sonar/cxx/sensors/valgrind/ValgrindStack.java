@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -22,11 +22,12 @@ package org.sonar.cxx.sensors.valgrind;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
+import javax.annotation.Nullable;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 
 /**
  * Represents a call stack, consists basically of a list of frames
@@ -35,8 +36,8 @@ class ValgrindStack {
 
   private final List<ValgrindFrame> frames = new ArrayList<>();
 
-  private static boolean isInside(String path, String folder) {
-    return (path == null || "".equals(path)) ? false : path.startsWith(folder);
+  private static boolean isInside(@Nullable String path, String folder) {
+    return (path != null) && !path.isBlank() && path.startsWith(folder);
   }
 
   /**
@@ -59,9 +60,7 @@ class ValgrindStack {
 
   @Override
   public int hashCode() {
-    return new HashCodeBuilder()
-      .append(frames)
-      .toHashCode();
+    return Objects.hash(frames);
   }
 
   @Override

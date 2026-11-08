@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -21,8 +21,9 @@
  * fork of SSLR Squid Bridge: https://github.com/SonarSource/sslr-squid-bridge/tree/2.6.1
  * Copyright (C) 2010 SonarSource / mailto: sonarqube@googlegroups.com / license: LGPL v3
  */
-package org.sonar.cxx.squidbridge.indexer;
+package org.sonar.cxx.squidbridge.indexer; // cxx: in use
 
+import java.util.Objects;
 import javax.annotation.Nullable;
 import org.sonar.cxx.squidbridge.api.Query;
 import org.sonar.cxx.squidbridge.api.SourceCode;
@@ -66,6 +67,6 @@ public class QueryByType implements Query {
 
   @Override
   public int hashCode() {
-    return resourceType != null ? resourceType.hashCode() : 0;
+    return Objects.hash(resourceType);
   }
 }

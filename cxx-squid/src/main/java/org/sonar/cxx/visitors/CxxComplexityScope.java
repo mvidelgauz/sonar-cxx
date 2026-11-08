@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,7 +19,7 @@
  */
 package org.sonar.cxx.visitors;
 
-import com.sonar.sslr.api.AstNode;
+import com.sonar.cxx.sslr.api.AstNode;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;

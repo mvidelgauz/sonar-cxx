@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,61 +19,59 @@
  */
 package org.sonar.cxx.sensors.cppcheck;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 import org.assertj.core.api.SoftAssertions;
-import org.junit.Before;
-import org.junit.Test;
-import org.sonar.api.batch.fs.internal.DefaultFileSystem;
-import org.sonar.api.batch.fs.internal.TestInputFileBuilder;
-import org.sonar.api.batch.sensor.internal.DefaultSensorDescriptor;
-import org.sonar.api.batch.sensor.internal.SensorContextTester;
-import org.sonar.api.config.internal.MapSettings;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.sonar.scanner.plugin.api.impl.fs.DefaultFileSystem;
+import org.sonar.scanner.plugin.api.impl.sensor.DefaultSensorDescriptor;
+import com.sonarsource.scanner.engine.sensor.test.fixtures.SensorContextTester;
+import org.sonar.scanner.plugin.api.impl.config.MapSettings;
 import org.sonar.cxx.sensors.utils.CxxReportSensor;
 import org.sonar.cxx.sensors.utils.TestUtils;
+import static org.sonar.cxx.sensors.utils.TestUtils.createTestInputFile;
 
-public class CxxCppCheckSensorTest {
+class CxxCppCheckSensorTest {
 
   private DefaultFileSystem fs;
   private final MapSettings settings = new MapSettings();
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     fs = TestUtils.mockFileSystem();
     settings.setProperty(CxxReportSensor.ERROR_RECOVERY_KEY, true);
   }
 
   @Test
-  public void shouldReportCorrectViolations() {
+  void shouldReportCorrectViolations() {
     var context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(CxxCppCheckSensor.REPORT_PATH_KEY, "cppcheck-reports/cppcheck-result-*.xml");
     context.setSettings(settings);
 
-    context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "sources/utils/code_chunks.cpp")
-      .setLanguage("cxx").initMetadata("asd\nasdas\nasda\n").build());
-    context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "sources/utils/utils.cpp")
-      .setLanguage("cxx").initMetadata("asd\nasdas\nasda\n").build());
+    context.fileSystem().add(createTestInputFile("sources/utils/code_chunks.cpp", 3));
+    context.fileSystem().add(createTestInputFile("sources/utils/utils.cpp", 3));
 
-    var sensor = new CxxCppCheckSensor();
+    var sensor = new CxxCppCheckSensor().setWebApi(null);
     sensor.execute(context);
 
     assertThat(context.allIssues()).hasSize(7);
   }
 
   @Test
-  public void shouldReportProjectLevelViolationsV2() {
+  void shouldReportProjectLevelViolationsV2() {
     var context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(CxxCppCheckSensor.REPORT_PATH_KEY,
-                         "cppcheck-reports/cppcheck-result-projectlevelviolation-V2.xml");
+      "cppcheck-reports/cppcheck-result-projectlevelviolation-V2.xml");
     context.setSettings(settings);
 
-    var sensor = new CxxCppCheckSensor();
+    var sensor = new CxxCppCheckSensor().setWebApi(null);
     sensor.execute(context);
 
     var softly = new SoftAssertions();
     softly.assertThat(context.allIssues()).hasSize(3);
 
     // assert that all all issues were filed on on the module
-    final String moduleKey = context.project().key();
+    String moduleKey = context.project().key();
     for (var issue : context.allIssues()) {
       softly.assertThat(issue.primaryLocation().inputComponent().key()).isEqualTo(moduleKey);
     }
@@ -81,44 +79,47 @@ public class CxxCppCheckSensorTest {
   }
 
   @Test
-  public void shouldIgnoreAViolationWhenTheResourceCouldntBeFoundV1() {
+  void shouldIgnoreAViolationWhenTheResourceCouldntBeFoundV1() {
     var context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(CxxCppCheckSensor.REPORT_PATH_KEY, "cppcheck-reports/cppcheck-result-SAMPLE-V1.xml");
     context.setSettings(settings);
 
-    var sensor = new CxxCppCheckSensor();
+    var sensor = new CxxCppCheckSensor().setWebApi(null);
     sensor.execute(context);
 
     assertThat(context.allIssues()).isEmpty();
   }
 
   @Test
-  public void shouldIgnoreAViolationWhenTheResourceCouldntBeFoundV2() {
+  void shouldIgnoreAViolationWhenTheResourceCouldntBeFoundV2() {
     var context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(CxxCppCheckSensor.REPORT_PATH_KEY, "cppcheck-reports/cppcheck-result-SAMPLE-V2.xml");
     context.setSettings(settings);
 
-    var sensor = new CxxCppCheckSensor();
+    var sensor = new CxxCppCheckSensor().setWebApi(null);
     sensor.execute(context);
 
     assertThat(context.allIssues()).isEmpty();
   }
 
-  @Test(expected = IllegalStateException.class)
-  public void shouldThrowExceptionWhenRecoveryIsDisabled() {
+  @Test
+  void shouldThrowExceptionWhenRecoveryIsDisabled() {
     var context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(CxxReportSensor.ERROR_RECOVERY_KEY, false);
     settings.setProperty(CxxCppCheckSensor.REPORT_PATH_KEY, "cppcheck-reports/cppcheck-result-empty.xml");
     context.setSettings(settings);
 
-    var sensor = new CxxCppCheckSensor();
-    sensor.execute(context);
+    var sensor = new CxxCppCheckSensor().setWebApi(null);
+    IllegalStateException thrown = catchThrowableOfType(IllegalStateException.class, () -> {
+      sensor.execute(context);
+    });
+    assertThat(thrown).isExactlyInstanceOf(IllegalStateException.class);
   }
 
   @Test
-  public void sensorDescriptor() {
+  void sensorDescriptor() {
     var descriptor = new DefaultSensorDescriptor();
-    var sensor = new CxxCppCheckSensor();
+    var sensor = new CxxCppCheckSensor().setWebApi(null);
     sensor.describe(descriptor);
 
     var softly = new SoftAssertions();

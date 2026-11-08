@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,20 +19,21 @@
  */
 package org.sonar.cxx.checks.metrics;
 
-import com.sonar.sslr.api.AstNode;
-import com.sonar.sslr.api.AstNodeType;
-import com.sonar.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.AstNode;
+import com.sonar.cxx.sslr.api.AstNodeType;
+import com.sonar.cxx.sslr.api.Grammar;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.Optional;
+import javax.annotation.Nullable;
 import org.sonar.cxx.CxxComplexityConstants;
 import org.sonar.cxx.utils.CxxReportIssue;
 import org.sonar.cxx.visitors.CxxComplexityScope;
 import org.sonar.cxx.visitors.MultiLocatitionSquidCheck;
 
 /**
- * This is an enhanced version of org.sonar.cxx.squidbridge.metrics.ComplexityVisitor, which is used in order to compute the
- * Cyclomatic Complexity.
+ * This is an enhanced version of org.sonar.cxx.squidbridge.metrics.ComplexityVisitor, which is used in order to compute
+ * the Cyclomatic Complexity.
  *
  * @param <G>
  */
@@ -47,9 +48,9 @@ public abstract class CxxCyclomaticComplexityCheck<G extends Grammar> extends Mu
   @Override
   public void init() {
     subscribeTo(CxxComplexityConstants.getCyclomaticComplexityTypes());
-    final Optional<AstNodeType> scopeType = getScopeType();
+    Optional<AstNodeType> scopeType = getScopeType();
     if (scopeType.isPresent()) {
-      final AstNodeType additionalNode = scopeType.get();
+      AstNodeType additionalNode = scopeType.get();
       if (!getAstNodeTypesToVisit().contains(additionalNode)) {
         subscribeTo(additionalNode);
       }
@@ -59,14 +60,14 @@ public abstract class CxxCyclomaticComplexityCheck<G extends Grammar> extends Mu
   }
 
   @Override
-  public void visitFile(AstNode astNode) {
+  public void visitFile(@Nullable AstNode astNode) {
     if (!getScopeType().isPresent()) {
       complexityScopes.addFirst(new CxxComplexityScope(1));
     }
   }
 
   @Override
-  public void leaveFile(AstNode astNode) {
+  public void leaveFile(@Nullable AstNode astNode) {
     if (!getScopeType().isPresent()) {
       analyzeScopeComplexity();
     }
@@ -78,7 +79,7 @@ public abstract class CxxCyclomaticComplexityCheck<G extends Grammar> extends Mu
       return;
     }
 
-    final Optional<AstNodeType> scopeType = getScopeType();
+    Optional<AstNodeType> scopeType = getScopeType();
     if (scopeType.isPresent() && astNode.is(scopeType.get())) {
       complexityScopes.addFirst(new CxxComplexityScope(astNode.getTokenLine()));
     }
@@ -98,7 +99,7 @@ public abstract class CxxCyclomaticComplexityCheck<G extends Grammar> extends Mu
       return;
     }
 
-    final Optional<AstNodeType> scopeType = getScopeType();
+    Optional<AstNodeType> scopeType = getScopeType();
     if (scopeType.isPresent() && astNode.is(scopeType.get())) {
       analyzeScopeComplexity();
     }
@@ -107,8 +108,8 @@ public abstract class CxxCyclomaticComplexityCheck<G extends Grammar> extends Mu
   private void analyzeScopeComplexity() {
     CxxComplexityScope scope = complexityScopes.removeFirst();
 
-    final int maxComplexity = getMaxComplexity();
-    final int currentComplexity = scope.getComplexity();
+    int maxComplexity = getMaxComplexity();
+    int currentComplexity = scope.getComplexity();
     if (scope.getComplexity() > maxComplexity) {
       var msg = new StringBuilder(256);
       msg.append("The Cyclomatic Complexity of this ")

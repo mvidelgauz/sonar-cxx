@@ -1,21 +1,22 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
     <groupId>org.sonarsource.sonarqube-plugins.cxx</groupId>
     <artifactId>cxx</artifactId>
-    <version>2.0.7-SNAPSHOT</version>
+    <version>2.4.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>cxx-sslr-toolkit</artifactId>
-
   <name>Cxx :: SSLR Toolkit</name>
 
   <dependencies>
     <dependency>
-      <groupId>org.sonarsource.sslr</groupId>
+      <groupId>${project.groupId}</groupId>
       <artifactId>sslr-toolkit</artifactId>
-      <version>${sslr.version}</version>
+      <version>${project.version}</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
@@ -25,14 +26,37 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>org.sonarsource.sonarqube</groupId>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>cxx-squid-bridge</artifactId>
+      <version>${project.version}</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>sslr-core</artifactId>
+      <version>${project.version}</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.sonarsource.api.plugin</groupId>
       <artifactId>sonar-plugin-api</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.codehaus.sonar</groupId>
       <artifactId>sonar-colorizer</artifactId>
-      <version>5.1</version>
+      <version>${sonar-colorizer.version}</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>jsr305</artifactId>
       <scope>compile</scope>
     </dependency>
   </dependencies>
@@ -42,7 +66,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
-        <version>3.2.2</version>
+        <version>${maven-jar.version}</version>
         <configuration>
           <archive>
             <manifest>
@@ -54,7 +78,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>3.2.4</version>
+        <version>${maven-shade.version}</version>
         <executions>
           <execution>
             <phase>package</phase>
@@ -85,7 +109,7 @@
               <rules>
                 <requireFilesSize>
                   <maxsize>13000000</maxsize>
-                  <minsize>8000000</minsize>
+                  <minsize>6000000</minsize>
                   <files>
                     <file>${project.build.directory}/${project.build.finalName}.jar</file>
                   </files>

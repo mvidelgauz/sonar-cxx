@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -24,45 +24,42 @@
 package org.sonar.cxx.squidbridge.annotations;
 
 import com.google.common.collect.ImmutableList;
-import static org.fest.assertions.Assertions.assertThat;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 import org.sonar.api.server.debt.DebtRemediationFunction;
 import org.sonar.api.server.debt.DebtRemediationFunction.Type;
 import org.sonar.api.server.rule.*;
 import org.sonar.api.server.rule.RulesDefinition.NewRepository;
 import org.sonar.api.server.rule.RulesDefinition.Param;
 import org.sonar.api.server.rule.RulesDefinition.Repository;
-import org.sonar.api.server.rule.RulesDefinition.SubCharacteristics;
 import org.sonar.check.Cardinality;
 import org.sonar.check.Rule;
 import org.sonar.check.RuleProperty;
 
-public class AnnotationBasedRulesDefinitionTest {
+class AnnotationBasedRulesDefinitionTest {
 
   private static final String REPO_KEY = "repoKey";
   private static final String LANGUAGE_KEY_WITH_RESOURCE_BUNDLE = "languageKey";
 
-  private RulesDefinition.Context context = new RulesDefinition.Context();
-
-  @org.junit.Rule
-  public ExpectedException thrown = ExpectedException.none();
+  private final RulesDefinition.Context context = new RulesDefinition.Context();
 
   @Test
-  public void no_class_to_add() throws Exception {
+  void noClassToAdd() {
     assertThat(buildRepository(false).rules()).isEmpty();
   }
 
   @Test
-  public void class_without_rule_annotation() throws Exception {
+  void classWithoutRuleAnnotation() {
     class NotRuleClass {
     }
-    thrown.expect(IllegalArgumentException.class);
-    buildSingleRuleRepository(NotRuleClass.class);
+    IllegalArgumentException thrown = catchThrowableOfType(IllegalArgumentException.class, () -> {
+      buildSingleRuleRepository(NotRuleClass.class);
+    });
+    assertThat(thrown).isExactlyInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
-  public void rule_annotation_data() throws Exception {
+  void ruleAnnotationData() {
 
     @Rule(key = "key1", name = "name1", description = "description1", tags = "mytag")
     class RuleClass {
@@ -75,7 +72,6 @@ public class AnnotationBasedRulesDefinitionTest {
     assertThat(rule.key()).isEqualTo("key1");
     assertThat(rule.name()).isEqualTo("name1");
     assertThat(rule.htmlDescription()).isEqualTo("description1");
-    assertThat(rule.markdownDescription()).isNull();
     assertThat(rule.tags()).containsOnly("mytag");
     assertThat(rule.template()).isFalse();
     assertThat(rule.params()).hasSize(1);
@@ -87,22 +83,24 @@ public class AnnotationBasedRulesDefinitionTest {
   }
 
   @Test
-  public void rule_without_explicit_key() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    buildSingleRuleRepository(RuleClassWithoutAnnotationDefinedKey.class);
+  void ruleWithoutExplicitKey() {
+    IllegalArgumentException thrown = catchThrowableOfType(IllegalArgumentException.class, () -> {
+      buildSingleRuleRepository(RuleClassWithoutAnnotationDefinedKey.class);
+    });
+    assertThat(thrown).isExactlyInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
-  public void rule_without_explicit_key_can_be_acceptable() throws Exception {
+  void ruleWithoutExplicitKeyCanBeAcceptable() {
     Repository repository = buildRepository(LANGUAGE_KEY_WITH_RESOURCE_BUNDLE, false, false,
-                                            RuleClassWithoutAnnotationDefinedKey.class);
+      RuleClassWithoutAnnotationDefinedKey.class);
     var rule = repository.rules().get(0);
     assertThat(rule.key()).isEqualTo(RuleClassWithoutAnnotationDefinedKey.class.getCanonicalName());
     assertThat(rule.name()).isEqualTo("name1");
   }
 
   @Test
-  public void external_names_and_descriptions() throws Exception {
+  void externalNamesAndDescriptions() {
 
     @Rule(key = "ruleWithExternalInfo")
     class RuleClass {
@@ -123,17 +121,18 @@ public class AnnotationBasedRulesDefinitionTest {
   }
 
   @Test
-  public void no_name_and_no_resource_bundle() throws Exception {
+  void noNameAndNoResourceBundle() {
     @Rule(key = "ruleWithExternalInfo")
     class RuleClass {
     }
-
-    thrown.expect(IllegalStateException.class);
-    buildRepository("languageWithoutBundle", false, false, RuleClass.class);
+    IllegalStateException thrown = catchThrowableOfType(IllegalStateException.class, () -> {
+      buildRepository("languageWithoutBundle", false, false, RuleClass.class);
+    });
+    assertThat(thrown).isExactlyInstanceOf(IllegalStateException.class);
   }
 
   @Test
-  public void rule_template() throws Exception {
+  void ruleTemplate() {
     @Rule(key = "key1", name = "name1", description = "description1")
     @NoSqale
     @RuleTemplate
@@ -145,7 +144,7 @@ public class AnnotationBasedRulesDefinitionTest {
   }
 
   @Test
-  public void cardinality_single() throws Exception {
+  void cardinalitySingle() {
     @Rule(key = "key1", name = "name1", description = "description1", cardinality = Cardinality.SINGLE)
     class RuleClass {
     }
@@ -155,27 +154,29 @@ public class AnnotationBasedRulesDefinitionTest {
   }
 
   @Test
-  public void cardinality_multiple() throws Exception {
+  void cardinalityMultiple() {
     @Rule(key = "key1", name = "name1", description = "description1", cardinality = Cardinality.MULTIPLE)
     class RuleClass {
     }
-
-    thrown.expect(IllegalArgumentException.class);
-    buildSingleRuleRepository(RuleClass.class);
+    IllegalArgumentException thrown = catchThrowableOfType(IllegalArgumentException.class, () -> {
+      buildSingleRuleRepository(RuleClass.class);
+    });
+    assertThat(thrown).isExactlyInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
-  public void class_without_sqale_annotation() throws Exception {
+  void classWithoutSqaleAnnotation() {
     @Rule(key = "key1", name = "name1", description = "description1")
     class RuleClass {
     }
-
-    thrown.expect(IllegalArgumentException.class);
-    buildRepository(true, RuleClass.class);
+    IllegalArgumentException thrown = catchThrowableOfType(IllegalArgumentException.class, () -> {
+      buildRepository(true, RuleClass.class);
+    });
+    assertThat(thrown).isExactlyInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
-  public void class_with_nosqale_annotation() throws Exception {
+  void classWithNoSqaleAnnotation() {
 
     @Rule(key = "key1", name = "name1", description = "description1")
     @NoSqale
@@ -187,10 +188,9 @@ public class AnnotationBasedRulesDefinitionTest {
   }
 
   @Test
-  public void class_with_sqale_constant_remediation() throws Exception {
+  void classWithSqaleConstantRemediation() {
 
     @Rule(key = "key1", name = "name1", description = "description1")
-    @SqaleSubCharacteristic(SubCharacteristics.CPU_EFFICIENCY)
     @SqaleConstantRemediation("10min")
     class RuleClass {
     }
@@ -200,10 +200,9 @@ public class AnnotationBasedRulesDefinitionTest {
   }
 
   @Test
-  public void class_with_sqale_linear_remediation() throws Exception {
+  void classWithSqaleLinearRemediation() {
 
     @Rule(key = "key1", name = "name1", description = "description1")
-    @SqaleSubCharacteristic(SubCharacteristics.CPU_EFFICIENCY)
     @SqaleLinearRemediation(coeff = "2h", effortToFixDescription = "Effort to test one uncovered condition")
     class RuleClass {
     }
@@ -213,12 +212,11 @@ public class AnnotationBasedRulesDefinitionTest {
   }
 
   @Test
-  public void class_with_sqale_linear_with_offset_remediation() throws Exception {
+  void classWithSqaleLinearWithOffsetRemediation() {
 
     @Rule(key = "key1", name = "name1", description = "description1")
-    @SqaleSubCharacteristic(SubCharacteristics.CPU_EFFICIENCY)
     @SqaleLinearWithOffsetRemediation(coeff = "5min", offset = "1h",
-                                      effortToFixDescription = "Effort to test one uncovered condition")
+      effortToFixDescription = "Effort to test one uncovered condition")
     class RuleClass {
     }
 
@@ -227,55 +225,59 @@ public class AnnotationBasedRulesDefinitionTest {
   }
 
   @Test
-  public void class_with_several_sqale_remediation_annotations() throws Exception {
+  void classWithSeveralSqaleRemediationAnnotations() {
     @Rule(key = "key1", name = "name1", description = "description1")
-    @SqaleSubCharacteristic(SubCharacteristics.CPU_EFFICIENCY)
     @SqaleConstantRemediation("10min")
     @SqaleLinearRemediation(coeff = "2h", effortToFixDescription = "Effort to test one uncovered condition")
     class RuleClass {
     }
-
-    thrown.expect(IllegalArgumentException.class);
-    buildSingleRuleRepository(RuleClass.class);
+    IllegalArgumentException thrown = catchThrowableOfType(IllegalArgumentException.class, () -> {
+      buildSingleRuleRepository(RuleClass.class);
+    });
+    assertThat(thrown).isExactlyInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
-  public void invalid_sqale_annotation() throws Exception {
+  void invalidSqaleAnnotation() {
     @Rule(key = "key1", name = "name1", description = "description1")
-    @SqaleSubCharacteristic(SubCharacteristics.CPU_EFFICIENCY)
     @SqaleConstantRemediation("xxx")
     class MyInvalidRuleClass {
     }
-
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("MyInvalidRuleClass");
-    buildSingleRuleRepository(MyInvalidRuleClass.class);
+    IllegalArgumentException thrown = catchThrowableOfType(IllegalArgumentException.class, () -> {
+      buildSingleRuleRepository(MyInvalidRuleClass.class);
+    });
+    assertThat(thrown)
+      .isExactlyInstanceOf(IllegalArgumentException.class)
+      .hasMessageContaining("MyInvalidRuleClass");
   }
 
   @Test
-  public void rule_not_created_by_RulesDefinitionAnnotationLoader() throws Exception {
+  void ruleNotCreatedByRulesDefinitionAnnotationLoader() {
     @Rule
     class RuleClass {
     }
     var newRepository = context.createRepository(REPO_KEY, "language1");
     var rulesDef = new AnnotationBasedRulesDefinition(newRepository, "language1");
-    thrown.expect(IllegalStateException.class);
-    rulesDef.newRule(RuleClass.class, false);
+    IllegalStateException thrown = catchThrowableOfType(IllegalStateException.class, () -> {
+      rulesDef.newRule(RuleClass.class, false);
+    });
+    assertThat(thrown).isExactlyInstanceOf(IllegalStateException.class);
   }
 
   @Test
-  public void load_method_with_class_without_sqale_annotation() throws Exception {
+  void loadMethodWithClassWithoutSqaleAnnotation() {
     @Rule(key = "key1", name = "name1", description = "description1")
     class RuleClass {
     }
-    thrown.expect(IllegalArgumentException.class);
-    load(RuleClass.class);
+    IllegalArgumentException thrown = catchThrowableOfType(IllegalArgumentException.class, () -> {
+      load(RuleClass.class);
+    });
+    assertThat(thrown).isExactlyInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
-  public void load_method_with_class_with_sqale_annotations() throws Exception {
+  void loadMethodWithClassWithSqaleAnnotations() {
     @Rule(key = "key1", name = "name1", description = "description1")
-    @SqaleSubCharacteristic(SubCharacteristics.CPU_EFFICIENCY)
     @SqaleConstantRemediation("10min")
     class RuleClass {
     }
@@ -285,10 +287,11 @@ public class AnnotationBasedRulesDefinitionTest {
 
   private void assertRemediation(RulesDefinition.Rule rule, Type type, String coeff, String offset, String effortDesc) {
     DebtRemediationFunction remediationFunction = rule.debtRemediationFunction();
+    assertThat(remediationFunction).isNotNull();
     assertThat(remediationFunction.type()).isEqualTo(type);
-    assertThat(remediationFunction.coefficient()).isEqualTo(coeff);
-    assertThat(remediationFunction.offset()).isEqualTo(offset);
-    assertThat(rule.effortToFixDescription()).isEqualTo(effortDesc);
+    assertThat(remediationFunction.gapMultiplier()).isEqualTo(coeff);
+    assertThat(remediationFunction.baseEffort()).isEqualTo(offset);
+    assertThat(rule.gapDescription()).isEqualTo(effortDesc);
   }
 
   private void assertParam(Param param, String expectedKey, String expectedDescription) {
@@ -308,7 +311,7 @@ public class AnnotationBasedRulesDefinitionTest {
   }
 
   private Repository buildRepository(String languageKey, boolean failIfSqaleNotFound, boolean failIfNoExplicitKey,
-                                     Class... classes) {
+    Class... classes) {
     NewRepository newRepository = createRepository(languageKey);
     new AnnotationBasedRulesDefinition(newRepository, languageKey)
       .addRuleClasses(failIfSqaleNotFound, failIfNoExplicitKey, ImmutableList.copyOf(classes));

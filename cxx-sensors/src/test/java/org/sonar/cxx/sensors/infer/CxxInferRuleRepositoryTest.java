@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,18 +19,17 @@
  */
 package org.sonar.cxx.sensors.infer;
 
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
+import static org.mockito.Mockito.mock;
 import org.sonar.api.platform.ServerFileSystem;
 import org.sonar.api.server.rule.RulesDefinition;
-import org.sonar.api.server.rule.RulesDefinitionXmlLoader;
+import org.sonar.cxx.sensors.utils.RulesDefinitionXmlLoader;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
-
-public class CxxInferRuleRepositoryTest {
+class CxxInferRuleRepositoryTest {
 
   @Test
-  public void createRulesTest() {
+  void createRulesTest() {
     var def = new CxxInferRuleRepository(
       mock(ServerFileSystem.class), new RulesDefinitionXmlLoader());
 
@@ -38,7 +37,7 @@ public class CxxInferRuleRepositoryTest {
     def.define(context);
 
     RulesDefinition.Repository repo = context.repository(CxxInferRuleRepository.KEY);
-    assertEquals(164, repo.rules().size());
+    assertThat(repo.rules()).hasSize(165);
   }
 
 }

@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,11 +20,10 @@
 package org.sonar.cxx.checks.metrics;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.Set;
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 import org.assertj.core.api.SoftAssertions;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.sonar.cxx.CxxAstScanner;
 import org.sonar.cxx.checks.CxxFileTesterHelper;
 import org.sonar.cxx.squidbridge.api.SourceFile;
@@ -32,10 +31,10 @@ import org.sonar.cxx.utils.CxxReportIssue;
 import org.sonar.cxx.utils.CxxReportLocation;
 import org.sonar.cxx.visitors.MultiLocatitionSquidCheck;
 
-public class FileComplexityCheckTest {
+class FileComplexityCheckTest {
 
   @Test
-  public void check() throws UnsupportedEncodingException, IOException {
+  void check() throws IOException {
     var check = new FileComplexityCheck();
     check.setMaxComplexity(1);
 
@@ -51,7 +50,7 @@ public class FileComplexityCheckTest {
     softly.assertThat(actualIssue.getRuleId()).isEqualTo("FileComplexity");
     softly.assertThat(actualIssue.getLocations()).containsOnly(
       new CxxReportLocation(null, "1", null,
-                            "The Cyclomatic Complexity of this file is 2 which is greater than 1 authorized."),
+        "The Cyclomatic Complexity of this file is 2 which is greater than 1 authorized."),
       new CxxReportLocation(null, "3", null, "+1: function definition"),
       new CxxReportLocation(null, "5", null, "+1: function definition")
     );

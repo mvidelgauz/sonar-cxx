@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,12 +19,16 @@
  */
 package org.sonar.cxx.utils;
 
+import com.sonar.cxx.sslr.api.TokenType;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.Optional;
 import javax.annotation.CheckForNull;
+import org.sonar.cxx.parser.CxxPunctuator;
 
-public class TestUtils {
+public final class TestUtils {
 
   public static File loadResource(String resourceName) {
     URL resource = TestUtils.class.getResource(resourceName);
@@ -59,6 +63,16 @@ public class TestUtils {
       }
     }
     return null;
+  }
+
+  /**
+   * @return the punctuator token type the lexer gives {@code value}, or empty if it is no punctuator
+   */
+  public static Optional<TokenType> punctuatorType(String value) {
+    return Arrays.stream(CxxPunctuator.values())
+      .filter(punctuator -> punctuator.getValue().equals(value))
+      .findFirst()
+      .map(TokenType.class::cast);
   }
 
   private TestUtils() {

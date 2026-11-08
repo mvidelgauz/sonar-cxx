@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,21 +20,19 @@
 package org.sonar.cxx.sensors.valgrind;
 
 import java.io.File;
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 import org.assertj.core.api.SoftAssertions;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class ValgrindStackTest {
+class ValgrindStackTest {
 
   private final ValgrindStack stack = new ValgrindStack();
   private final ValgrindStack equalStack = new ValgrindStack();
   private final ValgrindStack otherStack = new ValgrindStack();
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     var frame = new ValgrindFrame("", "", "lala", "", "lala", "111");
     var equalFrame = new ValgrindFrame("", "", "lala", "", "lala", "111");
     var otherFrame = new ValgrindFrame("", "", "haha", "", "haha", "111");
@@ -50,36 +48,37 @@ public class ValgrindStackTest {
   }
 
   @Test
-  public void stackDoesntEqualsNull() {
+  void stackDoesntEqualsNull() {
     assertThat(stack).isNotNull();
   }
 
   @Test
-  public void stackDoesntEqualsMiscObject() {
+  void stackDoesntEqualsMiscObject() {
     assertThat(stack).isNotEqualTo("string");
   }
 
   @Test
-  public void stackEqualityIsReflexive() {
+  void stackEqualityIsReflexive() {
     assertThat(stack).isEqualTo(stack);
     assertThat(otherStack).isEqualTo(otherStack);
     assertThat(equalStack).isEqualTo(equalStack);
   }
 
   @Test
-  public void stackEqualityWorksAsExpected() {
-    assertThat(stack).isEqualTo(equalStack);
-    assertThat(stack).isNotEqualTo(otherStack);
+  void stackEqualityWorksAsExpected() {
+    assertThat(stack)
+      .isEqualTo(equalStack)
+      .isNotEqualTo(otherStack);
   }
 
   @Test
-  public void stackHashWorksAsExpected() {
+  void stackHashWorksAsExpected() {
     assertThat(stack).hasSameHashCodeAs(equalStack);
     assertThat(stack.hashCode()).isNotEqualTo(otherStack.hashCode());
   }
 
   @Test
-  public void stringRepresentationShouldResembleValgrindsStandard() {
+  void stringRepresentationShouldResembleValgrindsStandard() {
     var frame0 = new ValgrindFrame("0xDEADBEAF", "libX.so", "main()", null, "main.cc", "1");
     var stack0 = new ValgrindStack();
     stack0.addFrame(frame0);
@@ -91,51 +90,51 @@ public class ValgrindStackTest {
 
     var softly = new SoftAssertions();
     softly.assertThat(new ValgrindStack().toString()).isEmpty();
-    softly.assertThat(stack0.toString()).isEqualTo(frame0.toString());
-    softly.assertThat(stack1.toString()).isEqualTo(frame1.toString() + "\n" + frame0.toString());
+    softly.assertThat(stack0).hasToString(frame0.toString());
+    softly.assertThat(stack1).hasToString(frame1.toString() + "\n" + frame0.toString());
     softly.assertAll();
   }
 
   @Test
-  public void getLastOwnFrame_returnsNullOnEmptyStack() {
-    assertNull(new ValgrindStack().getLastOwnFrame("somepath"));
+  void getLastOwnFrameReturnsNullOnEmptyStack() {
+    assertThat(new ValgrindStack().getLastOwnFrame("somepath")).isNull();
   }
 
   @Test
-  public void getLastOwnFrame_returnsNullIfNoOwnFrameThere() {
+  void getLastOwnFrameReturnsNullIfNoOwnFrameThere() {
     var frame = new ValgrindFrame(null, null, null, null, null, "1");
-    var stack = new ValgrindStack();
-    stack.addFrame(frame);
+    var valgrindStack = new ValgrindStack();
+    valgrindStack.addFrame(frame);
 
-    assertNull(new ValgrindStack().getLastOwnFrame("somepath"));
+    assertThat(new ValgrindStack().getLastOwnFrame("somepath")).isNull();
   }
 
   @Test
-  public void getLastOwnFrame_returnsTheOwnFrame1() {
-    var BASE_DIR = new File("our", "path");
-    var OWN_PATH = new File(BASE_DIR, "subdir");
+  void getLastOwnFrameReturnsTheOwnFrame1() {
+    final var baseDir = new File("our", "path");
+    final var ownPath = new File(baseDir, "subdir");
 
     var otherFrame = new ValgrindFrame(null, null, null, "someotherpath", null, "1");
-    var ownFrame = new ValgrindFrame(null, null, null, OWN_PATH.getPath(), null, "1");
-    var stack = new ValgrindStack();
-    stack.addFrame(otherFrame);
-    stack.addFrame(ownFrame);
+    var ownFrame = new ValgrindFrame(null, null, null, ownPath.getPath(), null, "1");
+    var valgrindStack = new ValgrindStack();
+    valgrindStack.addFrame(otherFrame);
+    valgrindStack.addFrame(ownFrame);
 
-    assertEquals(stack.getLastOwnFrame(BASE_DIR.getPath()), ownFrame);
+    assertThat(ownFrame).isEqualTo(valgrindStack.getLastOwnFrame(baseDir.getPath()));
   }
 
   @Test
-  public void getLastOwnFrame_returnsTheOwnFrame2() {
-    var BASE_DIR = new File("our/path/.");
-    var OWN_PATH = new File("our/../our/./path/subdir");
+  void getLastOwnFrameReturnsTheOwnFrame2() {
+    final var baseDir = new File("our/path/.");
+    final var ownPath = new File("our/../our/./path/subdir");
 
     var otherFrame = new ValgrindFrame(null, null, null, "someotherpath", null, "1");
-    var ownFrame = new ValgrindFrame(null, null, null, OWN_PATH.getPath(), null, "1");
-    var stack = new ValgrindStack();
-    stack.addFrame(otherFrame);
-    stack.addFrame(ownFrame);
+    var ownFrame = new ValgrindFrame(null, null, null, ownPath.getPath(), null, "1");
+    var valgrindStack = new ValgrindStack();
+    valgrindStack.addFrame(otherFrame);
+    valgrindStack.addFrame(ownFrame);
 
-    assertEquals(stack.getLastOwnFrame(BASE_DIR.getPath()), ownFrame);
+    assertThat(ownFrame).isEqualTo(valgrindStack.getLastOwnFrame(baseDir.getPath()));
   }
 
 }

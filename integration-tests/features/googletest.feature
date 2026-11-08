@@ -1,4 +1,3 @@
-@SqApi79
 Feature: Providing test execution measures
   As a CXX Plugin user, I want to import the Google Test execution reports into SonarQube
 
@@ -36,9 +35,9 @@ Feature: Providing test execution measures
     And the analysis in server has completed
     And the analysis log contains no error/warning messages except those matching:
       """
-      .*WARN.*Unable to get a valid mac address, will use a dummy address
       .*WARN.*cannot find the sources for '#include <gtest/gtest\.h>'
       .*WARN.*cannot find the sources for '#include <unistd\.h>'
+      .*WARN.*Preprocessor:.*
       """
     And the following metrics have following values:
       | metric               | value |
@@ -55,7 +54,7 @@ Feature: Providing test execution measures
     Then the analysis breaks
     And the analysis log contains a line matching:
       """
-      .*ERROR: Invalid xUnit report.*stop analysis
+      ERROR Invalid xUnit report.*stop analysis
       """
 
 
@@ -70,9 +69,9 @@ Feature: Providing test execution measures
     And the analysis in server has completed
     And the analysis log contains no error/warning messages except those matching:
       """
-      .*WARN.*Unable to get a valid mac address, will use a dummy address
       .*WARN.*cannot find the sources for '#include <gtest/gtest\.h>'
       .*WARN.*cannot find the sources for '#include <unistd\.h>'
+      .*WARN.*Preprocessor:.*
       """
     And the following metrics have following values:
       | metric               | value |
@@ -95,11 +94,11 @@ Feature: Providing test execution measures
     And the analysis in server has completed
     And the analysis log contains no error/warning messages except those matching:
       """
-      .*WARN.*Unable to get a valid mac address, will use a dummy address
       .*WARN.*cannot find the sources for '#include <gtest/gtest\.h>'
       .*WARN.*cannot find the sources for '#include <unistd\.h>'
-      .*WARN.*The report.*seems to be empty, ignoring\.
-      .*WARN.*Cannot find a report for '.*'
+      .*WARN .*The xUnit report.*seems to be empty, ignoring\.
+      .*WARN.*Property 'sonar\.cxx\.xunit\.reportPaths': cannot find any files.*
+      .*WARN.*Preprocessor:.*
       """
     And the following metrics have following values:
       | metric               | value |

@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,13 +20,13 @@
 package org.sonar.cxx.tag;
 
 import java.lang.reflect.Constructor;
-import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
-public class TagTest {
+class TagTest {
 
   @Test
-  public void private_constructor() throws Exception {
+  void privateConstructor() throws Exception {
     Constructor<Tag> constructor = Tag.class.getDeclaredConstructor();
     assertThat(constructor.canAccess(null)).isFalse();
     constructor.setAccessible(true);

@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -21,13 +21,14 @@
  * fork of SSLR Squid Bridge: https://github.com/SonarSource/sslr-squid-bridge/tree/2.6.1
  * Copyright (C) 2010 SonarSource / mailto: sonarqube@googlegroups.com / license: LGPL v3
  */
-package org.sonar.cxx.squidbridge.checks;
+package org.sonar.cxx.squidbridge.checks; // cxx: in use
 
 import com.google.common.collect.Maps;
-import com.sonar.sslr.api.AstNode;
-import com.sonar.sslr.api.AstNodeType;
-import com.sonar.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.AstNode;
+import com.sonar.cxx.sslr.api.AstNodeType;
+import com.sonar.cxx.sslr.api.Grammar;
 import java.util.Map;
+import javax.annotation.Nullable;
 
 public abstract class AbstractOneStatementPerLineCheck<G extends Grammar> extends SquidCheck<G> {
 
@@ -43,7 +44,7 @@ public abstract class AbstractOneStatementPerLineCheck<G extends Grammar> extend
   }
 
   @Override
-  public void visitFile(AstNode astNode) {
+  public void visitFile(@Nullable AstNode astNode) {
     statementsPerLine.clear();
   }
 
@@ -61,13 +62,15 @@ public abstract class AbstractOneStatementPerLineCheck<G extends Grammar> extend
   }
 
   @Override
-  public void leaveFile(AstNode astNode) {
+  public void leaveFile(@Nullable AstNode astNode) {
     for (var statementsAtLine : statementsPerLine.entrySet()) {
       if (statementsAtLine.getValue() > 1) {
-        getContext().createLineViolation(this,
-                                         "At most one statement is allowed per line, but {0} statements were found on this line.",
-                                         statementsAtLine.getKey(),
-                                         statementsAtLine.getValue());
+        getContext().createLineViolation(
+          this,
+          "At most one statement is allowed per line, but {0} statements were found on this line.",
+          statementsAtLine.getKey(),
+          statementsAtLine.getValue()
+        );
       }
     }
   }

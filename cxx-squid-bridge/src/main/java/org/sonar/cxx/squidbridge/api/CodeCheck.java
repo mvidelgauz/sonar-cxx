@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -24,9 +24,9 @@
 package org.sonar.cxx.squidbridge.api;
 
 /**
- * @deprecated since SQ version 2.12. See https://jira.codehaus.org/browse/SONAR-2875
+ * {@inheritDoc}
+ * deprecated since SQ version 2.12. See https://jira.codehaus.org/browse/SONAR-2875
  */
-@Deprecated
 public interface CodeCheck extends CodeVisitor {
 
   String getKey();

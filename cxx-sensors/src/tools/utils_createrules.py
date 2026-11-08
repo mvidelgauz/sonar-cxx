@@ -1,5 +1,7 @@
+#!/usr/bin/env python3
+
 # C++ Community Plugin (cxx plugin)
-# Copyright (C) 2010-2021 SonarOpenCommunity
+# Copyright (C) 2010-2026 SonarOpenCommunity
 # http://github.com/SonarOpenCommunity/sonar-cxx
 #
 # This program is free software; you can redistribute it and/or
@@ -57,8 +59,10 @@ def _serialize_xml_2(write, elem, encoding, qnames, namespaces):
         tail = "" if elem.tail is None else elem.tail
         try:
             write("<%s%s]]>%s" % (elem.tag, elem.text, tail))
-        except UnicodeEncodeError:
-            write(("<%s%s]]>%s" % (elem.tag, elem.text, tail)).encode('utf-8'))
+        except UnicodeEncodeError as e:
+            sys.stderr.write("[WARNING] {}\n".format(e))
+            sys.stderr.write("{}\n{}\n{}\n".format(elem.tag, elem.text, tail))
+            write(("<%s%s]]>%s" % (elem.tag, elem.text.encode('ascii', 'ignore').decode('utf-8'), tail)))
 
     else:
         et._original_serialize_xml(write, elem, encoding, qnames, namespaces)
@@ -69,8 +73,10 @@ def _serialize_xml_3(write, elem, qnames, namespaces, short_empty_elements):
         tail = "" if elem.tail is None else elem.tail
         try:
             write("<%s%s]]>%s" % (elem.tag, elem.text, tail))
-        except UnicodeEncodeError:
-            write(("<%s%s]]>%s" % (elem.tag, elem.text, tail)).encode('utf-8'))
+        except UnicodeEncodeError as e:
+            sys.stderr.write("[WARNING] {}\n".format(e))
+            sys.stderr.write("{}\n{}\n{}\n".format(elem.tag, elem.text, tail))
+            write(("<%s%s]]>%s" % (elem.tag, elem.text.encode('ascii', 'ignore').decode('utf-8'), tail)))
 
     else:
         et._original_serialize_xml(write, elem, qnames, namespaces, short_empty_elements)
@@ -98,11 +104,16 @@ def write_rules_xml(root, f):
 
 
 def parse_rules_xml(path):
-    tree = et.parse(path)
-    root = tree.getroot()
+    sys.stderr.write("[INFO] parse .xml file {}\n".format(path))
     keys = []
-    keys_to_ruleelement = {}
-
+    keys_to_ruleelement = {}    
+    try :
+        tree = et.parse(path)    
+    except et.ParseError as e:
+        sys.stderr.write("[ERROR] {}: {}\n".format(path, e))
+        return keys, keys_to_ruleelement
+    
+    root = tree.getroot()
     for rules_tag in root.iter('rules'):
         for rule_tag in rules_tag.iter('rule'):
             for key_tag in rule_tag.iter('key'):
@@ -141,7 +152,7 @@ def call_tidy(file_path):
     p = subprocess.Popen(command, stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE)
     out, err = p.communicate()
-    if p.returncode != 0:
+    if p.returncode < 0 or p.returncode > 1: # error: not ok, not warning
         print("### TIDY ", file_path)
         with open(file_path, 'r') as f:
             print(f.read())
@@ -185,7 +196,7 @@ def check_rules(path):
                 has_len_errors = True             
             description_dump_path = "/tmp/" + key + ".ruledump"
             with open(description_dump_path, "w") as f:
-                html = u"""<!DOCTYPE html>
+                html = """<!DOCTYPE html>
 <html>
   <head>
     <meta charset=\"utf-8\">
@@ -194,7 +205,7 @@ def check_rules(path):
   <body>{description}</body>
 </html>
 """.format(name=escape(name_tag.text), description=description_tag.text)
-                f.write(html.encode("UTF-8"))
+                f.write(html)
             is_tidy_error = call_tidy(description_dump_path)
             has_tidy_errors = has_tidy_errors or is_tidy_error
 
@@ -277,17 +288,41 @@ def compare_rules(old_path, new_path):
     print("```\n")
 
 
+def merge_rules(clang_tidy_xml, clang_diagnostic_xml):
+    output = "clangtidy_merged.xml"
+    sys.stderr.write("[INFO] Merging rules from {} and {}\n".format(clang_diagnostic_xml, clang_diagnostic_xml))
+    _, clang_tidy_rules = parse_rules_xml(clang_tidy_xml)
+    _, clang_diagnostic_rules = parse_rules_xml(clang_diagnostic_xml)
+    merged_rules = et.Element('rules')
+    for name, clang_tidy_rule in clang_tidy_rules.items():
+        rule_tag = clang_tidy_rule
+        indent(rule_tag)
+        make_rules_description_to_cdata(rule_tag)
+        merged_rules.append(rule_tag)
+    for name, clang_diagnostic_rule in clang_diagnostic_rules.items():
+        rule_tag = clang_diagnostic_rule
+        indent(rule_tag)
+        make_rules_description_to_cdata(rule_tag)
+        merged_rules.append(rule_tag)
+    with open(output, 'w') as f:
+        write_rules_xml(merged_rules, f)
+    sys.stderr.write("[INFO] Merged rules: {}\n".format(output))
+
+
 def print_usage_and_exit():
     script_name = os.path.basename(sys.argv[0])
     print("""%s comparerules <old_rules.xml> <new_rules.xml>
+%s mergerules <clangtidy_new.xml> <diagnostic_new.xml>
 %s check <rules.xml>
 
 comparerules: generates <new_rules.xml.comparable> which re-sorts new rules according to the order of old_rules.xml
               call 'diff <old_rules.xml> <new_rules.xml.comparable>' in order to see how the existing <old_rules.xml> must be updated
               also generates the human-readable summary to STDOUT
 
+mergerules:   create a merged file <clangtidy_merged.xml> from the input <clangtidy_new.xml> and <diagnostic_new.xml> files.
+
 check:        for each rule in <rules.xml> generate a file "/tmp/<rule_key>.ruledump", which contains the HTML code of rules description
-              check each *.ruledump file with tidy in order to validate the HTML description""" % (script_name, script_name))
+              check each *.ruledump file with tidy in order to validate the HTML description""" % (script_name, script_name, script_name))
     sys.exit(1)
 
 if __name__ == "__main__":
@@ -298,6 +333,8 @@ if __name__ == "__main__":
     # transform to an other elementtree
     if sys.argv[1] == "comparerules" and len(sys.argv) == 4:
         compare_rules(sys.argv[2], sys.argv[3])
+    elif sys.argv[1] == "mergerules" and len(sys.argv) == 4:
+        merge_rules(sys.argv[2], sys.argv[3])
     elif sys.argv[1] == "check" and len(sys.argv) == 3:
         rc = check_rules(sys.argv[2])
         sys.exit(rc)

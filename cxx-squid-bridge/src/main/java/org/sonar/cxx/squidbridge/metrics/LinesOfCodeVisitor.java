@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -23,11 +23,12 @@
  */
 package org.sonar.cxx.squidbridge.metrics;
 
-import com.sonar.sslr.api.AstAndTokenVisitor;
-import com.sonar.sslr.api.AstNode;
-import static com.sonar.sslr.api.GenericTokenType.EOF;
-import com.sonar.sslr.api.Grammar;
-import com.sonar.sslr.api.Token;
+import com.sonar.cxx.sslr.api.AstAndTokenVisitor;
+import com.sonar.cxx.sslr.api.AstNode;
+import static com.sonar.cxx.sslr.api.GenericTokenType.EOF;
+import com.sonar.cxx.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.Token;
+import javax.annotation.Nullable;
 import org.sonar.cxx.squidbridge.SquidAstVisitor;
 import org.sonar.cxx.squidbridge.measures.MetricDef;
 
@@ -47,7 +48,7 @@ public class LinesOfCodeVisitor<G extends Grammar> extends SquidAstVisitor<G> im
    * {@inheritDoc}
    */
   @Override
-  public void visitFile(AstNode node) {
+  public void visitFile(@Nullable AstNode node) {
     lastTokenLine = -1;
   }
 

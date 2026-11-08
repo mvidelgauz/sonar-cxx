@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,14 +20,14 @@
 package org.sonar.cxx.api;
 
 import org.assertj.core.api.SoftAssertions;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class CxxMetricTest {
+class CxxMetricTest {
 
   @Test
-  public void test() {
+  void test() {
     var softly = new SoftAssertions();
-    softly.assertThat(CxxMetric.values()).hasSize(21);
+    softly.assertThat(CxxMetric.values()).hasSize(22);
 
     for (var metric : CxxMetric.values()) {
       softly.assertThat(metric.getName()).isEqualTo(metric.name());

@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,18 +19,16 @@
  */
 package org.sonar.cxx.channels;
 
-import com.sonar.sslr.api.Token;
-import com.sonar.sslr.impl.Lexer;
+import com.sonar.cxx.sslr.api.Token;
+import com.sonar.cxx.sslr.impl.Lexer;
 import org.sonar.cxx.parser.CxxTokenType;
-import org.sonar.sslr.channel.Channel;
-import org.sonar.sslr.channel.CodeReader;
+import org.sonar.cxx.sslr.channel.Channel;
+import org.sonar.cxx.sslr.channel.CodeReader;
 
 /**
  * CharacterLiteralsChannel
  */
 public class CharacterLiteralsChannel extends Channel<Lexer> {
-
-  private static final char EOF = (char) -1;
 
   private final StringBuilder sb = new StringBuilder(256);
 
@@ -67,7 +65,7 @@ public class CharacterLiteralsChannel extends Channel<Lexer> {
   private boolean read(CodeReader code) {
     index++;
     while (code.charAt(index) != ch) {
-      if (code.charAt(index) == EOF) {
+      if (code.charAt(index) == ChannelUtils.EOF) {
         return false;
       }
       if (code.charAt(index) == '\\') {
@@ -92,24 +90,23 @@ public class CharacterLiteralsChannel extends Channel<Lexer> {
   }
 
   private void readUdSuffix(CodeReader code) {
-    for (int start_index = index, len = 0;; index++) {
+    int len = 0;
+    for (int start_index = index;; index++) {
       var charAt = code.charAt(index);
-      if (charAt == EOF) {
+      if (charAt == ChannelUtils.EOF) {
         return;
       }
-      if (Character.isLowerCase(charAt) || Character.isUpperCase(charAt) || (charAt == '_')) {
+      if (ChannelUtils.isSuffix(charAt)) {
         len++;
-      } else {
-        if (Character.isDigit(charAt)) {
-          if (len > 0) {
-            len++;
-          } else {
-            index = start_index;
-            return;
-          }
+      } else if (Character.isDigit(charAt)) {
+        if (len > 0) {
+          len++;
         } else {
+          index = start_index;
           return;
         }
+      } else {
+        return;
       }
     }
   }

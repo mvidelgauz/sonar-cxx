@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -23,40 +23,40 @@
  */
 package org.sonar.cxx.squidbridge.metrics;
 
-import static org.fest.assertions.Assertions.assertThat;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 import org.sonar.cxx.squidbridge.api.SourceFile;
 import static org.sonar.cxx.squidbridge.metrics.ResourceParser.scanFile;
 import static org.sonar.cxx.squidbridge.metrics.ResourceParser.scanFileIgnoreHeaderComments;
 import org.sonar.cxx.squidbridge.test.miniC.MiniCAstScanner.MiniCMetrics;
 
-public class CommentsVisitorTest {
+class CommentsVisitorTest {
 
   @Test
-  public void empty() {
+  void empty() {
     SourceFile sourceFile = scanFile("/metrics/comments_none.mc");
 
-    assertThat(sourceFile.getInt(MiniCMetrics.COMMENT_LINES)).isEqualTo(0);
+    assertThat(sourceFile.getInt(MiniCMetrics.COMMENT_LINES)).isZero();
 
-    assertThat(sourceFile.getNoSonarTagLines().size()).isEqualTo(0);
+    assertThat(sourceFile.getNoSonarTagLines()).isEmpty();
   }
 
   @Test
-  public void comments() {
+  void comments() {
     SourceFile sourceFile = scanFile("/metrics/comments.mc");
 
     assertThat(sourceFile.getInt(MiniCMetrics.COMMENT_LINES)).isEqualTo(3);
 
-    assertThat(sourceFile.getNoSonarTagLines().size()).isEqualTo(2);
+    assertThat(sourceFile.getNoSonarTagLines()).hasSize(2);
     assertThat(sourceFile.getNoSonarTagLines()).containsOnly(5, 6);
   }
 
   @Test
-  public void headerComments() {
+  void headerComments() {
     SourceFile sourceFile = scanFileIgnoreHeaderComments("/metrics/header_comments.mc");
 
     assertThat(sourceFile.getInt(MiniCMetrics.COMMENT_LINES)).isEqualTo(1);
-    assertThat(sourceFile.getNoSonarTagLines().size()).isEqualTo(0);
+    assertThat(sourceFile.getNoSonarTagLines()).isEmpty();
   }
 
 }

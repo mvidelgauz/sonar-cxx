@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,35 +19,41 @@
  */
 package org.sonar.cxx.checks.naming;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.sonar.cxx.CxxAstScanner;
 import org.sonar.cxx.checks.CxxFileTesterHelper;
 import org.sonar.cxx.squidbridge.api.SourceFile;
 import org.sonar.cxx.squidbridge.checks.CheckMessagesVerifier;
 
-public class MethodNameCheckTest {
+class MethodNameCheckTest {
 
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
-  public void test() throws Exception {
+  void test() throws Exception {
     var check = new MethodNameCheck();
     var tester = CxxFileTesterHelper.create("src/test/resources/checks/MethodName.cc", ".");
     SourceFile file = CxxAstScanner.scanSingleInputFile(tester.asInputFile(), check);
     CheckMessagesVerifier.verify(file.getCheckMessages())
-      .next().atLine(12).withMessage(
-      "Rename method \"Badly_Named_Method2\" to match the regular expression ^[A-Z][A-Za-z0-9]{2,30}$.")
-      .next().atLine(15).withMessage(
-      "Rename method \"TooLongMethodNameBecauseItHasMoreThan30Characters2\" "
-        + "to match the regular expression ^[A-Z][A-Za-z0-9]{2,30}$.")
-      .next().atLine(22).withMessage(
-      "Rename method \"Badly_Named_Method1\" "
-        + "to match the regular expression ^[A-Z][A-Za-z0-9]{2,30}$.")
-      .next().atLine(26).withMessage(
-      "Rename method \"TooLongMethodNameBecauseItHasMoreThan30Characters1\" "
-        + "to match the regular expression ^[A-Z][A-Za-z0-9]{2,30}$.")
-      .next().atLine(96).withMessage(
-      "Rename method \"Third_Level_Nested_Class_getX\" "
-        + "to match the regular expression ^[A-Z][A-Za-z0-9]{2,30}$.")
+      .next().atLine(12).withMessage("""
+         Rename method "Badly_Named_Method2" \
+         to match the regular expression ^[A-Z][A-Za-z0-9]{2,30}$."""
+    )
+      .next().atLine(15).withMessage("""
+         Rename method "TooLongMethodNameBecauseItHasMoreThan30Characters2" \
+         to match the regular expression ^[A-Z][A-Za-z0-9]{2,30}$."""
+    )
+      .next().atLine(22).withMessage("""
+         Rename method "Badly_Named_Method1" \
+         to match the regular expression ^[A-Z][A-Za-z0-9]{2,30}$."""
+    )
+      .next().atLine(26).withMessage("""
+         Rename method "TooLongMethodNameBecauseItHasMoreThan30Characters1" \
+         to match the regular expression ^[A-Z][A-Za-z0-9]{2,30}$."""
+    )
+      .next().atLine(96).withMessage("""
+         Rename method "Third_Level_Nested_Class_getX" \
+         to match the regular expression ^[A-Z][A-Za-z0-9]{2,30}$."""
+    )
       .noMore();
   }
 

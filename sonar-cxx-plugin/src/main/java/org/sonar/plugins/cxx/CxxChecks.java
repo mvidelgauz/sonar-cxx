@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,7 +19,7 @@
  */
 package org.sonar.plugins.cxx;
 
-import com.sonar.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.Grammar;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -31,6 +31,7 @@ import org.sonar.api.batch.rule.CheckFactory;
 import org.sonar.api.batch.rule.Checks;
 import org.sonar.api.rule.RuleKey;
 import org.sonar.cxx.squidbridge.SquidAstVisitor;
+import org.sonar.cxx.squidbridge.api.CxxCustomRuleRepository;
 
 public final class CxxChecks {
 
@@ -64,6 +65,16 @@ public final class CxxChecks {
     return this;
   }
 
+  public CxxChecks addCustomRuleRepositories(@Nullable CxxCustomRuleRepository[] customRuleRepositories) {
+    if (customRuleRepositories != null) {
+      for (var repository : customRuleRepositories) {
+        addChecks(repository.repositoryKey(), new ArrayList<>(repository.checkClasses()));
+      }
+    }
+
+    return this;
+  }
+
   public List<SquidAstVisitor<Grammar>> all() {
     var allVisitors = new ArrayList<SquidAstVisitor<Grammar>>();
 
@@ -80,6 +91,25 @@ public final class CxxChecks {
       RuleKey ruleKey = checks.ruleKey(check);
       if (ruleKey != null) {
         return ruleKey;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Resolves the rule key for a check by its class rather than a live instance.
+   *
+   * @param checkClass the check's class
+   * @return the resolved rule key, or null if no registered check has this class
+   */
+  @CheckForNull
+  public RuleKey ruleKeyForClass(Class<?> checkClass) {
+    for (var check : all()) {
+      if (checkClass.equals(check.getClass())) {
+        RuleKey ruleKey = ruleKey(check);
+        if (ruleKey != null) {
+          return ruleKey;
+        }
       }
     }
     return null;

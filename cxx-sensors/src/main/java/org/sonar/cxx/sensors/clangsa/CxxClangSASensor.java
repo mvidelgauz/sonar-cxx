@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -29,13 +29,12 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import javax.annotation.Nullable;
 import org.sonar.api.batch.sensor.SensorDescriptor;
 import org.sonar.api.config.PropertyDefinition;
-import org.sonar.api.resources.Qualifiers;
-import org.sonar.api.utils.log.Logger;
-import org.sonar.api.utils.log.Loggers;
 import org.sonar.cxx.sensors.utils.CxxIssuesReportSensor;
+import org.sonar.cxx.sensors.utils.CxxReportSensor;
 import org.sonar.cxx.sensors.utils.InvalidReportException;
 import org.sonar.cxx.utils.CxxReportIssue;
 
@@ -47,19 +46,17 @@ public class CxxClangSASensor extends CxxIssuesReportSensor {
 
   public static final String REPORT_PATH_KEY = "sonar.cxx.clangsa.reportPaths";
 
-  private static final Logger LOG = Loggers.get(CxxClangSASensor.class);
-
   public static List<PropertyDefinition> properties() {
     return Collections.unmodifiableList(Arrays.asList(
       PropertyDefinition.builder(REPORT_PATH_KEY)
         .name("Clang Static Analyzer Report(s)")
-        .description(
-          "Comma-separated paths (absolute or relative to the project base directory) to `*.plist` files with"
-            + " `Clang Static Analyzer` issues. Ant patterns are accepted for relative paths."
+        .description("""
+          Comma-separated paths (absolute or relative to the project base directory) to `*.plist` files with \
+          `Clang Static Analyzer` issues. Ant patterns are accepted for relative paths."""
         )
-        .category("CXX External Analyzers")
+        .category(CxxReportSensor.CATEGORY)
         .subCategory("Clang Static Analyzer")
-        .onQualifiers(Qualifiers.PROJECT)
+        .onConfigScopes(Set.of(PropertyDefinition.ConfigScope.PROJECT))
         .multiValues(true)
         .build()
     ));
@@ -76,15 +73,14 @@ public class CxxClangSASensor extends CxxIssuesReportSensor {
   public void describe(SensorDescriptor descriptor) {
     descriptor
       .name("CXX Clang Static Analyzer report import")
-      .onlyOnLanguages("cxx","cpp", "c++", "c")
+      .onlyOnLanguages("cxx", "cpp", "c++", "c")
       .createIssuesForRuleRepository(getRuleRepositoryKey())
       .onlyWhenConfiguration(conf -> conf.hasKey(getReportPathsKey()));
   }
 
   private void addFlowToIssue(final NSDictionary diagnostic, final NSObject[] sourceFiles, final CxxReportIssue issue) {
     NSObject[] path = ((NSArray) require(
-      diagnostic.objectForKey("path"), "Missing mandatory entry 'path'")
-      ).getArray();
+      diagnostic.objectForKey("path"), "Missing mandatory entry 'path'")).getArray();
     for (var pathObject : path) {
       var pathElement = new PathElement(pathObject);
       if (pathElement.getKind() != PathElementKind.EVENT) {
@@ -99,32 +95,32 @@ public class CxxClangSASensor extends CxxIssuesReportSensor {
   }
 
   @Override
-  protected void processReport(File report)  {
+  protected void processReport(File report) {
     try {
       var f = new File(report.getPath());
 
       var rootDict = (NSDictionary) PropertyListParser.parse(f);
 
       NSObject[] diagnostics = ((NSArray) require(rootDict.objectForKey("diagnostics"),
-                                                  "Missing mandatory entry 'diagnostics'")).getArray();
+        "Missing mandatory entry 'diagnostics'")).getArray();
       NSObject[] sourceFiles = ((NSArray) require(rootDict.objectForKey("files"),
-                                                  "Missing mandatory entry 'files'")).getArray();
+        "Missing mandatory entry 'files'")).getArray();
 
       for (var diagnostic : diagnostics) {
         var diag = (NSDictionary) diagnostic;
 
         String description = ((NSString) require(diag.get("description"),
-                                                 "Missing mandatory entry 'diagnostics/description'")).getContent();
+          "Missing mandatory entry 'diagnostics/description'")).getContent();
         String checkerName = ((NSString) require(diag.get("check_name"),
-                                                 "Missing mandatory entry 'diagnostics/check_name'")).getContent();
+          "Missing mandatory entry 'diagnostics/check_name'")).getContent();
         var location = (NSDictionary) require(diag.get("location"),
-                                                       "Missing mandatory entry 'diagnostics/location'");
+          "Missing mandatory entry 'diagnostics/location'");
         var line = ((NSNumber) require(location.get("line"),
-                                       "Missing mandatory entry 'diagnostics/location/line'")).intValue();
+          "Missing mandatory entry 'diagnostics/location/line'")).intValue();
         var column = ((NSNumber) require(location.get("col"),
-                                       "Missing mandatory entry 'diagnostics/location/col'")).intValue();
+          "Missing mandatory entry 'diagnostics/location/col'")).intValue();
         var fileIndex = ((NSNumber) require(location.get("file"),
-                                            "Missing mandatory entry 'diagnostics/location/file'")).intValue();
+          "Missing mandatory entry 'diagnostics/location/file'")).intValue();
 
         if (fileIndex < 0 || fileIndex >= sourceFiles.length) {
           throw new IllegalArgumentException("Invalid file index");

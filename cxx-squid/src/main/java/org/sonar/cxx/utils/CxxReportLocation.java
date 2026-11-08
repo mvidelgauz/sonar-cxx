@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -21,6 +21,7 @@ package org.sonar.cxx.utils;
 
 import java.util.Objects;
 import javax.annotation.Nullable;
+import org.apache.commons.io.FilenameUtils;
 import org.sonar.api.utils.PathUtils;
 
 /**
@@ -32,11 +33,26 @@ public class CxxReportLocation {
   private final String line;
   private final String column;
   private final String info;
+  private String infoPrefix;
 
   public CxxReportLocation(@Nullable String file, @Nullable String line, @Nullable String column, String info) {
     super();
-    // normalize file, removing double and single dot path steps => avoids duplicates
-    this.file = PathUtils.sanitize(file);
+
+    // Normalize file using separators in UNIX format, removing double and single dot path steps. This is to avoid
+    // duplicates in the issue containers because they are using the file as key. PathUtils.sanitize uses
+    // FilenameUtils.normalize internally, relative paths starting with a double dot will cause that path segment
+    // and the one before to be removed. If the double dot has no parent path segment to work with, null is returned.
+    // null would mean 'project issue' which is wrong in this context. To avoid this we extract the filename to
+    // generate at least a meningful error message (#2747).
+    var normalized = PathUtils.sanitize(file);
+    if (normalized == null && (file != null && !file.isBlank())) {
+
+      // use FilenameUtils.getName because this works on Windows and Linux also if
+      // report is generated on the one and consumed on the other
+      normalized = FilenameUtils.getName(file);
+    }
+
+    this.file = normalized;
     this.line = line;
     this.column = column;
     this.info = info;
@@ -55,21 +71,30 @@ public class CxxReportLocation {
   }
 
   public String getInfo() {
+    if (infoPrefix != null && !infoPrefix.isEmpty()) {
+      return infoPrefix + info;
+    }
     return info;
+  }
+
+  public void setInfoPrefix(String prefix) {
+    infoPrefix = prefix;
   }
 
   @Override
   public String toString() {
     return "CxxReportLocation ["
-             + "file=" + file
-             + ", line=" + line
-             + ", column=" + column
-             + ", info=" + info
-             + "]";
+      + "file=" + file
+      + ", line=" + line
+      + ", column=" + column
+      + ", infoPrefix=" + infoPrefix
+      + ", info=" + info
+      + "]";
   }
 
   @Override
   public int hashCode() {
+    // 'infoPrefix' is not part of hashCode
     return Objects.hash(file, line, column, info);
   }
 
@@ -85,10 +110,11 @@ public class CxxReportLocation {
       return false;
     }
     var other = (CxxReportLocation) obj;
+    // 'infoPrefix' is not part of equals
     return Objects.equals(line, other.line)
-             && Objects.equals(column, other.column)
-             && Objects.equals(file, other.file)
-             && Objects.equals(info, other.info);
+      && Objects.equals(column, other.column)
+      && Objects.equals(file, other.file)
+      && Objects.equals(info, other.info);
   }
 
 }

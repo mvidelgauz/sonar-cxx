@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,20 +20,19 @@
 package org.sonar.cxx.checks.regex;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.sonar.cxx.CxxAstScanner;
 import org.sonar.cxx.checks.CxxFileTesterHelper;
 import org.sonar.cxx.squidbridge.api.SourceFile;
 import org.sonar.cxx.squidbridge.checks.CheckMessagesVerifier;
 
-public class NoSonarCheckTest {
+class NoSonarCheckTest {
 
   private final NoSonarCheck check = new NoSonarCheck();
 
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
-  public void test() throws UnsupportedEncodingException, IOException {
+  void test() throws IOException {
     var tester = CxxFileTesterHelper.create("src/test/resources/checks/NoSonarTagPresenceCheck.cc", ".");
     SourceFile file = CxxAstScanner.scanSingleInputFile(tester.asInputFile(), check);
 

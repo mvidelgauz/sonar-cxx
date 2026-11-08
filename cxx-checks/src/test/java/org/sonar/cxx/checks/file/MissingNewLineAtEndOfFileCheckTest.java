@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,20 +20,19 @@
 package org.sonar.cxx.checks.file;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.sonar.cxx.CxxAstScanner;
 import org.sonar.cxx.checks.CxxFileTesterHelper;
 import org.sonar.cxx.squidbridge.api.SourceFile;
 import org.sonar.cxx.squidbridge.checks.CheckMessagesVerifier;
 
-public class MissingNewLineAtEndOfFileCheckTest {
+class MissingNewLineAtEndOfFileCheckTest {
 
   private final MissingNewLineAtEndOfFileCheck check = new MissingNewLineAtEndOfFileCheck();
 
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
-  public void test() throws UnsupportedEncodingException, IOException {
+  void test() throws IOException {
     var tester = CxxFileTesterHelper.create("src/test/resources/checks/MissingNewLineAtEndOfFile.cc", ".");
     SourceFile file = CxxAstScanner.scanSingleInputFile(tester.asInputFile(), check);
 
@@ -44,7 +43,7 @@ public class MissingNewLineAtEndOfFileCheckTest {
 
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
-  public void test2() throws UnsupportedEncodingException, IOException {
+  void test2() throws IOException {
     var tester = CxxFileTesterHelper.create("src/test/resources/checks/EmptyFile.cc", ".");
     SourceFile file = CxxAstScanner.scanSingleInputFile(tester.asInputFile(), check);
     CheckMessagesVerifier.verify(file.getCheckMessages())
@@ -54,7 +53,7 @@ public class MissingNewLineAtEndOfFileCheckTest {
 
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
-  public void test3() throws UnsupportedEncodingException, IOException {
+  void test3() throws IOException {
     var tester = CxxFileTesterHelper.create("src/test/resources/checks/NonEmptyFile.cc", ".");
     SourceFile file = CxxAstScanner.scanSingleInputFile(tester.asInputFile(), check);
     CheckMessagesVerifier.verify(file.getCheckMessages())

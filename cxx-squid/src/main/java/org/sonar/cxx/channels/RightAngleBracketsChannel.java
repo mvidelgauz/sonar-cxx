@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,11 +19,11 @@
  */
 package org.sonar.cxx.channels;
 
-import com.sonar.sslr.api.Token;
-import com.sonar.sslr.impl.Lexer;
+import com.sonar.cxx.sslr.api.Token;
+import com.sonar.cxx.sslr.impl.Lexer;
 import org.sonar.cxx.parser.CxxPunctuator;
-import org.sonar.sslr.channel.Channel;
-import org.sonar.sslr.channel.CodeReader;
+import org.sonar.cxx.sslr.channel.Channel;
+import org.sonar.cxx.sslr.channel.CodeReader;
 
 /**
  * Solving the problem amounts to decreeing that under some circumstances a >> token is treated as
@@ -48,12 +48,13 @@ public class RightAngleBracketsChannel extends Channel<Lexer> {
 
   @Override
   public boolean consume(CodeReader code, Lexer output) {
-    var ch = (char) code.peek();
     var consumed = false;
 
-    switch (ch) {
+    switch (code.charAt(0)) {
       case '(':
-        parentheseLevel++;
+        if (angleBracketLevel > 0) {
+          parentheseLevel++;
+        }
         break;
       case ')':
         if (parentheseLevel > 0) {
@@ -78,7 +79,7 @@ public class RightAngleBracketsChannel extends Channel<Lexer> {
         if (angleBracketLevel > 0) {
           var consume = parentheseLevel == 0;
           var next = code.charAt(1);
-          consume = consume && !(next == '='); // not >=
+          consume = consume && (next != '='); // not >=
           consume = consume && !((next == '>') && (angleBracketLevel == 1)); // not dangling >>
 
           if (consume) {
@@ -95,6 +96,9 @@ public class RightAngleBracketsChannel extends Channel<Lexer> {
             consumed = true;
           }
         }
+        break;
+
+      default:
         break;
     }
 

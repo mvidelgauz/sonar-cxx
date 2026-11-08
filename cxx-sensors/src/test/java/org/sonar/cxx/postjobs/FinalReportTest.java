@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -23,37 +23,39 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import org.apache.commons.io.ByteOrderMark;
 import org.apache.commons.io.input.BOMInputStream;
-import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.Before;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mockito;
+import org.slf4j.event.Level;
 import org.sonar.api.batch.fs.InputFile;
-import org.sonar.api.batch.fs.internal.DefaultInputFile;
-import org.sonar.api.batch.fs.internal.TestInputFileBuilder;
+import org.sonar.scanner.plugin.api.impl.fs.DefaultInputFile;
+import com.sonarsource.scanner.engine.sensor.test.fixtures.TestInputFileBuilder;
 import org.sonar.api.batch.postjob.PostJobContext;
-import org.sonar.api.batch.sensor.internal.SensorContextTester;
-import org.sonar.api.utils.log.LogTester;
-import org.sonar.api.utils.log.LoggerLevel;
+import com.sonarsource.scanner.engine.sensor.test.fixtures.SensorContextTester;
+import org.sonar.api.testfixtures.log.LogTesterJUnit5;
 import org.sonar.cxx.CxxAstScanner;
 import org.sonar.cxx.preprocessor.CxxPreprocessor;
 import org.sonar.cxx.visitors.CxxParseErrorLoggerVisitor;
 
-public class FinalReportTest {
+class FinalReportTest {
 
-  @org.junit.Rule
-  public LogTester logTester = new LogTester();
+  @RegisterExtension
+  private final LogTesterJUnit5 logTester = new LogTesterJUnit5();
+
   private PostJobContext postJobContext;
 
-  @Before
-  public void scanFile() {
+  @BeforeEach
+  void setUp() {
     postJobContext = Mockito.mock(PostJobContext.class);
   }
 
   @Test
-  public void finalReportTest() throws IOException {
+  void finalReportTest() throws IOException {
     var dir = "src/test/resources/org/sonar/cxx/postjobs";
     var context = SensorContextTester.create(new File(dir));
     InputFile inputFile = createInputFile(dir + "/syntaxerror.cc", ".", Charset.defaultCharset());
@@ -66,7 +68,7 @@ public class FinalReportTest {
     var postjob = new FinalReport();
     postjob.execute(postJobContext);
 
-    var log = logTester.logs(LoggerLevel.WARN);
+    var log = logTester.logs(Level.WARN);
     assertThat(log).hasSize(2);
     assertThat(log.get(0)).contains("include directive error(s)");
     assertThat(log.get(1)).contains("syntax error(s) detected");
@@ -77,19 +79,24 @@ public class FinalReportTest {
     var fb = TestInputFileBuilder.create("", fileName);
 
     fb.setCharset(charset);
-    fb.setProjectBaseDir(Paths.get(basePath));
-    fb.setContents(getSourceCode(Paths.get(basePath, fileName).toFile(), charset));
+    fb.setProjectBaseDir(Path.of(basePath));
+    fb.setContents(getSourceCode(Path.of(basePath, fileName).toFile(), charset));
 
     return fb.build();
   }
 
   private static String getSourceCode(File filename, Charset defaultCharset) throws IOException {
-    try ( var bomInputStream = new BOMInputStream(new FileInputStream(filename),
-                                              ByteOrderMark.UTF_8,
-                                              ByteOrderMark.UTF_16LE,
-                                              ByteOrderMark.UTF_16BE,
-                                              ByteOrderMark.UTF_32LE,
-                                              ByteOrderMark.UTF_32BE)) {
+    try (var bomInputStream = BOMInputStream.builder()
+      .setInputStream(new FileInputStream(filename))
+      .setInclude(false)
+      .setByteOrderMarks(
+        ByteOrderMark.UTF_8,
+        ByteOrderMark.UTF_16LE,
+        ByteOrderMark.UTF_16BE,
+        ByteOrderMark.UTF_32LE,
+        ByteOrderMark.UTF_32BE
+      )
+      .get()) {
       ByteOrderMark bom = bomInputStream.getBOM();
       Charset charset = bom != null ? Charset.forName(bom.getCharsetName()) : defaultCharset;
       byte[] bytes = bomInputStream.readAllBytes();

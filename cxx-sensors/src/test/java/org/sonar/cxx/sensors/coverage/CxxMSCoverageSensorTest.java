@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,43 +19,42 @@
  */
 package org.sonar.cxx.sensors.coverage;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 import org.assertj.core.api.SoftAssertions;
-import org.junit.Before;
-import org.junit.Test;
-import org.sonar.api.batch.fs.internal.DefaultFileSystem;
-import org.sonar.api.batch.fs.internal.TestInputFileBuilder;
-import org.sonar.api.batch.sensor.internal.DefaultSensorDescriptor;
-import org.sonar.api.batch.sensor.internal.SensorContextTester;
-import org.sonar.api.config.internal.MapSettings;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.sonar.scanner.plugin.api.impl.fs.DefaultFileSystem;
+import org.sonar.scanner.plugin.api.impl.sensor.DefaultSensorDescriptor;
+import com.sonarsource.scanner.engine.sensor.test.fixtures.SensorContextTester;
+import org.sonar.scanner.plugin.api.impl.config.MapSettings;
+import org.sonar.api.testfixtures.log.LogTesterJUnit5;
 import org.sonar.cxx.sensors.coverage.vs.CxxCoverageVisualStudioSensor;
 import org.sonar.cxx.sensors.utils.TestUtils;
+import static org.sonar.cxx.sensors.utils.TestUtils.createTestInputFile;
 
-public class CxxMSCoverageSensorTest {
+class CxxMSCoverageSensorTest {
+
+  @RegisterExtension
+  private final LogTesterJUnit5 logTester = new LogTesterJUnit5();
 
   private DefaultFileSystem fs;
   private SensorContextTester context;
   private final MapSettings settings = new MapSettings();
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     fs = TestUtils.mockFileSystem();
   }
 
   @Test
-  public void shouldReportCorrectCoverage() {
+  void shouldReportCorrectCoverage() {
     context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(CxxCoverageVisualStudioSensor.REPORT_PATH_KEY, "coverage-reports/MSCoverage/MSCoverage.xml");
     context.setSettings(settings);
 
-    context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "source/motorcontroller/motorcontroller.cpp")
-      .setLanguage("cxx")
-      .initMetadata("asd\nasdas\nasda\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
-      .build());
-    context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "source/rootfinder/rootfinder.cpp")
-      .setLanguage("cxx")
-      .initMetadata("asd\nasdas\nasda\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
-      .build());
+    context.fileSystem().add(createTestInputFile("source/motorcontroller/motorcontroller.cpp", 32));
+    context.fileSystem().add(createTestInputFile("source/rootfinder/rootfinder.cpp", 32));
 
     var sensor = new CxxCoverageVisualStudioSensor();
     sensor.execute(context);
@@ -72,18 +71,14 @@ public class CxxMSCoverageSensorTest {
   }
 
   @Test
-  public void shouldReportCoverageWhenVisualStudioCase() {
+  void shouldReportCoverageWhenVisualStudioCase() {
     SensorContextTester context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(CxxCoverageVisualStudioSensor.REPORT_PATH_KEY,
-                         "coverage-reports/MSCoverage/coverage-result-visual-studio.xml");
+      "coverage-reports/MSCoverage/coverage-result-visual-studio.xml");
     context.setSettings(settings);
 
-    context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "project2/source1.cpp")
-      .setLanguage("cxx").initMetadata("asd\nasdas\nasda\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
-      .build());
-    context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "project2/source2.cpp")
-      .setLanguage("cxx").initMetadata("asd\nasdas\nasda\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
-      .build());
+    context.fileSystem().add(createTestInputFile("project2/source1.cpp", 32));
+    context.fileSystem().add(createTestInputFile("project2/source2.cpp", 32));
 
     var sensor = new CxxCoverageVisualStudioSensor();
     sensor.execute(context);
@@ -108,35 +103,32 @@ public class CxxMSCoverageSensorTest {
 
   }
 
-  @Test(expected = Test.None.class /* no exception expected */)
-  public void shouldReadFaultyReportAndNotCrash() {
+  @Test
+  void shouldReadFaultyReportAndNotCrash() {
     context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(CxxCoverageVisualStudioSensor.REPORT_PATH_KEY, "coverage-reports/MSCoverage/faulty.xml");
     context.setSettings(settings);
 
-    context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "source/motorcontroller/motorcontroller.cpp")
-      .setLanguage("cxx")
-      .initMetadata("asd\nasdas\nasda\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
-      .build());
-    context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "source/rootfinder/rootfinder.cpp")
-      .setLanguage("cxx")
-      .initMetadata("asd\nasdas\nasda\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
-      .build());
+    context.fileSystem().add(createTestInputFile("source/motorcontroller/motorcontroller.cpp", 32));
+    context.fileSystem().add(createTestInputFile("source/rootfinder/rootfinder.cpp", 32));
 
     var sensor = new CxxCoverageVisualStudioSensor();
+    logTester.clear();
     sensor.execute(context);
+
+    var log = logTester.logs();
+    assertThat(log).hasSize(2);
+    assertThat(log.get(0)).contains("faulty.xml");
+    assertThat(log.get(1)).contains("skipping");
   }
 
   @Test
-  public void shouldConsumeEmptyReport() {
+  void shouldConsumeEmptyReport() {
     context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(CxxCoverageVisualStudioSensor.REPORT_PATH_KEY, "coverage-reports/MSCoverage/empty-report.xml");
     context.setSettings(settings);
 
-    context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "source/motorcontroller/motorcontroller.cpp")
-      .setLanguage("cxx")
-      .initMetadata("asd\nasdas\nasda\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
-      .build());
+    context.fileSystem().add(createTestInputFile("source/motorcontroller/motorcontroller.cpp", 32));
 
     var sensor = new CxxCoverageVisualStudioSensor();
     sensor.execute(context);
@@ -145,7 +137,7 @@ public class CxxMSCoverageSensorTest {
   }
 
   @Test
-  public void sensorDescriptor() {
+  void sensorDescriptor() {
     context = SensorContextTester.create(fs.baseDir());
     var descriptor = new DefaultSensorDescriptor();
     var sensor = new CxxCoverageVisualStudioSensor();

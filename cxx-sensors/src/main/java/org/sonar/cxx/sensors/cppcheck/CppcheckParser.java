@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,24 +20,25 @@
 package org.sonar.cxx.sensors.cppcheck;
 
 import java.io.File;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import javax.annotation.Nullable;
 import javax.xml.stream.XMLStreamException;
 import org.codehaus.staxmate.in.SMHierarchicCursor;
 import org.codehaus.staxmate.in.SMInputCursor;
-import org.sonar.api.utils.log.Logger;
-import org.sonar.api.utils.log.Loggers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.sonar.cxx.sensors.utils.CxxIssuesReportSensor;
 import org.sonar.cxx.sensors.utils.EmptyReportException;
 import org.sonar.cxx.sensors.utils.StaxParser;
 import org.sonar.cxx.utils.CxxReportIssue;
 
 public class CppcheckParser {
 
-  private static final Logger LOG = Loggers.get(CppcheckParser.class);
+  private static final Logger LOG = LoggerFactory.getLogger(CppcheckParser.class);
 
-  private final CxxCppCheckSensor sensor;
+  private final CxxIssuesReportSensor sensor;
 
-  public CppcheckParser(CxxCppCheckSensor sensor) {
+  public CppcheckParser(CxxIssuesReportSensor sensor) {
     this.sensor = sensor;
   }
 
@@ -94,9 +95,9 @@ public class CppcheckParser {
 
       private void processErrorTag(SMInputCursor errorCursor) throws XMLStreamException {
         String id = requireAttributeSet(errorCursor.getAttrValue("id"),
-                                        "Missing mandatory attribute /results/errors/error[@id]");
+          "Missing mandatory attribute /results/errors/error[@id]");
         String msg = requireAttributeSet(errorCursor.getAttrValue("msg"),
-                                         "Missing mandatory attribute /results/errors/error[@msg]");
+          "Missing mandatory attribute /results/errors/error[@msg]");
         boolean isInconclusive = "true".equals(errorCursor.getAttrValue("inconclusive"));
         String issueText = createIssueText(msg, isInconclusive);
         CxxReportIssue issue = null;
@@ -118,14 +119,14 @@ public class CppcheckParser {
             info = null;
           }
 
-          final boolean isLocationInProject = isLocationInProject(file);
+          boolean isLocationInProject = isLocationInProject(file);
           if (issue == null) {
             // primary location
             // if primary location cannot be found in the current project (in
             // the current module) we are not interested in this <error>
             if (!isLocationInProject) {
               LOG.debug("Cppcheck issue outside of project, skipping issue: {}:{} {}:{}",
-                        file, line, id, msg);
+                file, line, id, msg);
               return;
             }
 
@@ -165,9 +166,9 @@ public class CppcheckParser {
 
       private String makeRelativePath(String path, String basePath) {
         try {
-          return Paths.get(basePath).relativize(Paths.get(path)).toString();
+          return Path.of(basePath).relativize(Path.of(path)).toString();
         } catch (IllegalArgumentException e) {
-          LOG.warn("Can't create relative path: basePath='{}', path='{}'", basePath, path);
+          LOG.warn("Can't create relative path: basePath='{}', path='{}'", basePath, path, e);
           return path;
         }
       }

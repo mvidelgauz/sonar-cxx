@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -21,25 +21,25 @@
  * fork of SSLR Squid Bridge: https://github.com/SonarSource/sslr-squid-bridge/tree/2.6.1
  * Copyright (C) 2010 SonarSource / mailto: sonarqube@googlegroups.com / license: LGPL v3
  */
-package org.sonar.cxx.squidbridge;
+package org.sonar.cxx.squidbridge; // cxx: in use
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
-import com.sonar.sslr.api.AstNode;
-import com.sonar.sslr.api.Grammar;
-import com.sonar.sslr.api.RecognitionException;
-import com.sonar.sslr.impl.Parser;
-import com.sonar.sslr.impl.ast.AstWalker;
+import com.sonar.cxx.sslr.api.AstNode;
+import com.sonar.cxx.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.RecognitionException;
+import com.sonar.cxx.sslr.impl.Parser;
+import com.sonar.cxx.sslr.impl.ast.AstWalker;
 import java.io.File;
 import java.io.InterruptedIOException;
 import java.util.Collection;
 import java.util.List;
 import javax.annotation.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.sonar.api.batch.fs.InputFile;
-import org.sonar.api.utils.log.Logger;
-import org.sonar.api.utils.log.Loggers;
 import org.sonar.cxx.squidbridge.api.AnalysisException;
 import org.sonar.cxx.squidbridge.api.SourceCodeSearchEngine;
 import org.sonar.cxx.squidbridge.api.SourceCodeTreeDecorator;
@@ -49,7 +49,8 @@ import org.sonar.cxx.squidbridge.measures.MetricDef;
 
 public class AstScanner<G extends Grammar> {
 
-  private static final Logger LOG = Loggers.get(AstScanner.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AstScanner.class);
+  private static final String UNABLE_TO_PARSE = "Unable to parse file: ";
 
   private final List<SquidAstVisitor<G>> visitors;
   private final Parser<G> parser;
@@ -100,10 +101,12 @@ public class AstScanner<G extends Grammar> {
           ast = parser.parse(file);
         } catch (Exception e) {
           parseException = handleParseException(file, e);
+        } catch (StackOverflowError e) {
+          parseException = handleParserStackOverflow(file, e);
         }
         walkAndVisit(astWalker, ast, parseException);
       } catch (Throwable e) {
-        throw new AnalysisException("Unable to parse file: " + file.getAbsolutePath(), e);
+        throw new AnalysisException(UNABLE_TO_PARSE + file.getAbsolutePath(), e);
       }
     }
 
@@ -128,10 +131,12 @@ public class AstScanner<G extends Grammar> {
           ast = parser.parse(inputFile.contents());
         } catch (Exception e) {
           parseException = handleParseException(file, e);
+        } catch (StackOverflowError e) {
+          parseException = handleParserStackOverflow(file, e);
         }
         walkAndVisit(astWalker, ast, parseException);
       } catch (Throwable e) {
-        throw new AnalysisException("Unable to parse file: " + file.getAbsolutePath(), e);
+        throw new AnalysisException(UNABLE_TO_PARSE + file.getAbsolutePath(), e);
       }
     }
 
@@ -142,12 +147,22 @@ public class AstScanner<G extends Grammar> {
   private static Exception handleParseException(File file, Exception e) {
     checkInterrupted(e);
     if (e instanceof RecognitionException) {
-      LOG.error("Unable to parse file: " + file.getAbsolutePath());
+      LOG.error(UNABLE_TO_PARSE + "{}", file.getAbsolutePath());
       LOG.error(e.getMessage());
     } else {
-      LOG.error("Unable to parse file: " + file.getAbsolutePath(), e);
+      LOG.error(UNABLE_TO_PARSE + "{}", file.getAbsolutePath(), e);
     }
     return e;
+  }
+
+  /**
+   * Code nested too deeply for the recursive descent parser fails only that file, like a syntax error. When the
+   * error is caught here, only the parser's own frames have been unwound, so the scan goes on with the next file.
+   */
+  private static Exception handleParserStackOverflow(File file, StackOverflowError e) {
+    LOG.error(UNABLE_TO_PARSE + "{}", file.getAbsolutePath());
+    LOG.error("Code nested too deeply for the parser; a larger thread stack size (-Xss) may allow analyzing it");
+    return new AnalysisException(UNABLE_TO_PARSE + file.getAbsolutePath(), e);
   }
 
   private void walkAndVisit(AstWalker astWalker, AstNode ast, @Nullable Exception parseException) throws Throwable {
@@ -159,12 +174,11 @@ public class AstScanner<G extends Grammar> {
         visitor.visitFile(ast);
       }
       for (var visitor : visitors) {
-        if (visitor instanceof AstScannerExceptionHandler) {
-          if (parseException instanceof RecognitionException) {
-            ((AstScannerExceptionHandler) visitor)
-              .processRecognitionException((RecognitionException) parseException);
+        if (visitor instanceof AstScannerExceptionHandler astScannerExceptionHandler) {
+          if (parseException instanceof RecognitionException recognitionException) {
+            astScannerExceptionHandler.processRecognitionException(recognitionException);
           } else {
-            ((AstScannerExceptionHandler) visitor).processException(parseException);
+            astScannerExceptionHandler.processException(parseException);
           }
         }
       }
@@ -188,8 +202,8 @@ public class AstScanner<G extends Grammar> {
   }
 
   /**
-   * Checks if the root cause of the thread is related to an interrupt.
-   * Note that when such an exception is thrown, the interrupt flag is reset.
+   * Checks if the root cause of the thread is related to an interrupt. Note that when such an exception is thrown, the
+   * interrupt flag is reset.
    */
   private static void checkInterrupted(Exception e) {
     Throwable cause = Throwables.getRootCause(e);

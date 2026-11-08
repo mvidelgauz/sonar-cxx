@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -26,12 +26,11 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
-import org.sonar.api.utils.log.Logger;
-import org.sonar.api.utils.log.Loggers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * MsBuild
@@ -45,30 +44,30 @@ public class MsBuild {
   public static final String REPORT_ENCODING_DEF = "sonar.cxx.msbuild.encoding";
   public static final String DEFAULT_ENCODING_DEF = StandardCharsets.UTF_8.name();
 
-  private static final Logger LOG = Loggers.get(MsBuild.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MsBuild.class);
 
   private static final String MSC_IX86_600 = "_M_IX86 600";
   private static final String MSC_X64_100 = "_M_X64 100";
 
   private static final Pattern[] INCLUDE_PATTERNS = {Pattern.compile("/I\"(.*?)\""),
-                                                     Pattern.compile("/I([^\\s\"]++) ")};
+    Pattern.compile("/I([^\\s\"]++) ")};
   private static final Pattern[] DEFINE_PATTERNS = {Pattern.compile("[/-]D\\s([^\\s]++)"),
-                                                    Pattern.compile("[/-]D([^\\s]++)")};
+    Pattern.compile("[/-]D([^\\s]++)")};
   private static final Pattern PATH_TO_CL_PATTERN = Pattern.compile(
     "^(?>[^\\\\]{0,260}\\\\)+bin\\\\(?>[^\\\\]{1,260}\\\\)*CL.exe\\x20.*$");
   private static final Pattern PLATFORM_X86_PATTERN = Pattern.compile("Building solution configuration \".*\\|x64\".");
   private static final Pattern TOOLSET_V141_PATTERN = Pattern.compile(
     "^(?>[^\\\\]{0,260}\\\\)+VC\\\\Tools\\\\MSVC\\\\14\\.1\\d\\.\\d{1,6}"
-      + "\\\\bin\\\\HostX(86|64)\\\\x(86|64)\\\\CL.exe.*$");
+    + "\\\\bin\\\\HostX(86|64)\\\\x(86|64)\\\\CL.exe.*$");
   private static final Pattern TOOLSET_V142_PATTERN = Pattern.compile(
     "^(?>[^\\\\]{0,260}\\\\)+VC\\\\Tools\\\\MSVC\\\\14\\.2\\d\\.\\d{1,6}"
-      + "\\\\bin\\\\HostX(86|64)\\\\x(86|64)\\\\CL.exe.*$");
+    + "\\\\bin\\\\HostX(86|64)\\\\x(86|64)\\\\CL.exe.*$");
 
   // It seems that the required line in any language has these elements: "ClCompile" and (*.vcxproj)
   private static final Pattern PATH_TO_VCXPROJ = Pattern.compile(
     "^\\S+\\s\\\"ClCompile\\\".+\\\"((?>[^\\\\]{1,260}\\\\)*[^\\\\]{1,260}\\.vcxproj)\\\".*$");
 
-  private String platformToolset = "V142";
+  private String platformToolset = "V143";
   private String platform = "Win32";
 
   private final CxxSquidConfiguration squidConfig;
@@ -125,10 +124,10 @@ public class MsBuild {
 
     var detectedPlatform = false;
     try (var br = new BufferedReader(new InputStreamReader(java.nio.file.Files.newInputStream(buildLog.toPath()),
-                                                       encodingName))) {
+      encodingName))) {
       String line;
       LOG.debug("build log parser baseDir='{}'", baseDir);
-      var currentProjectPath = Paths.get(baseDir);
+      var currentProjectPath = Path.of(baseDir);
 
       while ((line = br.readLine()) != null) {
         if (line.trim().startsWith("INCLUDE=")) { // handle environment includes
@@ -146,10 +145,10 @@ public class MsBuild {
         //         PathHandling.Test\PathHandling.Test.vcxproj" (target "_ClCompile" depends on it):
         if (PATH_TO_VCXPROJ.matcher(line).matches()) {
           String pathProject = getMatches(PATH_TO_VCXPROJ, line).get(0);
-          currentProjectPath = Paths.get(pathProject).getParent();
+          currentProjectPath = Path.of(pathProject).getParent();
 
           if (currentProjectPath == null) {
-            currentProjectPath = Paths.get(baseDir);
+            currentProjectPath = Path.of(baseDir);
           }
 
           LOG.debug("build log parser currentProjectPath='{}'", currentProjectPath);
@@ -167,17 +166,22 @@ public class MsBuild {
         // match "bin\CL.exe", "bin\amd64\CL.exe", "bin\x86_amd64\CL.exe"
         if (PATH_TO_CL_PATTERN.matcher(line).matches()) {
           detectedPlatform = setPlatformToolsetFromLine(line);
-          String[] allElems = line.split("\\s+");
+          String[] allElems = line.split("\\s++");
           String data = allElems[allElems.length - 1];
           parseCLParameters(line, currentProjectPath, data);
           LOG.debug("build log parser cl.exe line='{}'", line);
         }
       }
     } catch (IOException e) {
-      LOG.error("Cannot parse build log: " + e.getMessage());
+      LOG.error("Cannot parse build log: {}", e.getMessage(), e);
     }
     if (detectedPlatform) {
-      LOG.info("Detected VS platform toolset: {}.{}", platformToolset.substring(0, 3), platformToolset.substring(3));
+      if (LOG.isInfoEnabled()) {
+        LOG.info("Detected VS platform toolset: {}.{}",
+          platformToolset.substring(0, 3),
+          platformToolset.substring(3)
+        );
+      }
     } else {
       LOG.info("Could not assign VS platform toolset - use default: {}", platformToolset);
     }
@@ -190,28 +194,28 @@ public class MsBuild {
    */
   private boolean setPlatformToolsetFromLine(String line) {
     if (line.contains("\\V100\\Microsoft.CppBuild.targets")
-          || line.contains("Microsoft Visual Studio 10.0\\VC\\bin\\CL.exe")) {
+      || line.contains("Microsoft Visual Studio 10.0\\VC\\bin\\CL.exe")) {
       setPlatformToolset("V100");
       return true;
     } else if (line.contains("\\V110\\Microsoft.CppBuild.targets")
-                 || line.contains("Microsoft Visual Studio 11.0\\VC\\bin\\CL.exe")) {
+      || line.contains("Microsoft Visual Studio 11.0\\VC\\bin\\CL.exe")) {
       setPlatformToolset("V110");
       return true;
     } else if (line.contains("\\V120\\Microsoft.CppBuild.targets")
-                 || line.contains("Microsoft Visual Studio 12.0\\VC\\bin\\CL.exe")) {
+      || line.contains("Microsoft Visual Studio 12.0\\VC\\bin\\CL.exe")) {
       setPlatformToolset("V120");
       return true;
     } else if (line.contains("\\V140\\Microsoft.CppBuild.targets")
-                 || line.contains("Microsoft Visual Studio 14.0\\VC\\bin\\CL.exe")
-                 || line.contains("Microsoft Visual Studio 14.0\\VC\\bin\\amd64\\cl.exe")) {
+      || line.contains("Microsoft Visual Studio 14.0\\VC\\bin\\CL.exe")
+      || line.contains("Microsoft Visual Studio 14.0\\VC\\bin\\amd64\\cl.exe")) {
       setPlatformToolset("V140");
       return true;
     } else if (line.contains("\\V141\\Microsoft.CppBuild.targets")
-                 || TOOLSET_V141_PATTERN.matcher(line).matches()) {
+      || TOOLSET_V141_PATTERN.matcher(line).matches()) {
       setPlatformToolset("V141");
       return true;
     } else if (line.contains("\\V142\\Microsoft.CppBuild.targets")
-                 || TOOLSET_V142_PATTERN.matcher(line).matches()) {
+      || TOOLSET_V142_PATTERN.matcher(line).matches()) {
       setPlatformToolset("V142");
       return true;
     } else {
@@ -226,7 +230,7 @@ public class MsBuild {
    * @param data
    */
   private void parseCLParameters(String line, Path currentProjectPath, String data) {
-    String path = data.replaceAll("\"", "");
+    String path = data.replace("\"", "");
     String fileElement;
     try {
       // a) if path is empty: fileElement == currentProjectPath
@@ -235,9 +239,9 @@ public class MsBuild {
       fileElement = currentProjectPath.resolve(path).toAbsolutePath().toString();
       parseVCppCompilerCLLine(line, currentProjectPath.toAbsolutePath().toString(), fileElement);
     } catch (InvalidPathException e) {
-      LOG.warn("Cannot extract information from current element: {} - {}", data, e.getMessage());
+      LOG.warn("Cannot extract information from current element: {} - {}", data, e.getMessage(), e);
     } catch (NullPointerException e) {
-      LOG.error("Bug in parser, please report: '{}' - '{}'", data + " @ " + currentProjectPath, e);
+      LOG.error("Bug in parser, please report: '{} @ {}' - '{}'", data, currentProjectPath, e);
     }
   }
 
@@ -279,6 +283,9 @@ public class MsBuild {
       case "V142":
         parseV142CompilerOptions(line, fileElement);
         break;
+      case "V143":
+        parseV143CompilerOptions(line, fileElement);
+        break;
       default:
       // do nothing
     }
@@ -287,7 +294,7 @@ public class MsBuild {
   private void parseInclude(String element, String project, String fileElement) {
     try {
       var includeRoot = new File(element.replace("\"", ""));
-      var p = Paths.get(project);
+      var p = Path.of(project);
       if (!includeRoot.isAbsolute()) {
         // handle path without drive information but represent absolute path
         var pseudoAbsolute = new File(p.getRoot().toString(), includeRoot.toString());
@@ -299,7 +306,7 @@ public class MsBuild {
       }
       squidConfig.add(fileElement, CxxSquidConfiguration.INCLUDE_DIRECTORIES, includeRoot.getCanonicalPath());
     } catch (IOException e) {
-      LOG.error("Cannot parse include path using element '{}' : '{}'", element, e.getMessage());
+      LOG.error("Cannot parse include path using element '{}' : '{}'", element, e.getMessage(), e);
     }
   }
 
@@ -384,12 +391,12 @@ public class MsBuild {
     // WinCE and WinRT
     // see https://en.wikipedia.org/wiki/ARM_architecture
     if (line.contains("/arch:IA32 ")
-          || line.contains("/arch:SSE ")
-          || line.contains("/arch:SSE2 ")
-          || line.contains("/arch:AVX2 ")
-          || line.contains("/arch:AVX ")
-          || line.contains("/arch:VFPv4 ")
-          || line.contains("/arch:ARMv7VE ")) {
+      || line.contains("/arch:SSE ")
+      || line.contains("/arch:SSE2 ")
+      || line.contains("/arch:AVX2 ")
+      || line.contains("/arch:AVX ")
+      || line.contains("/arch:VFPv4 ")
+      || line.contains("/arch:ARMv7VE ")) {
       // In the range 30-39 if no /arch ARM option was specified, indicating the default architecture
       //   for ARM was used (VFPv3).
       // In the range 40-49 if /arch:VFPv4 was used.
@@ -520,21 +527,21 @@ public class MsBuild {
     // VC++ 17.0, 18.0, 19.0
     // _CPPUNWIND Defined for code compiled by using one of the /EH (Exception Handling Model) flags.
     if (line.contains("/EHs ")
-          || line.contains("/EHa ")
-          || line.contains("/EHsc ")
-          || line.contains("/EHac ")) {
+      || line.contains("/EHa ")
+      || line.contains("/EHsc ")
+      || line.contains("/EHac ")) {
       addMacro("_CPPUNWIND", fileElement);
     }
     if (line.contains("/favor:ATOM") && (existMacro(MSC_X64_100, fileElement)
-                                         || existMacro(MSC_IX86_600, fileElement))) {
+      || existMacro(MSC_IX86_600, fileElement))) {
       addMacro("__ATOM__=1", fileElement);
     }
     if (line.contains("/arch:AVX") && (existMacro(MSC_X64_100, fileElement)
-                                       || existMacro(MSC_IX86_600, fileElement))) {
+      || existMacro(MSC_IX86_600, fileElement))) {
       addMacro("__AVX__=1", fileElement);
     }
     if (line.contains("/arch:AVX2") && (existMacro(MSC_X64_100, fileElement)
-                                        || existMacro(MSC_IX86_600, fileElement))) {
+      || existMacro(MSC_IX86_600, fileElement))) {
       addMacro("__AVX2__=1", fileElement);
     }
   }
@@ -616,6 +623,19 @@ public class MsBuild {
     }
     addMacro("_MSC_VER=1920", fileElement);
     addMacro("_MSC_FULL_VER=192829913", fileElement);
+    addMacro("_MFC_VER=0x0E00", fileElement);
+    addMacro("_ATL_VER=0x0E00", fileElement);
+  }
+
+  void parseV143CompilerOptions(String line, String fileElement) {
+    // Visual Studio 2022 RTW (17.5)
+    addMacro("__cplusplus=201402L", fileElement); // C++14
+    // __cplusplus_winrt Defined when you use the /ZW option to compile. The value of __cplusplus_winrt is 201009.
+    if (line.contains("/ZW ")) {
+      addMacro("__cplusplus_winrt=201009", fileElement);
+    }
+    addMacro("_MSC_VER=1935", fileElement);
+    addMacro("_MSC_FULL_VER=193532215", fileElement);
     addMacro("_MFC_VER=0x0E00", fileElement);
     addMacro("_ATL_VER=0x0E00", fileElement);
   }

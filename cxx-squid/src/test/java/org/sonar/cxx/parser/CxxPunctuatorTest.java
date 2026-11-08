@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,15 +19,15 @@
  */
 package org.sonar.cxx.parser;
 
-import com.sonar.sslr.api.AstNode;
+import com.sonar.cxx.sslr.api.AstNode;
 import org.assertj.core.api.SoftAssertions;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.mock;
 
-public class CxxPunctuatorTest {
+class CxxPunctuatorTest {
 
   @Test
-  public void test() {
+  void test() {
     var softly = new SoftAssertions();
     softly.assertThat(CxxPunctuator.values()).hasSize(50);
 

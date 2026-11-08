@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,18 +20,17 @@
 package org.sonar.cxx.checks.regex;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.sonar.cxx.CxxAstScanner;
 import org.sonar.cxx.checks.CxxFileTesterHelper;
 import org.sonar.cxx.squidbridge.api.SourceFile;
 import org.sonar.cxx.squidbridge.checks.CheckMessagesVerifier;
 
-public class LineRegularExpressionCheckTest {
+class LineRegularExpressionCheckTest {
 
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
-  public void lineRegExWithoutFilePattern() throws UnsupportedEncodingException, IOException {
+  void lineRegExWithoutFilePattern() throws IOException {
     var check = new LineRegularExpressionCheck();
     check.regularExpression = "stdafx\\.h";
     check.message = "Found 'stdafx.h' in line!";
@@ -46,7 +45,7 @@ public class LineRegularExpressionCheckTest {
 
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
-  public void lineRegExInvertWithoutFilePattern() throws UnsupportedEncodingException, IOException {
+  void lineRegExInvertWithoutFilePattern() throws IOException {
     var check = new LineRegularExpressionCheck();
     check.regularExpression = "//.*";
     check.invertRegularExpression = true;
@@ -61,7 +60,7 @@ public class LineRegularExpressionCheckTest {
 
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
-  public void lineRegExWithFilePattern1() throws UnsupportedEncodingException, IOException {
+  void lineRegExWithFilePattern1() throws IOException {
     var check = new LineRegularExpressionCheck();
     check.matchFilePattern = "/**/*.cc"; // all files with .cc file extension
     check.regularExpression = "#include\\s+\"stdafx\\.h\"";
@@ -78,7 +77,7 @@ public class LineRegularExpressionCheckTest {
 
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
-  public void lineRegExWithFilePatternInvert() throws UnsupportedEncodingException, IOException {
+  void lineRegExWithFilePatternInvert() throws IOException {
     var check = new LineRegularExpressionCheck();
     check.matchFilePattern = "/**/*.xx"; // all files with not .xx file extension
     check.invertFilePattern = true;
@@ -96,7 +95,7 @@ public class LineRegularExpressionCheckTest {
 
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
-  public void lineRegExWithFilePattern2() throws UnsupportedEncodingException, IOException {
+  void lineRegExWithFilePattern2() throws IOException {
     var check = new LineRegularExpressionCheck();
     check.matchFilePattern = "/**/*.xx"; // all files with .xx file extension
     check.regularExpression = "#include\\s+\"stdafx\\.h\"";

@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -24,76 +24,51 @@
 package org.sonar.cxx.squidbridge.indexer;
 
 import java.util.Collection;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import org.junit.Before;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.sonar.cxx.squidbridge.api.SourceClass;
 import org.sonar.cxx.squidbridge.api.SourceCode;
 import org.sonar.cxx.squidbridge.api.SourceFile;
-import org.sonar.cxx.squidbridge.api.SourcePackage;
 import org.sonar.cxx.squidbridge.api.SourceProject;
 
-public class SquidIndexTest {
+class SquidIndexTest {
 
   private SquidIndex indexer;
-  private SourceProject project;
-  private SourcePackage packSquid;
-  private SourceFile fileSquid;
-  private SourceFile file2Squid;
-  private SourceCode classSquid;
+  private SourceProject sourceProject;
+  private SourceFile sourceFile1;
+  private SourceFile sourceFile2;
+  private SourceCode sourceClass;
 
-  @Before
-  public void setup() {
+  @BeforeEach
+  void setUp() {
     indexer = new SquidIndex();
-    project = new SourceProject("Squid Project");
-    indexer.index(project);
-    packSquid = new SourcePackage("org.sonar.squid");
-    project.addChild(packSquid);
-    fileSquid = new SourceFile("org.sonar.squid.Squid.java", "Squid.java");
-    packSquid.addChild(fileSquid);
-    file2Squid = new SourceFile("org.sonar.squid.SquidConfiguration.java", "SquidConfiguration.java");
-    packSquid.addChild(file2Squid);
-    classSquid = new SourceClass("org.sonar.squid.Squid", "Squid");
-    fileSquid.addChild(classSquid);
+    sourceProject = new SourceProject("ProjectKey", "Project Name");
+    indexer.index(sourceProject);
+    sourceFile1 = new SourceFile("src/test/FileName1.cpp", "FileName1.cpp");
+    sourceProject.addChild(sourceFile1);
+    sourceFile2 = new SourceFile("src/test/FileName2.cpp", "FileName2.cpp");
+    sourceProject.addChild(sourceFile2);
+    sourceClass = new SourceClass("ClassName:LineNo", "ClassName");
+    sourceFile1.addChild(sourceClass);
   }
 
   @Test
-  public void searchSingleResource() {
-    SourceCode squidClass = indexer.search("org.sonar.squid.Squid");
-    assertEquals(new SourceClass("org.sonar.squid.Squid", "Squid"), squidClass);
-    SourceCode javaNCSSClass = indexer.search("org.sonar.squid.JavaNCSS");
-    assertNull(javaNCSSClass);
+  void searchSingleResource() {
+    SourceCode squidClass = indexer.search("ClassName:LineNo");
+    assertThat(squidClass).isEqualTo(new SourceClass("ClassName:LineNo", "ClassName"));
+    SourceCode javaNCSSClass = indexer.search("undefined");
+    assertThat(javaNCSSClass).isNull();
   }
 
   @Test
-  public void searchByType() {
+  void searchByType() {
     Collection<SourceCode> resources = indexer.search(new QueryByType(SourceFile.class));
-    assertEquals(2, resources.size());
+    assertThat(resources).hasSize(2);
     resources = indexer.search(new QueryByType(SourceClass.class));
-    assertEquals(1, resources.size());
-    assertTrue(resources.contains(classSquid));
-  }
-
-  @Test
-  public void searchByName() {
-    Collection<SourceCode> resources = indexer.search(new QueryByName("Squid.java"));
-    assertEquals(1, resources.size());
-    assertTrue(resources.contains(fileSquid));
-  }
-
-  @Test
-  public void searchByParent() {
-    Collection<SourceCode> resources = indexer.search(new QueryByParent(packSquid));
-    assertEquals(3, resources.size());
-  }
-
-  @Test
-  public void searchByParentAndByType() {
-    Collection<SourceCode> resources = indexer.search(new QueryByParent(packSquid), new QueryByType(SourceClass.class));
-    assertEquals(1, resources.size());
-    assertTrue(resources.contains(classSquid));
+    assertThat(resources)
+      .hasSize(1)
+      .contains(sourceClass);
   }
 
 }

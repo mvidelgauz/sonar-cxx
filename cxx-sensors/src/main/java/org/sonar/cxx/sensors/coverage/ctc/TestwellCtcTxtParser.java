@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -31,8 +31,8 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.regex.Matcher;
 import org.apache.commons.io.FilenameUtils;
-import org.sonar.api.utils.log.Logger;
-import org.sonar.api.utils.log.Loggers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.sonar.cxx.sensors.coverage.CoverageMeasures;
 import org.sonar.cxx.sensors.coverage.CoverageParser;
 import static org.sonar.cxx.sensors.coverage.ctc.TestwellCtcTxtResult.FILE_HEADER;
@@ -47,7 +47,7 @@ import org.sonar.cxx.sensors.utils.TextScanner;
  */
 public class TestwellCtcTxtParser implements CoverageParser {
 
-  private static final Logger LOG = Loggers.get(TestwellCtcTxtParser.class);
+  private static final Logger LOG = LoggerFactory.getLogger(TestwellCtcTxtParser.class);
 
   private static final int FROM_START = 0;
   private static final int CONDS_FALSE = 1;
@@ -60,7 +60,7 @@ public class TestwellCtcTxtParser implements CoverageParser {
   @Override
   public Map<String, CoverageMeasures> parse(File report) {
     var coverageData = new HashMap<String, CoverageMeasures>();
-    try ( var scanner = new TextScanner(report, StandardCharsets.UTF_8.name())) {
+    try (var scanner = new TextScanner(report, StandardCharsets.UTF_8.name())) {
       scanner.useDelimiter(SECTION_SEP);
       var headerMatcher = FILE_HEADER.matcher(scanner.next());
       while (parseUnit(scanner, coverageData, headerMatcher)) {
@@ -83,7 +83,7 @@ public class TestwellCtcTxtParser implements CoverageParser {
   }
 
   private void parseFileUnit(TextScanner scanner, final Map<String, CoverageMeasures> coverageData,
-                             Matcher headerMatcher) {
+    Matcher headerMatcher) {
     String normalFilename;
     String filename = headerMatcher.group(1);
     if (new File(filename).isAbsolute()) {
@@ -176,7 +176,7 @@ public class TestwellCtcTxtParser implements CoverageParser {
     } while (lineMatcher.find());
   }
 
-  private void setLinehitsByBlockend(CoverageMeasures coverageMeasures, int lineIdCur, Matcher lineMatcher) {
+  private static void setLinehitsByBlockend(CoverageMeasures coverageMeasures, int lineIdCur, Matcher lineMatcher) {
     int lineHits;
     String blockEnd = lineMatcher.group(4);
 
@@ -193,7 +193,7 @@ public class TestwellCtcTxtParser implements CoverageParser {
     }
   }
 
-  private void setLinehits(CoverageMeasures coverageMeasures, int lineIdPrev, int lineIdCur, int lineHits) {
+  private static void setLinehits(CoverageMeasures coverageMeasures, int lineIdPrev, int lineIdCur, int lineHits) {
 
     if (lineIdPrev > 0) {
       int lineIdNext = lineIdPrev + 1;

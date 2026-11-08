@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,18 +20,17 @@
 package org.sonar.cxx.checks.xpath;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.sonar.cxx.CxxAstScanner;
 import org.sonar.cxx.checks.CxxFileTesterHelper;
 import org.sonar.cxx.squidbridge.api.SourceFile;
 import org.sonar.cxx.squidbridge.checks.CheckMessagesVerifier;
 
-public class XPathCheckTest {
+class XPathCheckTest {
 
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
-  public void xpathWithoutFilePattern() throws UnsupportedEncodingException, IOException {
+  void xpathWithoutFilePattern() throws IOException {
     var check = new XPathCheck();
     check.xpathQuery = "//declaration";
     check.message = "Avoid declarations!! ";
@@ -45,7 +44,7 @@ public class XPathCheckTest {
 
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
-  public void xpathWithFilePattern1() throws UnsupportedEncodingException, IOException {
+  void xpathWithFilePattern1() throws IOException {
     var check = new XPathCheck();
     check.matchFilePattern = "/**/*.cc"; // all files with .cc file extension
     check.xpathQuery = "//declaration";
@@ -60,7 +59,7 @@ public class XPathCheckTest {
 
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
-  public void xpathWithFilePattern2() throws UnsupportedEncodingException, IOException {
+  void xpathWithFilePattern2() throws IOException {
     var check = new XPathCheck();
     check.matchFilePattern = "/**/test/**/xpath.cc"; // all files with filename xpath.cc in a subdirectory with name test
     check.xpathQuery = "//declaration";
@@ -75,7 +74,7 @@ public class XPathCheckTest {
 
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
-  public void xpathWithFilePattern3() throws UnsupportedEncodingException, IOException {
+  void xpathWithFilePattern3() throws IOException {
     var check = new XPathCheck();
     check.matchFilePattern = "/**/*.xxx"; // all files with .xxx file extension
     check.xpathQuery = "//declaration";
@@ -89,7 +88,7 @@ public class XPathCheckTest {
 
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
-  public void xpathWithFilePatternInvert() throws UnsupportedEncodingException, IOException {
+  void xpathWithFilePatternInvert() throws IOException {
     var check = new XPathCheck();
     check.matchFilePattern = "/**/*.xxx"; // all files with not .xxx file extension
     check.invertFilePattern = true;

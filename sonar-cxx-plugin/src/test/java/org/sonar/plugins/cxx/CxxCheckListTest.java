@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,14 +19,14 @@
  */
 package org.sonar.plugins.cxx;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 import org.sonar.cxx.checks.CheckList;
 
-public class CxxCheckListTest {
+class CxxCheckListTest {
 
   @Test
-  public void count() {
+  void count() {
     assertThat(CheckList.getChecks()).hasSize(27);
   }
 

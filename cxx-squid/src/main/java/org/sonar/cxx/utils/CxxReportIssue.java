@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 
 /**
@@ -35,11 +36,38 @@ public class CxxReportIssue {
   private final List<String> aliasRuleIds = new ArrayList<>();
   private final List<CxxReportLocation> locations = new ArrayList<>();
   private final List<CxxReportLocation> flow = new ArrayList<>();
+  @Nullable
+  private final Class<?> checkClass;
 
   public CxxReportIssue(String ruleId, @Nullable String file, @Nullable String line, @Nullable String column,
-                        String info) {
+    String info) {
+    this(ruleId, null, file, line, column, info);
+  }
+
+  /**
+   * @param checkClass the {@code SquidAstVisitor} class raising this issue, used to resolve its
+   *                    rule repository; may be {@code null} for sonar-cxx's own built-in repository
+   */
+  public CxxReportIssue(String ruleId, @Nullable Class<?> checkClass, @Nullable String file, @Nullable String line,
+    @Nullable String column, String info) {
     this.ruleId = ruleId;
+    this.checkClass = checkClass;
     addLocation(file, line, column, info);
+  }
+
+  @CheckForNull
+  public Class<?> getCheckClass() {
+    return checkClass;
+  }
+
+  public void addMappedInfo() {
+    if (!locations.isEmpty()) {
+      locations.get(0).setInfoPrefix("Unknown '" + ruleId + "': ");
+    }
+  }
+
+  public String getRuleId() {
+    return ruleId;
   }
 
   public final void addLocation(@Nullable String file, @Nullable String line, @Nullable String column, String info) {
@@ -52,10 +80,6 @@ public class CxxReportIssue {
 
   public final void addAliasRuleId(String aliasRuleId) {
     aliasRuleIds.add(aliasRuleId);
-  }
-
-  public String getRuleId() {
-    return ruleId;
   }
 
   public boolean hasAliasRuleIds() {
@@ -80,9 +104,9 @@ public class CxxReportIssue {
     String locationsToString = locations.stream().map(Object::toString).collect(Collectors.joining(", "));
     String flowToString = flow.stream().map(Object::toString).collect(Collectors.joining(", "));
     return "CxxReportIssue [ruleId=" + ruleId
-             + ", aliasIds=" + aliasIds
-             + ", locations=" + locationsToString
-             + ", flow=" + flowToString + "]";
+      + ", aliasIds=" + aliasIds
+      + ", locations=" + locationsToString
+      + ", flow=" + flowToString + "]";
   }
 
   @Override
@@ -103,9 +127,9 @@ public class CxxReportIssue {
     }
     var other = (CxxReportIssue) obj;
     return Objects.equals(ruleId, other.ruleId)
-             && Objects.equals(aliasRuleIds, other.aliasRuleIds)
-             && Objects.equals(locations, other.locations)
-             && Objects.equals(flow, other.flow);
+      && Objects.equals(aliasRuleIds, other.aliasRuleIds)
+      && Objects.equals(locations, other.locations)
+      && Objects.equals(flow, other.flow);
   }
 
 }

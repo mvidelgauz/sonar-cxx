@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,19 +19,19 @@
  */
 package org.sonar.cxx.parser;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class AssemblerTest extends ParserBaseTestHelper {
+class AssemblerTest extends ParserBaseTestHelper {
 
   @Test
-  public void asmIsoStandard() {
+  void asmIsoStandard() {
     setRootRule(CxxGrammarImpl.asmDeclaration);
     assertThatParser()
       .matches("asm(\"mov eax, num\");");
   }
 
   @Test
-  public void asmGcc() {
+  void asmGcc() {
     setRootRule(CxxGrammarImpl.asmDeclaration);
     assertThatParser()
       .matches("asm(\"mov eax, num\");")
@@ -42,7 +42,7 @@ public class AssemblerTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void asmVcAssemblyInstruction1() {
+  void asmVcAssemblyInstruction1() {
     setRootRule(CxxGrammarImpl.asmDeclaration);
     assertThatParser()
       .matches("__asm mov eax, num ;")
@@ -50,7 +50,7 @@ public class AssemblerTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void asmVcAssemblyInstructionList1() {
+  void asmVcAssemblyInstructionList1() {
     setRootRule(CxxGrammarImpl.asmDeclaration);
     assertThatParser()
       .matches("__asm { mov eax, num }")
@@ -58,7 +58,7 @@ public class AssemblerTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void asmVcAssemblyInstructionList2() {
+  void asmVcAssemblyInstructionList2() {
     setRootRule(CxxGrammarImpl.asmDeclaration);
     assertThatParser()
       .matches("__asm { mov eax, num };")
@@ -66,27 +66,27 @@ public class AssemblerTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void asmVcAssemblyInstructionList3() {
+  void asmVcAssemblyInstructionList3() {
     setRootRule(CxxGrammarImpl.asmDeclaration);
     assertThatParser()
-      .matches(
-        "__asm {\n"
-          + "mov eax, num    ; Get first argument\n"
-          + "mov ecx, power  ; Get second argument\n"
-          + "shl eax, cl     ; EAX = EAX * ( 2 to the power of CL )\n"
-          + "}"
-      )
-      .matches(
-        "asm {\n"
-          + "mov eax, num    ; Get first argument\n"
-          + "mov ecx, power  ; Get second argument\n"
-          + "shl eax, cl     ; EAX = EAX * ( 2 to the power of CL )\n"
-          + "}"
-      );
+      .matches("""
+               __asm {
+               mov eax, num    ; Get first argument
+               mov ecx, power  ; Get second argument
+               shl eax, cl     ; EAX = EAX * ( 2 to the power of CL )
+               }
+               """)
+      .matches("""
+               asm {
+               mov eax, num    ; Get first argument
+               mov ecx, power  ; Get second argument
+               shl eax, cl     ; EAX = EAX * ( 2 to the power of CL )
+               }
+               """);
   }
 
   @Test
-  public void asmGccLabel() {
+  void asmGccLabel() {
     setRootRule(CxxGrammarImpl.asmLabel);
     assertThatParser()
       .matches("asm (\"myfoo\")")
@@ -94,7 +94,7 @@ public class AssemblerTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void asmGccLabel_reallife() {
+  void asmGccLabelReallife() {
     setRootRule(CxxGrammarImpl.simpleDeclaration);
 
     assertThatParser()

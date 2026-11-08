@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -25,8 +25,8 @@ import java.util.List;
 import java.util.Map;
 import org.sonar.api.batch.sensor.coverage.NewCoverage;
 import org.sonar.api.utils.PathUtils;
-import org.sonar.api.utils.log.Logger;
-import org.sonar.api.utils.log.Loggers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.sonar.cxx.sensors.utils.CxxReportSensor;
 import org.sonar.cxx.sensors.utils.CxxUtils;
 import org.sonar.cxx.sensors.utils.EmptyReportException;
@@ -37,7 +37,7 @@ import org.sonar.cxx.sensors.utils.ReportException;
  */
 public abstract class CoverageSensor extends CxxReportSensor {
 
-  private static final Logger LOG = Loggers.get(CoverageSensor.class);
+  private static final Logger LOG = LoggerFactory.getLogger(CoverageSensor.class);
 
   private final CoverageParser parser;
   private final String reportPathsKey;
@@ -83,7 +83,7 @@ public abstract class CoverageSensor extends CxxReportSensor {
 
   protected void saveMeasures(Map<String, CoverageMeasures> coverageMeasures) {
     for (var entry : coverageMeasures.entrySet()) {
-      final String filePath = PathUtils.sanitize(entry.getKey());
+      String filePath = PathUtils.sanitize(entry.getKey());
       if (filePath != null) {
         var cxxFile = getInputFileIfInProject(filePath);
 

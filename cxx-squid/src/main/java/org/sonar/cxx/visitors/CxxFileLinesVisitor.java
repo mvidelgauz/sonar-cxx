@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,13 +19,14 @@
  */
 package org.sonar.cxx.visitors;
 
-import com.sonar.sslr.api.AstAndTokenVisitor;
-import com.sonar.sslr.api.AstNode;
-import com.sonar.sslr.api.GenericTokenType;
-import com.sonar.sslr.api.Grammar;
-import com.sonar.sslr.api.Token;
+import com.sonar.cxx.sslr.api.AstAndTokenVisitor;
+import com.sonar.cxx.sslr.api.AstNode;
+import com.sonar.cxx.sslr.api.GenericTokenType;
+import com.sonar.cxx.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.Token;
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Nullable;
 import org.sonar.api.measures.CoreMetrics;
 import org.sonar.cxx.api.CxxMetric;
 import org.sonar.cxx.parser.CxxGrammarImpl;
@@ -39,9 +40,9 @@ import org.sonar.cxx.squidbridge.SquidAstVisitor;
  */
 public class CxxFileLinesVisitor extends SquidAstVisitor<Grammar> implements AstAndTokenVisitor {
 
-  private List<Integer> linesOfCode;
-  private List<Integer> executableLines;
-  private int isWithinFunctionDefinition;
+  private List<Integer> linesOfCode = null;
+  private List<Integer> executableLines = null;
+  private int isWithinFunctionDefinition = 0;
 
   private static boolean isDefaultOrDeleteFunctionBody(AstNode astNode) {
     var node = astNode.getFirstChild(CxxGrammarImpl.functionBody);
@@ -50,10 +51,10 @@ public class CxxFileLinesVisitor extends SquidAstVisitor<Grammar> implements Ast
 
       // look for exact sub AST
       if ((functionBody.size() == 3) && functionBody.get(0).is(CxxPunctuator.ASSIGN)
-            && functionBody.get(2).is(CxxPunctuator.SEMICOLON)) {
+        && functionBody.get(2).is(CxxPunctuator.SEMICOLON)) {
         AstNode bodyType = functionBody.get(1);
         if (bodyType.is(CxxKeyword.DELETE)
-              || bodyType.is(CxxKeyword.DEFAULT)) {
+          || bodyType.is(CxxKeyword.DEFAULT)) {
           return true;
         }
       }
@@ -61,6 +62,7 @@ public class CxxFileLinesVisitor extends SquidAstVisitor<Grammar> implements Ast
     return false;
   }
 
+  @SuppressWarnings("java:S1301")
   static boolean isCodeToken(Token token) {
     var type = token.getType();
     if (!(type instanceof CxxPunctuator)) {
@@ -68,15 +70,8 @@ public class CxxFileLinesVisitor extends SquidAstVisitor<Grammar> implements Ast
     }
 
     switch ((CxxPunctuator) type) {
-      case SEMICOLON:
-      case BR_LEFT:
-      case BR_RIGHT:
-      case CURLBR_LEFT:
-      case CURLBR_RIGHT:
-      case SQBR_LEFT:
-      case SQBR_RIGHT:
+      case SEMICOLON, BR_LEFT, BR_RIGHT, CURLBR_LEFT, CURLBR_RIGHT, SQBR_LEFT, SQBR_RIGHT:
         return false;
-
       default:
         return true;
     }
@@ -106,12 +101,12 @@ public class CxxFileLinesVisitor extends SquidAstVisitor<Grammar> implements Ast
   @Override
   public void init() {
     subscribeTo(CxxGrammarImpl.functionDefinition,
-                CxxGrammarImpl.labeledStatement,
-                CxxGrammarImpl.expressionStatement,
-                CxxGrammarImpl.iterationStatement,
-                CxxGrammarImpl.jumpStatement,
-                CxxGrammarImpl.assignmentExpression,
-                CxxGrammarImpl.lambdaExpression);
+      CxxGrammarImpl.labeledStatement,
+      CxxGrammarImpl.expressionStatement,
+      CxxGrammarImpl.iterationStatement,
+      CxxGrammarImpl.jumpStatement,
+      CxxGrammarImpl.assignmentExpression,
+      CxxGrammarImpl.lambdaExpression);
   }
 
   @Override
@@ -133,16 +128,12 @@ public class CxxFileLinesVisitor extends SquidAstVisitor<Grammar> implements Ast
           increaseFunctionDefinition();
         }
         break;
-      case labeledStatement:
-      case expressionStatement:
-      case iterationStatement:
-      case jumpStatement:
-      case assignmentExpression:
-      case lambdaExpression:
+      case labeledStatement, expressionStatement, iterationStatement, jumpStatement:
+      case assignmentExpression, lambdaExpression:
         visitStatement(astNode);
         break;
       default:
-      // Do nothing particular
+      // do nothing particular
     }
   }
 
@@ -154,13 +145,13 @@ public class CxxFileLinesVisitor extends SquidAstVisitor<Grammar> implements Ast
   }
 
   @Override
-  public void visitFile(AstNode astNode) {
+  public void visitFile(@Nullable AstNode astNode) {
     linesOfCode = new ArrayList<>();
     executableLines = new ArrayList<>();
   }
 
   @Override
-  public void leaveFile(AstNode astNode) {
+  public void leaveFile(@Nullable AstNode astNode) {
     getContext().peekSourceCode().addData(CxxMetric.NCLOC_DATA, linesOfCode);
     linesOfCode = null;
     getContext().peekSourceCode().addData(CxxMetric.EXECUTABLE_LINES_DATA, executableLines);
@@ -172,7 +163,7 @@ public class CxxFileLinesVisitor extends SquidAstVisitor<Grammar> implements Ast
    */
   private void visitStatement(AstNode astNode) {
     if (astNode.hasDirectChildren(CxxGrammarImpl.declarationStatement)
-          && !astNode.hasDescendant(CxxGrammarImpl.initializer)) {
+      && !astNode.hasDescendant(CxxGrammarImpl.initializer)) {
       return;
     }
     if (isExecutableToken(astNode.getToken())) {

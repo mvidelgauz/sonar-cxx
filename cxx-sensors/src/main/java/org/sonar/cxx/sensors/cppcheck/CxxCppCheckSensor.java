@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -23,13 +23,12 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import javax.xml.stream.XMLStreamException;
 import org.sonar.api.batch.sensor.SensorDescriptor;
 import org.sonar.api.config.PropertyDefinition;
-import org.sonar.api.resources.Qualifiers;
-import org.sonar.api.utils.log.Logger;
-import org.sonar.api.utils.log.Loggers;
 import org.sonar.cxx.sensors.utils.CxxIssuesReportSensor;
+import org.sonar.cxx.sensors.utils.CxxReportSensor;
 import org.sonar.cxx.sensors.utils.InvalidReportException;
 
 /**
@@ -41,19 +40,17 @@ import org.sonar.cxx.sensors.utils.InvalidReportException;
 public class CxxCppCheckSensor extends CxxIssuesReportSensor {
 
   public static final String REPORT_PATH_KEY = "sonar.cxx.cppcheck.reportPaths";
-  private static final Logger LOG = Loggers.get(CxxCppCheckSensor.class);
 
   public static List<PropertyDefinition> properties() {
     return Collections.unmodifiableList(Arrays.asList(
       PropertyDefinition.builder(REPORT_PATH_KEY)
         .name("Cppcheck Report(s)")
-        .description(
-          "Comma-separated paths (absolute or relative to the project base directory) to `*xml` files with"
-            + " `Cppcheck` issues. Ant patterns are accepted for relative paths."
-        )
-        .category("CXX External Analyzers")
+        .description("""
+          Comma-separated paths (absolute or relative to the project base directory) to `*xml` files with \
+          `Cppcheck` issues. Ant patterns are accepted for relative paths.""")
+        .category(CxxReportSensor.CATEGORY)
         .subCategory("Cppcheck")
-        .onQualifiers(Qualifiers.PROJECT)
+        .onConfigScopes(Set.of(PropertyDefinition.ConfigScope.PROJECT))
         .multiValues(true)
         .build()
     ));

@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -24,21 +24,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import org.sonar.api.utils.log.Logger;
-import org.sonar.api.utils.log.Loggers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * JsonCompilationDatabase
  */
 public class JsonCompilationDatabase {
 
-  private static final Logger LOG = Loggers.get(JsonCompilationDatabase.class);
+  private static final Logger LOG = LoggerFactory.getLogger(JsonCompilationDatabase.class);
 
   private final CxxSquidConfiguration squidConfig;
 
@@ -55,62 +53,51 @@ public class JsonCompilationDatabase {
     }
   }
 
-  private static Path makeRelativeToCwd(Path cwd, String include) {
-    return cwd.resolve(include).normalize();
+  private static String removeApostophs(String str) {
+    if (str.charAt(0) == '"' && str.charAt(str.length() - 1) == '"') {
+      return str.substring(1, str.length() - 1);
+    }
+    return str;
   }
 
+  private static Path makeRelativeToCwd(Path cwd, String include) {
+    return cwd.resolve(removeApostophs(include)).normalize();
+  }
+
+  /**
+   * Tokenize command line with support for escaping
+   */
   private static String[] tokenizeCommandLine(String cmdLine) {
+    var arg = new StringBuilder(256);
     var args = new ArrayList<String>();
-    var escape = false;
-    char stringOpen = 0;
-    var sb = new StringBuilder(512);
+    var insideStr = false;
 
-    // Tokenize command line with support for escaping
-    for (var ch : cmdLine.toCharArray()) {
-      if (escape) {
-        escape = false;
-        sb.append(ch);
-      } else {
-        if (stringOpen == 0) {
-          // String not open
-          if (ch == '\\') {
-            escape = true;
-          } else if (ch == '\'') {
-            stringOpen = '\'';
-          } else if (ch == '\"') {
-            stringOpen = '\"';
-          } else if ((ch == ' ')
-                       && (sb.length() > 0)) {
-            args.add(sb.toString());
-            sb = new StringBuilder(512);
-          }
-          if (ch != ' ') {
-            sb.append(ch);
-          }
-        } else {
-          // String open
-          if (ch == '\\') {
-            escape = true;
-          } else if (ch == stringOpen) {
-            stringOpen = 0;
-          }
+    for (int i = 0; i < cmdLine.length(); i++) {
+      var ch = cmdLine.charAt(i);
 
-          sb.append(ch);
+      if (ch == ' ' && !insideStr) { // blanks separate arguments (outside of strings)
+        if (!arg.isEmpty()) {
+          args.add(removeApostophs(arg.toString()));
+          arg.setLength(0);
         }
+      } else if (ch == '"') { // begin or end of string
+        insideStr = !insideStr;
+        arg.append(ch);
+      } else {
+        arg.append(ch);
       }
     }
 
-    if (sb.length() > 0) {
-      args.add(sb.toString());
+    if (!arg.isEmpty()) {
+      args.add(removeApostophs(arg.toString()));
     }
 
-    return args.toArray(new String[0]);
+    return args.toArray(String[]::new);
   }
 
   /**
    * Set up the given CxxSquidConfiguration from the JSON compilation database
    *
-   * @param squidConfig
    * @param compileCommandsFile
    * @throws IOException
    */
@@ -124,8 +111,8 @@ public class JsonCompilationDatabase {
     mapper.enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
 
     JsonCompilationDatabaseCommandObject[] commandObjects
-                                             = mapper.readValue(compileCommandsFile,
-                                                                JsonCompilationDatabaseCommandObject[].class);
+      = mapper.readValue(compileCommandsFile,
+        JsonCompilationDatabaseCommandObject[].class);
 
     for (var commandObject : commandObjects) {
       parseCommandObject(commandObject);
@@ -139,9 +126,9 @@ public class JsonCompilationDatabase {
 
     Path cwd;
     if (commandObject.getDirectory() != null) {
-      cwd = Paths.get(commandObject.getDirectory());
+      cwd = Path.of(commandObject.getDirectory());
     } else {
-      cwd = Paths.get(".");
+      cwd = Path.of(".");
     }
 
     String level;
@@ -153,23 +140,24 @@ public class JsonCompilationDatabase {
 
     // No need to parse command lines if we have needed information
     if (!(commandObject.hasDefines() || commandObject.hasIncludes())) {
-      String cmdLine;
+      String[] args;
 
       if (commandObject.hasArguments()) {
-        cmdLine = commandObject.getArguments().stream().collect(Collectors.joining(" "));
+        args = commandObject.getArguments().toArray(String[]::new);
+        if (args.length == 1) {
+          args = tokenizeCommandLine(args[0]);
+        }
       } else if (commandObject.hasCommand()) {
-        cmdLine = commandObject.getCommand();
+        args = tokenizeCommandLine(commandObject.getCommand());
       } else {
         return;
       }
-
-      String[] args = tokenizeCommandLine(cmdLine);
-      var next = ArgNext.NONE;
 
       defines = new HashMap<>();
       includes = new ArrayList<>();
       var iSystem = new ArrayList<Path>();
       var iDirAfter = new ArrayList<Path>();
+      var next = ArgNext.NONE;
 
       for (var arg : args) {
         if (arg.startsWith("-D")) {
@@ -194,8 +182,7 @@ public class JsonCompilationDatabase {
             case DEFINE:
               addMacro(arg, defines);
               break;
-            case INCLUDE:
-            case IQUOTE:
+            case INCLUDE, IQUOTE:
               includes.add(makeRelativeToCwd(cwd, arg));
               break;
             case ISYSTEM:
@@ -203,6 +190,8 @@ public class JsonCompilationDatabase {
               break;
             case IDIRAFTER:
               iDirAfter.add(makeRelativeToCwd(cwd, arg));
+              break;
+            default:
               break;
           }
           next = ArgNext.NONE;
@@ -218,15 +207,15 @@ public class JsonCompilationDatabase {
   }
 
   private void addDefines(String level, Map<String, String> defines) {
-    defines.forEach((k, v) -> {
-      squidConfig.add(level, CxxSquidConfiguration.DEFINES, k + " " + v);
-    });
+    defines.forEach((String k, String v)
+      -> squidConfig.add(level, CxxSquidConfiguration.DEFINES, k + " " + v)
+    );
   }
 
   private void addIncludes(String level, List<Path> includes) {
-    for (var include : includes) {
-      squidConfig.add(level, CxxSquidConfiguration.INCLUDE_DIRECTORIES, include.toString());
-    }
+    includes.forEach((Path include)
+      -> squidConfig.add(level, CxxSquidConfiguration.INCLUDE_DIRECTORIES, include.toString())
+    );
   }
 
   private enum ArgNext {

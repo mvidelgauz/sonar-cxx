@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -25,18 +25,24 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import javax.annotation.CheckForNull;
 import org.apache.tools.ant.DirectoryScanner;
 import org.mockito.Mockito;
 import static org.mockito.Mockito.when;
 import org.sonar.api.batch.fs.InputFile.Type;
-import org.sonar.api.batch.fs.internal.DefaultFileSystem;
-import org.sonar.api.batch.fs.internal.TestInputFileBuilder;
+import org.sonar.scanner.plugin.api.impl.fs.DefaultFileSystem;
+import org.sonar.scanner.plugin.api.impl.fs.DefaultInputFile;
+import com.sonarsource.scanner.engine.sensor.test.fixtures.TestInputFileBuilder;
 import org.sonar.api.resources.Language;
 
-public class TestUtils {
+public final class TestUtils {
 
-  private final static String OS = System.getProperty("os.name").toLowerCase();
+  private static final String OS = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
+
+  private TestUtils() {
+    // utility class
+  }
 
   public static File loadResource(String resourceName) {
     URL resource = TestUtils.class.getResource(resourceName);
@@ -67,8 +73,8 @@ public class TestUtils {
    */
   public static DefaultFileSystem mockFileSystem() {
     return mockFileSystem(TestUtils.loadResource("/org/sonar/cxx/sensors/reports-project"),
-                          Arrays.asList(new File(".")),
-                          null);
+      Arrays.asList(new File(".")),
+      null);
   }
 
   /**
@@ -81,8 +87,8 @@ public class TestUtils {
    * @return mocked filesystem
    */
   public static DefaultFileSystem mockFileSystem(File baseDir,
-                                                 List<File> sourceDirs,
-                                                 List<File> testDirs) {
+    List<File> sourceDirs,
+    List<File> testDirs) {
     var fs = new DefaultFileSystem(baseDir);
     fs.setEncoding(StandardCharsets.UTF_8);
     scanDirs(fs, sourceDirs, Type.MAIN);
@@ -127,6 +133,13 @@ public class TestUtils {
     return null;
   }
 
+  public static DefaultInputFile createTestInputFile(String relativePath, int lines) {
+    return TestInputFileBuilder.create("ProjectKey", relativePath)
+      .setLanguage("cxx")
+      .initMetadata(("c".repeat(80) + "\n").repeat(lines))
+      .build();
+  }
+
   private static void scanDirs(DefaultFileSystem fs, List<File> dirs, Type ftype) {
     if (dirs == null) {
       return;
@@ -149,10 +162,6 @@ public class TestUtils {
         fs.add(TestInputFileBuilder.create("ProjectKey", target.getPath()).setLanguage("cxx").setType(ftype).build());
       }
     }
-  }
-
-  private TestUtils() {
-    // utility class
   }
 
 }

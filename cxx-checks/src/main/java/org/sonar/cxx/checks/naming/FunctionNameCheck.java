@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,9 +19,9 @@
  */
 package org.sonar.cxx.checks.naming;
 
-import com.sonar.sslr.api.AstNode;
-import static com.sonar.sslr.api.GenericTokenType.IDENTIFIER;
-import com.sonar.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.AstNode;
+import static com.sonar.cxx.sslr.api.GenericTokenType.IDENTIFIER;
+import com.sonar.cxx.sslr.api.Grammar;
 import java.util.regex.Pattern;
 import org.sonar.check.Priority;
 import org.sonar.check.Rule;
@@ -78,7 +78,7 @@ public class FunctionNameCheck extends SquidCheck<Grammar> {
   @Override
   public void visitNode(AstNode astNode) {
     var declId = astNode.getFirstDescendant(CxxGrammarImpl.declaratorId);
-    if (isGlobalFunctionDefinition(declId)) {
+    if (declId != null && isGlobalFunctionDefinition(declId)) {
       var idNode = declId.getLastChild(IDENTIFIER);
       if (idNode != null) {
         String identifier = idNode.getTokenValue();

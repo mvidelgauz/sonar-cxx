@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -21,16 +21,36 @@
  * fork of SSLR Squid Bridge: https://github.com/SonarSource/sslr-squid-bridge/tree/2.6.1
  * Copyright (C) 2010 SonarSource / mailto: sonarqube@googlegroups.com / license: LGPL v3
  */
-package org.sonar.cxx.squidbridge.api;
+package org.sonar.cxx.squidbridge.api; // cxx: in use
 
+import javax.annotation.Nullable;
+
+/**
+ * Defines a function/method node in the SourceCode tree.
+ *
+ * @see SourceCode
+ */
 public class SourceFunction extends SourceCode {
 
-  public SourceFunction(String key) {
-    super(key);
+  /**
+   * Initializes a newly created function/method node.
+   *
+   * @param key key of the function/method
+   * @param functionSignature signature of the function/method
+   */
+  public SourceFunction(String key, @Nullable String functionSignature) {
+    super(key, functionSignature);
   }
 
-  public SourceFunction(SourceFile sourceFile, String functionSignature, int startAtLine) {
-    super(sourceFile.getKey() + "#" + functionSignature, functionSignature);
-    setStartAtLine(startAtLine);
+  /**
+   * Initializes a newly created function/method node.
+   *
+   * @param parentKey parent object to use for key generation
+   * @param key key of the function/method
+   * @param functionSignature signature of the function/method
+   * @param startAtLine line the function/method starts
+   */
+  public SourceFunction(SourceCode parentKey, String key, @Nullable String functionSignature, int startAtLine) {
+    super(parentKey, key, functionSignature, startAtLine);
   }
 }

@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,9 +19,9 @@
  */
 package org.sonar.cxx.parser;
 
-import com.sonar.sslr.api.AstNode;
-import com.sonar.sslr.api.Grammar;
-import com.sonar.sslr.impl.Parser;
+import com.sonar.cxx.sslr.api.AstNode;
+import com.sonar.cxx.sslr.api.Grammar;
+import com.sonar.cxx.sslr.impl.Parser;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -30,15 +30,14 @@ import java.util.HashMap;
 import java.util.List;
 import javax.annotation.Nullable;
 import org.apache.commons.io.FileUtils;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import org.sonar.cxx.config.CxxSquidConfiguration;
 import org.sonar.cxx.squidbridge.SquidAstVisitorContext;
 
-public class CxxParserTest {
+class CxxParserTest {
 
   private final String errSources = "/parser/bad/error_recovery_declaration.cc";
   private final String[] goodFiles = {"own", "VC", "GCC", "cli", "cuda", "examples"};
@@ -56,7 +55,7 @@ public class CxxParserTest {
   }
 
   @Test
-  public void testParsingCppSourceFiles() {
+  void testParsingCppSourceFiles() {
     var map = new HashMap<String, Integer>() {
       private static final long serialVersionUID = 6029310517902718597L;
 
@@ -82,34 +81,28 @@ public class CxxParserTest {
 
     Parser<Grammar> p = createParser(null, false, null);
 
-    long start = System.currentTimeMillis();
     for (var file : listFiles(goodFiles, new String[]{"cc", "cpp", "hpp"})) {
       AstNode root = parse(p, file);
       verify(root, file, map);
     }
-    long finish = System.currentTimeMillis();
-    var duration = (finish - start) / 1000.;
   }
 
   //@Test todo
-  public void testParsingCSourceFiles() {
+  void testParsingCSourceFiles() {
     var map = new HashMap<String, Integer>() {
     };
 
     Parser<Grammar> p = createParser(null, false, null);
 
-    long start = System.currentTimeMillis();
     for (var file : listFiles(cCompatibilityFiles, new String[]{"cc", "h"})) { // todo add "c"
       AstNode root = parse(p, file);
       verify(root, file, map);
     }
-    long finish = System.currentTimeMillis();
-    var duration = (finish - start) / 1000.;
   }
 
   @SuppressWarnings("unchecked")
   @Test
-  public void testPreproccessorParsingSourceFiles() {
+  void testPreproccessorParsingSourceFiles() {
     var includes = Arrays.asList(
       "C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\INCLUDE",
       "C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\ATLMFC\\INCLUDE",
@@ -137,17 +130,14 @@ public class CxxParserTest {
     var baseDir = new File("src/test").getAbsolutePath();
     Parser<Grammar> p = createParser(baseDir, false, includes);
 
-    long start = System.currentTimeMillis();
     for (var file : listFiles(preprocessorFiles, new String[]{"cc", "cpp", "hpp", "h"})) {
       AstNode root = parse(p, file);
       verify(root, file, map);
     }
-    long finish = System.currentTimeMillis();
-    var duration = (finish - start) / 1000.;
   }
 
   @Test
-  public void testParseErrorRecoveryDisabled() {
+  void testParseErrorRecoveryDisabled() {
     Parser<Grammar> p = createParser(null, false, null);
 
     // The error recovery works, if:
@@ -159,7 +149,7 @@ public class CxxParserTest {
 
   @SuppressWarnings("unchecked")
   @Test
-  public void testParseErrorRecoveryEnabled() {
+  void testParseErrorRecoveryEnabled() {
     var map = new HashMap<String, Integer>() {
       private static final long serialVersionUID = 3433381506274827684L;
 
@@ -193,10 +183,10 @@ public class CxxParserTest {
       squidConfig = new CxxSquidConfiguration();
     }
     squidConfig.add(CxxSquidConfiguration.SONAR_PROJECT_PROPERTIES, CxxSquidConfiguration.ERROR_RECOVERY_ENABLED,
-                    errorRecovery ? "true" : "false");
+      errorRecovery ? "true" : "false");
     if (includes != null) {
       squidConfig.add(CxxSquidConfiguration.SONAR_PROJECT_PROPERTIES, CxxSquidConfiguration.INCLUDE_DIRECTORIES,
-                      includes);
+        includes);
     }
 
     return CxxParser.create(context, squidConfig);
@@ -207,7 +197,7 @@ public class CxxParserTest {
     AstNode root = null;
     try {
       root = parser.parse(file);
-      CxxParser.finishedParsing(file);
+      CxxParser.finishedParsing();
     } catch (Exception e) {
       throw new IllegalStateException(file.toString(), e);
     }
@@ -218,9 +208,9 @@ public class CxxParserTest {
     assertThat(root.hasChildren()).isTrue();
     if (map.containsKey(file.getName())) {
       List<AstNode> declarations = root.getDescendants(CxxGrammarImpl.declaration);
-      assertThat(declarations.size())
+      assertThat(declarations)
         .as("check number of declarations for file '%s'", file.getName())
-        .isEqualTo(map.get(file.getName()));
+        .hasSize(map.get(file.getName()));
     }
   }
 }

@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -21,32 +21,33 @@ package org.sonar.cxx.sensors.valgrind;
 
 import java.util.Collections;
 import java.util.HashSet;
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 import org.assertj.core.api.SoftAssertions;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import org.sonar.api.batch.fs.internal.DefaultFileSystem;
-import org.sonar.api.batch.fs.internal.TestInputFileBuilder;
-import org.sonar.api.batch.sensor.internal.DefaultSensorDescriptor;
-import org.sonar.api.batch.sensor.internal.SensorContextTester;
+import org.sonar.scanner.plugin.api.impl.fs.DefaultFileSystem;
+import org.sonar.scanner.plugin.api.impl.sensor.DefaultSensorDescriptor;
+import com.sonarsource.scanner.engine.sensor.test.fixtures.SensorContextTester;
 import org.sonar.cxx.sensors.utils.TestUtils;
+import static org.sonar.cxx.sensors.utils.TestUtils.createTestInputFile;
 
-public class CxxValgrindSensorTest {
+class CxxValgrindSensorTest {
 
   private DefaultFileSystem fs;
   private CxxValgrindSensor sensor;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     fs = TestUtils.mockFileSystem();
     sensor = new CxxValgrindSensor();
+    sensor.setWebApi(null);
   }
 
   @Test
-  public void shouldNotThrowWhenGivenValidData() {
+  void shouldNotThrowWhenGivenValidData() {
     var context = SensorContextTester.create(fs.baseDir());
     sensor.execute(context);
 
@@ -54,13 +55,10 @@ public class CxxValgrindSensorTest {
   }
 
   @Test
-  public void shouldSaveViolationIfErrorIsInside() {
+  void shouldSaveViolationIfErrorIsInside() {
     var context = SensorContextTester.create(fs.baseDir());
-    context.fileSystem().add(
-      TestInputFileBuilder.create("myProjectKey", "dir/file")
-        .setLanguage("cxx")
-        .initMetadata("asd\nasdas\nasda\n")
-        .build());
+    context.fileSystem().add(createTestInputFile("dir/file", 3));
+
     sensor.execute(context); // set context
     var valgrindErrors = new HashSet<ValgrindError>();
     valgrindErrors.add(mockValgrindError(true));
@@ -70,7 +68,7 @@ public class CxxValgrindSensorTest {
   }
 
   @Test
-  public void shouldNotSaveViolationIfErrorIsOutside() {
+  void shouldNotSaveViolationIfErrorIsOutside() {
     var context = SensorContextTester.create(fs.baseDir());
     sensor.execute(context); // set context
     var valgrindErrors = new HashSet<ValgrindError>();
@@ -81,7 +79,7 @@ public class CxxValgrindSensorTest {
   }
 
   @Test
-  public void sensorDescriptor() {
+  void sensorDescriptor() {
     var descriptor = new DefaultSensorDescriptor();
     sensor.describe(descriptor);
 

@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,11 +19,12 @@
  */
 package org.sonar.cxx.checks.regex;
 
-import com.sonar.sslr.api.AstNode;
-import com.sonar.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.AstNode;
+import com.sonar.cxx.sslr.api.Grammar;
 import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Pattern;
+import javax.annotation.Nullable;
 import org.sonar.check.Priority;
 import org.sonar.check.Rule;
 import org.sonar.check.RuleProperty;
@@ -82,7 +83,7 @@ public class FileHeaderCheck extends SquidCheck<Grammar> {
   }
 
   @Override
-  public void visitFile(AstNode astNode) {
+  public void visitFile(@Nullable AstNode astNode) {
     if (isRegularExpression) {
       String fileContent = getContext().getInputFileContent();
       checkRegularExpression(fileContent);
@@ -115,9 +116,9 @@ public class FileHeaderCheck extends SquidCheck<Grammar> {
       result = true;
 
       Iterator<String> it = lines.iterator();
-      for (var i = 0; i < expectedLines.length; i++) {
+      for (var expectedLine : expectedLines) {
         String line = it.next();
-        if (!line.equals(expectedLines[i])) {
+        if (!line.equals(expectedLine)) {
           result = false;
           break;
         }

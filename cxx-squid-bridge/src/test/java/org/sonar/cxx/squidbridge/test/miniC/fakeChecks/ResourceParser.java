@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -23,10 +23,10 @@
  */
 package org.sonar.cxx.squidbridge.test.miniC.fakeChecks;
 
-import com.sonar.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.Grammar;
 import java.io.File;
 import org.apache.commons.io.FileUtils;
-import static org.fest.assertions.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 import org.sonar.cxx.squidbridge.SquidAstVisitor;
 import org.sonar.cxx.squidbridge.api.SourceFile;
 import org.sonar.cxx.squidbridge.indexer.QueryByType;
@@ -41,7 +41,7 @@ public class ResourceParser {
       throw new IllegalArgumentException("The file located under \"" + filePath + "\" was not found.");
     }
     scanner.scanFile(file);
-    assertThat(scanner.getIndex().search(new QueryByType(SourceFile.class)).size()).isEqualTo(1);
+    assertThat(scanner.getIndex().search(new QueryByType(SourceFile.class))).hasSize(1);
     return (SourceFile) scanner.getIndex().search(new QueryByType(SourceFile.class)).iterator().next();
   }
 

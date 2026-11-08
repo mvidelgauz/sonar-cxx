@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,12 +19,12 @@
  */
 package org.sonar.cxx.parser;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class StatementTest extends ParserBaseTestHelper {
+class StatementTest extends ParserBaseTestHelper {
 
   @Test
-  public void statement() {
+  void statement() {
     setRootRule(CxxGrammarImpl.statement);
 
     mockRule(CxxGrammarImpl.labeledStatement);
@@ -50,7 +50,7 @@ public class StatementTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void statement_reallife() {
+  void statementReallife() {
     setRootRule(CxxGrammarImpl.statement);
 
     assertThatParser()
@@ -72,7 +72,7 @@ public class StatementTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void expressionStatement_reallife() {
+  void expressionStatementReallife() {
     setRootRule(CxxGrammarImpl.expressionStatement);
 
     assertThatParser()
@@ -83,38 +83,41 @@ public class StatementTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void selectionStatement_reallife() {
+  void selectionStatementReallife() {
     setRootRule(CxxGrammarImpl.selectionStatement);
 
     assertThatParser()
       // fix #2286
       .matches("if(a() < 0 || c >= 1) {}")
       .matches("if(a() < 0 || c > 1) {}")
-      .matches("if(a() < 0 || c >> 1) {}");
+      .matches("if(a() < 0 || c >> 1) {}")
+      // C++23
+      .matches("if !consteval {}")
+      .matches("if !consteval {} else ;");
   }
 
   @Test
-  public void labeledStatement() {
-    setRootRule(CxxGrammarImpl.labeledStatement);
+  void label() {
+    setRootRule(CxxGrammarImpl.label);
 
     mockRule(CxxGrammarImpl.attributeSpecifierSeq);
     mockRule(CxxGrammarImpl.statement);
     mockRule(CxxGrammarImpl.constantExpression);
 
     assertThatParser()
-      .matches("foo : statement")
-      .matches("attributeSpecifierSeq foo : statement")
-      .matches("case constantExpression : statement")
-      .matches("attributeSpecifierSeq case constantExpression : statement")
-      .matches("default : statement")
-      .matches("attributeSpecifierSeq default : statement")
+      .matches("foo :")
+      .matches("attributeSpecifierSeq foo :")
+      .matches("case constantExpression :")
+      .matches("attributeSpecifierSeq case constantExpression :")
+      .matches("default :")
+      .matches("attributeSpecifierSeq default :")
       // EXTENSION: gcc's case range
-      .matches("case constantExpression ... constantExpression : statement")
-      .matches("attributeSpecifierSeq case constantExpression ... constantExpression : statement");
+      .matches("case constantExpression ... constantExpression :")
+      .matches("attributeSpecifierSeq case constantExpression ... constantExpression :");
   }
 
   @Test
-  public void statementSeq() {
+  void statementSeq() {
     setRootRule(CxxGrammarImpl.statementSeq);
 
     mockRule(CxxGrammarImpl.statement);
@@ -125,12 +128,24 @@ public class StatementTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void selectionStatement() {
+  void labelSeq() {
+    setRootRule(CxxGrammarImpl.labelSeq);
+
+    mockRule(CxxGrammarImpl.label);
+
+    assertThatParser()
+      .matches("label")
+      .matches("label label");
+  }
+
+  @Test
+  void selectionStatement() {
     setRootRule(CxxGrammarImpl.selectionStatement);
 
     mockRule(CxxGrammarImpl.statement);
     mockRule(CxxGrammarImpl.condition);
     mockRule(CxxGrammarImpl.initStatement);
+    mockRule(CxxGrammarImpl.compoundStatement);
 
     assertThatParser()
       .matches("if ( condition ) statement")
@@ -141,12 +156,16 @@ public class StatementTest extends ParserBaseTestHelper {
       .matches("if constexpr ( condition ) statement else statement")
       .matches("if ( initStatement condition ) statement else statement")
       .matches("if constexpr ( initStatement condition ) statement else statement")
+      .matches("if consteval compoundStatement")
+      .matches("if ! consteval compoundStatement")
+      .matches("if consteval compoundStatement else statement")
+      .matches("if ! consteval compoundStatement else statement")
       .matches("switch ( condition ) statement")
       .matches("switch ( initStatement condition ) statement");
   }
 
   @Test
-  public void switchStatement_reallife() {
+  void switchStatementReallife() {
     setRootRule(CxxGrammarImpl.selectionStatement);
 
     assertThatParser()
@@ -156,7 +175,7 @@ public class StatementTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void ifStatement_reallife() {
+  void ifStatementReallife() {
     setRootRule(CxxGrammarImpl.selectionStatement);
 
     assertThatParser()
@@ -164,7 +183,7 @@ public class StatementTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void condition() {
+  void condition() {
     setRootRule(CxxGrammarImpl.condition);
 
     mockRule(CxxGrammarImpl.attributeSpecifierSeq);
@@ -183,7 +202,7 @@ public class StatementTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void condition_reallife() {
+  void conditionReallife() {
     setRootRule(CxxGrammarImpl.condition);
 
     assertThatParser()
@@ -193,7 +212,7 @@ public class StatementTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void iterationStatement() {
+  void iterationStatement() {
     setRootRule(CxxGrammarImpl.iterationStatement);
 
     mockRule(CxxGrammarImpl.condition);
@@ -214,7 +233,7 @@ public class StatementTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void iterationStatement_reallife() {
+  void iterationStatementReallife() {
     setRootRule(CxxGrammarImpl.iterationStatement);
 
     assertThatParser()
@@ -243,19 +262,22 @@ public class StatementTest extends ParserBaseTestHelper {
       // CLI extension
       .matches("for each(String^% s in arr) { s = i++.ToString(); }")
       // C++17 structered bindings
-      .matches("for (const auto&[key, val] : mymap) { std::cout << key << \": \" << val << std::endl; }");
+      .matches("for (const auto&[key, val] : mymap) { std::cout << key << \": \" << val << std::endl; }")
+      // C++23
+      .matches("for (using T = int; T e : v) ;");
   }
 
   @Test
-  public void forInitStatement_reallife() {
+  void forInitStatementReallife() {
     setRootRule(CxxGrammarImpl.initStatement);
 
     assertThatParser()
-      .matches("int i=1;");
+      .matches("int i=1;")
+      .matches("using T = int;"); // C++23
   }
 
   @Test
-  public void forRangeDeclaration() {
+  void forRangeDeclaration() {
     setRootRule(CxxGrammarImpl.forRangeDeclaration);
 
     mockRule(CxxGrammarImpl.forRangeDeclSpecifierSeq);
@@ -276,7 +298,7 @@ public class StatementTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void forRangeInitializer() {
+  void forRangeInitializer() {
     setRootRule(CxxGrammarImpl.forRangeInitializer);
 
     mockRule(CxxGrammarImpl.expression);
@@ -288,7 +310,7 @@ public class StatementTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void jumpStatement() {
+  void jumpStatement() {
     setRootRule(CxxGrammarImpl.jumpStatement);
 
     mockRule(CxxGrammarImpl.expression);
@@ -305,7 +327,7 @@ public class StatementTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void jumpStatement_reallife() {
+  void jumpStatementReallife() {
     setRootRule(CxxGrammarImpl.jumpStatement);
 
     assertThatParser()
@@ -313,7 +335,7 @@ public class StatementTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void coroutineReturnStatement() {
+  void coroutineReturnStatement() {
     setRootRule(CxxGrammarImpl.jumpStatement);
     mockRule(CxxGrammarImpl.exprOrBracedInitList);
 

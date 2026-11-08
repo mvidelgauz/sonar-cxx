@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,7 +19,7 @@
  */
 package org.sonar.cxx.lexer;
 
-import com.sonar.sslr.api.TokenType;
+import com.sonar.cxx.sslr.api.TokenType;
 import org.sonar.cxx.parser.CxxTokenType;
 
 public final class LiteralValuesBuilder {

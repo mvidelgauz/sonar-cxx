@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,16 +19,16 @@
  */
 package org.sonar.cxx.parser;
 
-import com.sonar.sslr.api.AstNode;
-import com.sonar.sslr.api.TokenType;
+import com.sonar.cxx.sslr.api.AstNode;
+import com.sonar.cxx.sslr.api.TokenType;
+import javax.annotation.Nullable;
 
 public enum CxxTokenType implements TokenType {
 
   NUMBER,
   STRING,
   CHARACTER,
-  PREPROCESSOR,
-  WS; // whitespace
+  PREPROCESSOR;
 
   @Override
   public String getName() {
@@ -41,8 +41,8 @@ public enum CxxTokenType implements TokenType {
   }
 
   @Override
-  public boolean hasToBeSkippedFromAst(AstNode node) {
-    return this == WS;
+  public boolean hasToBeSkippedFromAst(@Nullable AstNode node) {
+    return false;
   }
 
 }

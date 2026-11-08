@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -22,34 +22,34 @@ package org.sonar.cxx.sensors.coverage.bullseye;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import org.sonar.api.batch.sensor.SensorDescriptor;
 import org.sonar.api.config.PropertyDefinition;
-import org.sonar.api.resources.Qualifiers;
 import org.sonar.cxx.sensors.coverage.CoverageSensor;
+import org.sonar.cxx.sensors.utils.CxxReportSensor;
 
 public class CxxCoverageBullseyeSensor extends CoverageSensor {
 
   public static final String REPORT_PATH_KEY = "sonar.cxx.bullseye.reportPaths";
 
+  public CxxCoverageBullseyeSensor() {
+    super(REPORT_PATH_KEY, new BullseyeParser());
+  }
+
   public static List<PropertyDefinition> properties() {
     return Collections.unmodifiableList(Arrays.asList(
       PropertyDefinition.builder(REPORT_PATH_KEY)
         .name("BullseyeCoverage Report(s)")
-        .description(
-          "Comma-separated list of paths pointing to coverage reports (absolute or relative to the project"
-            + " base directory). Ant patterns are accepted for relative path. The reports have to conform to the"
-            + " `BullseyeCoverage XML format`."
-        )
-        .category("CXX External Analyzers")
+        .description("""
+          Comma-separated list of paths pointing to coverage reports (absolute or relative to the project \
+          base directory). Ant patterns are accepted for relative path. The reports have to conform to the \
+          `BullseyeCoverage XML format`.""")
+        .category(CxxReportSensor.CATEGORY)
         .subCategory("BullseyeCoverage")
-        .onQualifiers(Qualifiers.PROJECT)
+        .onConfigScopes(Set.of(PropertyDefinition.ConfigScope.PROJECT))
         .multiValues(true)
         .build()
     ));
-  }
-
-  public CxxCoverageBullseyeSensor() {
-    super(REPORT_PATH_KEY, new BullseyeParser());
   }
 
   @Override

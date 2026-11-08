@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,47 +19,41 @@
  */
 package org.sonar.cxx.sensors.veraxx;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 import org.assertj.core.api.SoftAssertions;
-import org.junit.Before;
-import org.junit.Test;
-import org.sonar.api.batch.fs.internal.DefaultFileSystem;
-import org.sonar.api.batch.fs.internal.TestInputFileBuilder;
-import org.sonar.api.batch.sensor.internal.DefaultSensorDescriptor;
-import org.sonar.api.batch.sensor.internal.SensorContextTester;
-import org.sonar.api.config.internal.MapSettings;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.sonar.scanner.plugin.api.impl.fs.DefaultFileSystem;
+import org.sonar.scanner.plugin.api.impl.sensor.DefaultSensorDescriptor;
+import com.sonarsource.scanner.engine.sensor.test.fixtures.SensorContextTester;
+import org.sonar.scanner.plugin.api.impl.config.MapSettings;
 import org.sonar.cxx.sensors.utils.CxxReportSensor;
 import org.sonar.cxx.sensors.utils.TestUtils;
+import static org.sonar.cxx.sensors.utils.TestUtils.createTestInputFile;
 
-public class CxxVeraxxSensorTest {
+class CxxVeraxxSensorTest {
 
   private DefaultFileSystem fs;
   private final MapSettings settings = new MapSettings();
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     fs = TestUtils.mockFileSystem();
     settings.setProperty(CxxReportSensor.ERROR_RECOVERY_KEY, true);
   }
 
   @Test
-  public void shouldReportCorrectViolations() {
+  void shouldReportCorrectViolations() {
     var context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(CxxVeraxxSensor.REPORT_PATH_KEY, "vera++-reports/vera++-result-*.xml");
     context.setSettings(settings);
 
-    context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "sources/application/main.cpp")
-      .setLanguage("cxx").initMetadata("asd\nasdas\nasda\n").build());
-    context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "sources/tests/SAMPLE-test.cpp")
-      .setLanguage("cxx").initMetadata("asd\nasdas\nasda\n").build());
-    context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "sources/tests/SAMPLE-test.h")
-      .setLanguage("cxx").initMetadata("asd\nasdas\nasda\n").build());
-    context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "sources/tests/main.cpp")
-      .setLanguage("cxx").initMetadata("asd\nasdas\nasda\n").build());
-    context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "sources/utils/code_chunks.cpp")
-      .setLanguage("cxx").initMetadata("asd\nasdas\nasda\n").build());
-    context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "sources/utils/utils.cpp")
-      .setLanguage("cxx").initMetadata("asd\nasdas\nasda\n").build());
+    context.fileSystem().add(createTestInputFile("sources/application/main.cpp", 3));
+    context.fileSystem().add(createTestInputFile("sources/tests/SAMPLE-test.cpp", 3));
+    context.fileSystem().add(createTestInputFile("sources/tests/SAMPLE-test.h", 3));
+    context.fileSystem().add(createTestInputFile("sources/tests/main.cpp", 3));
+    context.fileSystem().add(createTestInputFile("sources/utils/code_chunks.cpp", 3));
+    context.fileSystem().add(createTestInputFile("sources/utils/utils.cpp", 3));
 
     var sensor = new CxxVeraxxSensor();
     sensor.execute(context);
@@ -68,9 +62,9 @@ public class CxxVeraxxSensorTest {
   }
 
   @Test
-  public void sensorDescriptor() {
+  void sensorDescriptor() {
     var descriptor = new DefaultSensorDescriptor();
-    var sensor = new CxxVeraxxSensor();
+    var sensor = new CxxVeraxxSensor().setWebApi(null);
     sensor.describe(descriptor);
 
     var softly = new SoftAssertions();

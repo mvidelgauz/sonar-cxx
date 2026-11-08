@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,16 +19,16 @@
  */
 package org.sonar.cxx.parser;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  *
  * @author jmecosta
  */
-public class BalancedTokensTest extends ParserBaseTestHelper {
+class BalancedTokensTest extends ParserBaseTestHelper {
 
   @Test
-  public void attributeSpecifierSeq() {
+  void attributeSpecifierSeq() {
     setRootRule(CxxGrammarImpl.attributeSpecifierSeq);
     mockRule(CxxGrammarImpl.attributeSpecifier);
 
@@ -38,7 +38,7 @@ public class BalancedTokensTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void attributeSpecifierSeq_reallife() {
+  void attributeSpecifierSeqReallife() {
     setRootRule(CxxGrammarImpl.attributeSpecifierSeq);
 
     assertThatParser()
@@ -48,7 +48,7 @@ public class BalancedTokensTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void attributeSpecifier() {
+  void attributeSpecifier() {
     setRootRule(CxxGrammarImpl.attributeSpecifier);
 
     mockRule(CxxGrammarImpl.attributeList);
@@ -62,7 +62,7 @@ public class BalancedTokensTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void attributeSpecifier_reallife() {
+  void attributeSpecifierReallife() {
     setRootRule(CxxGrammarImpl.attributeSpecifier);
 
     assertThatParser()
@@ -70,7 +70,7 @@ public class BalancedTokensTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void alignmentSpecifier() {
+  void alignmentSpecifier() {
     setRootRule(CxxGrammarImpl.alignmentSpecifier);
 
     mockRule(CxxGrammarImpl.typeId);
@@ -87,7 +87,7 @@ public class BalancedTokensTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void attributeUsingPrefix() {
+  void attributeUsingPrefix() {
     setRootRule(CxxGrammarImpl.attributeUsingPrefix);
     mockRule(CxxGrammarImpl.attributeNamespace);
 
@@ -96,7 +96,7 @@ public class BalancedTokensTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void attributeList() {
+  void attributeList() {
     setRootRule(CxxGrammarImpl.attributeList);
     mockRule(CxxGrammarImpl.attribute);
 
@@ -113,7 +113,7 @@ public class BalancedTokensTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void attributeList_reallife() {
+  void attributeListReallife() {
     setRootRule(CxxGrammarImpl.attributeList);
 
     assertThatParser()
@@ -125,7 +125,7 @@ public class BalancedTokensTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void attribute() {
+  void attribute() {
     setRootRule(CxxGrammarImpl.attribute);
 
     mockRule(CxxGrammarImpl.attributeToken);
@@ -137,7 +137,7 @@ public class BalancedTokensTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void attribute_reallife() {
+  void attributeReallife() {
     setRootRule(CxxGrammarImpl.attribute);
 
     assertThatParser()
@@ -147,7 +147,7 @@ public class BalancedTokensTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void attributeToken() {
+  void attributeToken() {
     setRootRule(CxxGrammarImpl.attributeToken);
     mockRule(CxxGrammarImpl.attributeScopedToken);
 
@@ -157,7 +157,7 @@ public class BalancedTokensTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void attributeScopedToken() {
+  void attributeScopedToken() {
     setRootRule(CxxGrammarImpl.attributeScopedToken);
     mockRule(CxxGrammarImpl.attributeNamespace);
 
@@ -166,7 +166,7 @@ public class BalancedTokensTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void attributeScopedToken_reallife() {
+  void attributeScopedTokenReallife() {
     setRootRule(CxxGrammarImpl.attributeScopedToken);
 
     assertThatParser()
@@ -174,7 +174,7 @@ public class BalancedTokensTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void attributeNamespace() {
+  void attributeNamespace() {
     setRootRule(CxxGrammarImpl.attributeNamespace);
 
     assertThatParser()
@@ -182,7 +182,7 @@ public class BalancedTokensTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void attributeArgumentClause() {
+  void attributeArgumentClause() {
     setRootRule(CxxGrammarImpl.attributeArgumentClause);
     mockRule(CxxGrammarImpl.balancedTokenSeq);
 
@@ -191,7 +191,7 @@ public class BalancedTokensTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void attributeArgumentClause_reallife() {
+  void attributeArgumentClauseReallife() {
     setRootRule(CxxGrammarImpl.attributeArgumentClause);
 
     assertThatParser()
@@ -199,7 +199,7 @@ public class BalancedTokensTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void balancedTokenSeq() {
+  void balancedTokenSeq() {
     setRootRule(CxxGrammarImpl.balancedTokenSeq);
     mockRule(CxxGrammarImpl.balancedToken);
 
@@ -210,7 +210,7 @@ public class BalancedTokensTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void balancedTokenSeq_reallife() {
+  void balancedTokenSeqReallife() {
     setRootRule(CxxGrammarImpl.balancedTokenSeq);
 
     assertThatParser()
@@ -218,7 +218,7 @@ public class BalancedTokensTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void balancedToken() {
+  void balancedToken() {
     setRootRule(CxxGrammarImpl.balancedToken);
     mockRule(CxxGrammarImpl.balancedTokenSeq);
 
@@ -230,7 +230,7 @@ public class BalancedTokensTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void balancedToken_reallife() {
+  void balancedTokenReallife() {
     setRootRule(CxxGrammarImpl.balancedToken);
 
     assertThatParser()

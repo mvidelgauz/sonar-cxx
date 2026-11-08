@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -23,17 +23,16 @@
  */
 package org.sonar.cxx.squidbridge.checks;
 
-import com.sonar.sslr.api.AstNode;
-import com.sonar.sslr.api.AstNodeType;
-import com.sonar.sslr.api.Grammar;
-import com.sonar.sslr.test.minic.MiniCGrammar;
-import org.junit.Test;
+import com.sonar.cxx.sslr.api.AstNode;
+import com.sonar.cxx.sslr.api.AstNodeType;
+import com.sonar.cxx.sslr.api.Grammar;
+import com.sonar.cxx.sslr.test.minic.MiniCGrammar;
+import org.junit.jupiter.api.Test;
 import static org.sonar.cxx.squidbridge.metrics.ResourceParser.scanFile;
 
-public class AbstractOneStatementPerLineCheckTest {
+class AbstractOneStatementPerLineCheckTest {
 
-  @org.junit.Rule
-  public CheckMessagesVerifierRule checkMessagesVerifier = new CheckMessagesVerifierRule();
+  private final CheckMessagesVerifierRule checkMessagesVerifier = new CheckMessagesVerifierRule();
 
   private static class Check extends AbstractOneStatementPerLineCheck<Grammar> {
 
@@ -44,13 +43,13 @@ public class AbstractOneStatementPerLineCheckTest {
 
     @Override
     public boolean isExcluded(AstNode statementNode) {
-      return statementNode.getChild(0).is(MiniCGrammar.COMPOUND_STATEMENT);
+      return statementNode.getFirstChild().is(MiniCGrammar.COMPOUND_STATEMENT);
     }
 
   }
 
   @Test
-  public void detected() {
+  void detected() {
     checkMessagesVerifier.verify(scanFile("/checks/one_statement_per_line.mc", new Check()).getCheckMessages())
       .next().atLine(7).withMessage(
       "At most one statement is allowed per line, but 2 statements were found on this line.");

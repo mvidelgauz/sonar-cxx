@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -24,10 +24,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import org.sonar.api.batch.sensor.SensorDescriptor;
 import org.sonar.api.config.PropertyDefinition;
-import org.sonar.api.resources.Qualifiers;
 import org.sonar.cxx.sensors.utils.CxxIssuesReportSensor;
+import org.sonar.cxx.sensors.utils.CxxReportSensor;
 import org.sonar.cxx.sensors.utils.InvalidReportException;
 
 /**
@@ -43,23 +44,22 @@ public class CxxClangTidySensor extends CxxIssuesReportSensor {
     return Collections.unmodifiableList(Arrays.asList(
       PropertyDefinition.builder(REPORT_PATH_KEY)
         .name("Clang-Tidy Report(s)")
-        .description(
-          "Comma-separated paths (absolute or relative to the project base directory) to `*.txt` files with"
-            + " `Clang-Tidy` issues. Ant patterns are accepted for relative paths."
-        )
-        .category("CXX External Analyzers")
+        .description("""
+          Comma-separated paths (absolute or relative to the project base directory) to `*.txt` files with \
+          `Clang-Tidy` issues. Ant patterns are accepted for relative paths.""")
+        .category(CxxReportSensor.CATEGORY)
         .subCategory("Clang-Tidy")
-        .onQualifiers(Qualifiers.PROJECT)
+        .onConfigScopes(Set.of(PropertyDefinition.ConfigScope.PROJECT))
         .multiValues(true)
         .build(),
       PropertyDefinition.builder(REPORT_ENCODING_DEF)
         .defaultValue(DEFAULT_ENCODING_DEF)
         .name("Clang-Tidy Report Encoding")
         .description("Defines the encoding to be used to read the files from `sonar.cxx.clangtidy.reportPaths`"
-                       + " (default is `UTF-8`).")
-        .category("CXX External Analyzers")
+          + " (default is `UTF-8`).")
+        .category(CxxReportSensor.CATEGORY)
         .subCategory("Clang-Tidy")
-        .onQualifiers(Qualifiers.PROJECT)
+        .onConfigScopes(Set.of(PropertyDefinition.ConfigScope.PROJECT))
         .build()
     ));
   }
@@ -80,9 +80,9 @@ public class CxxClangTidySensor extends CxxIssuesReportSensor {
       String defaultEncoding = context.config().get(REPORT_ENCODING_DEF).orElse(DEFAULT_ENCODING_DEF);
       parser.parse(report, defaultEncoding);
     } catch (final java.io.IOException
-                     | java.lang.IllegalArgumentException
-                     | java.lang.IllegalStateException
-                     | java.util.InputMismatchException e) {
+      | java.lang.IllegalArgumentException
+      | java.lang.IllegalStateException
+      | java.util.InputMismatchException e) {
       throw new InvalidReportException("The 'Clang-Tidy' report is invalid", e);
     }
   }

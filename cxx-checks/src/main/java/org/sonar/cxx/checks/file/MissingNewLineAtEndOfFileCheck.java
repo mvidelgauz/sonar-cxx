@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,8 +19,9 @@
  */
 package org.sonar.cxx.checks.file;
 
-import com.sonar.sslr.api.AstNode;
-import com.sonar.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.AstNode;
+import com.sonar.cxx.sslr.api.Grammar;
+import javax.annotation.Nullable;
 import org.sonar.check.Priority;
 import org.sonar.check.Rule;
 import org.sonar.cxx.squidbridge.annotations.ActivatedByDefault;
@@ -38,7 +39,7 @@ import org.sonar.cxx.tag.Tag;
 public class MissingNewLineAtEndOfFileCheck extends SquidCheck<Grammar> {
 
   @Override
-  public void visitFile(AstNode astNode) {
+  public void visitFile(@Nullable AstNode astNode) {
     if (isEmptyOrNotEndingWithNewLine(getContext().getInputFileContent())) {
       getContext().createFileViolation(this, "Add a new line at the end of this file.");
     }

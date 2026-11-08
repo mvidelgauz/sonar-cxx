@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -23,6 +23,9 @@ import javax.annotation.CheckForNull;
 import org.sonar.cxx.squidbridge.measures.CalculatedMetricFormula;
 import org.sonar.cxx.squidbridge.measures.MetricDef;
 
+/**
+ * {@inheritDoc}
+ */
 public enum CxxMetric implements MetricDef {
 
   FILES,
@@ -45,7 +48,8 @@ public enum CxxMetric implements MetricDef {
   NCLOC_DATA,
   EXECUTABLE_LINES_DATA,
   CPD_TOKENS_DATA,
-  HIGHLIGTHING_DATA;
+  HIGHLIGTHING_DATA,
+  SYMBOL_TABLE_DATA;
 
   @Override
   public String getName() {

@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,30 +20,30 @@
 package org.sonar.cxx.sensors.compiler.gcc;
 
 import java.util.ArrayList;
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 import org.assertj.core.api.SoftAssertions;
-import org.junit.Before;
-import org.junit.Test;
-import org.sonar.api.batch.fs.internal.DefaultFileSystem;
-import org.sonar.api.batch.fs.internal.TestInputFileBuilder;
-import org.sonar.api.batch.sensor.internal.DefaultSensorDescriptor;
-import org.sonar.api.batch.sensor.internal.SensorContextTester;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.sonar.scanner.plugin.api.impl.fs.DefaultFileSystem;
+import org.sonar.scanner.plugin.api.impl.sensor.DefaultSensorDescriptor;
+import com.sonarsource.scanner.engine.sensor.test.fixtures.SensorContextTester;
 import org.sonar.api.batch.sensor.issue.Issue;
-import org.sonar.api.config.internal.MapSettings;
+import org.sonar.scanner.plugin.api.impl.config.MapSettings;
 import org.sonar.cxx.sensors.utils.TestUtils;
+import static org.sonar.cxx.sensors.utils.TestUtils.createTestInputFile;
 
-public class CxxCompilerGccSensorTest {
+class CxxCompilerGccSensorTest {
 
   private DefaultFileSystem fs;
   private final MapSettings settings = new MapSettings();
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     fs = TestUtils.mockFileSystem();
   }
 
   @Test
-  public void sensorDescriptorGcc() {
+  void sensorDescriptorGcc() {
     var descriptor = new DefaultSensorDescriptor();
     var sensor = new CxxCompilerGccSensor();
     sensor.describe(descriptor);
@@ -56,13 +56,12 @@ public class CxxCompilerGccSensorTest {
   }
 
   @Test
-  public void shouldReportCorrectGccViolations() {
+  void shouldReportCorrectGccViolations() {
     var context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(CxxCompilerGccSensor.REPORT_PATH_KEY, "compiler-reports/build.gcclog");
     context.setSettings(settings);
 
-    context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "src/zipmanager.cpp")
-      .setLanguage("cxx").initMetadata("asd\nasdas\nasda\n").build());
+    context.fileSystem().add(createTestInputFile("src/zipmanager.cpp", 3));
 
     var sensor = new CxxCompilerGccSensor();
     sensor.execute(context);
@@ -71,13 +70,12 @@ public class CxxCompilerGccSensorTest {
   }
 
   @Test
-  public void shouldReportCorrectGccViolationsWithOrWithoutIds() {
+  void shouldReportCorrectGccViolationsWithOrWithoutIds() {
     var context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(CxxCompilerGccSensor.REPORT_PATH_KEY, "compiler-reports/build-warning-without-id.gcclog");
     context.setSettings(settings);
 
-    context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "main.c")
-      .setLanguage("cxx").initMetadata("asd\nasdas\nasda\n").build());
+    context.fileSystem().add(createTestInputFile("main.c", 3));
 
     var sensor = new CxxCompilerGccSensor();
     sensor.execute(context);

@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,21 +20,21 @@
 package org.sonar.cxx.sensors.utils;
 
 import java.util.List;
-import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 import org.sonar.api.measures.Metric;
 import org.sonar.cxx.CxxMetrics;
 
-public class CxxMetricsTest {
+class CxxMetricsTest {
 
   @Test
-  public void getMetricsTest() {
+  void getMetricsTest() {
     List<Metric> list = CxxMetrics.getMetrics();
     assertThat(list).hasSize(12);
   }
 
   @Test
-  public void getMetricTest() {
+  void getMetricTest() {
     Metric<Integer> metric0 = CxxMetrics.getMetric(CxxMetrics.PUBLIC_API_KEY);
     assertThat(metric0).isNotNull();
 

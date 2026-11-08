@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,49 +19,139 @@
  */
 package org.sonar.cxx.lexer;
 
-import org.sonar.cxx.parser.CxxLexer;
-import com.sonar.sslr.api.GenericTokenType;
-import com.sonar.sslr.api.Grammar;
-import com.sonar.sslr.impl.Lexer;
+import com.sonar.cxx.sslr.api.GenericTokenType;
+import com.sonar.cxx.sslr.api.Grammar;
+import com.sonar.cxx.sslr.impl.Lexer;
 import java.io.File;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.assertj.core.api.SoftAssertions;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.sonar.cxx.lexer.LexerAssert.assertThat;
 import org.sonar.cxx.parser.CxxKeyword;
+import org.sonar.cxx.parser.CxxLexerPool;
 import org.sonar.cxx.parser.CxxPunctuator;
 import org.sonar.cxx.parser.CxxTokenType;
-import static org.sonar.cxx.lexer.LexerAssert.assertThat;
 import org.sonar.cxx.preprocessor.CxxPreprocessor;
 import org.sonar.cxx.preprocessor.JoinStringsPreprocessor;
 import org.sonar.cxx.squidbridge.SquidAstVisitorContext;
 
-public class CxxLexerTest {
+class CxxLexerTest {
 
-  private static Lexer lexer;
+  private Lexer lexer;
 
-  @BeforeClass
-  public static void init() {
+  @BeforeEach
+  void setUp() {
     var file = new File("snippet.cpp").getAbsoluteFile();
     SquidAstVisitorContext<Grammar> context = mock(SquidAstVisitorContext.class);
     when(context.getFile()).thenReturn(file);
 
     var cxxpp = new CxxPreprocessor(context);
-    lexer = CxxLexer.create(cxxpp, new JoinStringsPreprocessor());
+    lexer = CxxLexerPool.create(cxxpp, new JoinStringsPreprocessor()).getLexer();
+  }
+
+  /**
+   * C++ Standard, line splicing
+   */
+  @Test
+  void lineSplicing() {
+    var softly = new SoftAssertions();
+
+    softly.assertThat(lexer.lex(""
+    )).as("empty file").allSatisfy(token
+      -> assertThat(token).isValue("EOF").isLine(1));
+    softly.assertThat(lexer.lex("\\\n"
+    )).as("empty file with line splicing").allSatisfy(token
+      -> assertThat(token).isValue("EOF").isLine(2));
+    softly.assertThat(lexer.lex("\\   \t   \n"
+    )).as("empty file with line splicing and whitespaces").allSatisfy(token
+      -> assertThat(token).isValue("EOF").isLine(2));
+
+    softly.assertThat(lexer.lex("""
+                                //a\\
+                                b
+                                """)).as("comment c++: line splicing").anySatisfy(token
+      -> assertThat(token).hasTrivia().isTrivia("//ab").isComment().isTriviaLine(1));
+    softly.assertThat(lexer.lex("""
+                                /\\
+                                /ab
+                                """)).as("comment c++: line splicing").anySatisfy(token
+      -> assertThat(token).hasTrivia().isTrivia("//ab").isComment().isTriviaLine(1));
+    softly.assertThat(lexer.lex("""
+                                /\\   \t   \t
+                                /ab
+                                """)).as("comment c++: line splicing").anySatisfy(token
+      -> assertThat(token).hasTrivia().isTrivia("//ab").isComment().isTriviaLine(1));
+    softly.assertThat(lexer.lex("""
+                                int main() {
+                                int i = 1
+                                // \\
+                                + 42
+                                ;
+                                return i;
+                                }
+                                """ // line splicing
+    )).as("comment c++: line splicing").anySatisfy(token
+      -> assertThat(token).hasTrivia().isTrivia("// + 42").isComment().isTriviaLine(3));
+    softly.assertThat(lexer.lex("""
+                                int main() {
+                                int i = 1
+                                // \\   \t   \t
+                                + 42
+                                ;
+                                return i;
+                                }
+                                """ // line splicing with whitespaces
+    )).as("comment c++: line splicing with whitespaces").anySatisfy(token
+      -> assertThat(token).hasTrivia().isTrivia("// + 42").isComment().isTriviaLine(3));
+
+    softly.assertThat(lexer.lex("""
+                                /\\
+                                **\\
+                                /
+                                """ // line splicing
+    // line splicing
+    )).as("comment c: line splicing").anySatisfy(token
+      -> assertThat(token).isValue("EOF").hasTrivia().isTrivia("/**/").isComment().isTriviaLine(1));
+    softly.assertThat(lexer.lex("""
+                                /\\   \t   \t
+                                **\\   \t   \t
+                                /
+                                """ // line splicing with whitespaces
+    // line splicing with whitespaces
+    )).as("comment c: line splicing with whitespaces").anySatisfy(token
+      -> assertThat(token).isValue("EOF").hasTrivia().isTrivia("/**/").isComment().isTriviaLine(1));
+
+    softly.assertThat(lexer.lex("""
+                                /\\
+                                *
+                                */ # /*
+                                */ defi\\
+                                ne FO\\
+                                O 10\\
+                                20
+                                """)).as("preprocessor directive with line splicing").anySatisfy(token
+      -> assertThat(token).isValue("EOF").hasTrivia().isTrivia("#   define FOO 1020").isTriviaLine(3));
+    softly.assertAll();
+
+    softly.assertThat(lexer.lex("""
+                                "str\\
+                                i\\
+                                ng"
+                                """)).as("string with line splicing").anySatisfy(token
+      -> assertThat(token).isValue("\"string\"").hasType(CxxTokenType.STRING).isLine(1));
+    softly.assertAll();
   }
 
   /**
    * C++ Standard, Section 2.8 "Comments"
-   *
-   * @throws URISyntaxException
    */
   @Test
-  public void comments_cxx() {
+  void commentsCxx() {
     var softly = new SoftAssertions();
     softly.assertThat(lexer.lex("//\n new line")).as("comment c++: empty").anySatisfy(token
       -> assertThat(token).isValue("new").hasTrivia().isTrivia("//").isComment().isTriviaLine(1));
@@ -78,14 +168,14 @@ public class CxxLexerTest {
    * C++ Standard, Section 2.8 "Comments"
    */
   @Test
-  public void comments_c() {
+  void commentsC() {
     var softly = new SoftAssertions();
     softly.assertThat(lexer.lex("/**/")).as("comment c: empty").anySatisfy(token
       -> assertThat(token).isValue("EOF").hasTrivia().isTrivia("/**/").isComment().isTriviaLine(1));
     softly.assertThat(lexer.lex("/* My comment */")).as("comment c: simple").anySatisfy(token
       -> assertThat(token).isValue("EOF").hasTrivia().isTrivia("/* My comment */").isComment().isTriviaLine(1));
     softly.assertThat(lexer.lex("/*\\\n*/")).as("comment c: with newline").anySatisfy(token
-      -> assertThat(token).isValue("EOF").hasTrivia().isTrivia("/*\\\n*/").isComment().isTriviaLine(1));
+      -> assertThat(token).isValue("EOF").hasTrivia().isTrivia("/**/").isComment().isTriviaLine(1));
     softly.assertThat(lexer.lex("/*//*/")).as("comment c: nested").anySatisfy(token
       -> assertThat(token).isValue("EOF").hasTrivia().isTrivia("/*//*/").isComment().isTriviaLine(1));
     softly.assertThat(lexer.lex("/* /* */")).as("comment c: nested2").anySatisfy(token
@@ -97,7 +187,7 @@ public class CxxLexerTest {
    * C++ Standard, Section 2.14.2 "Integer literals"
    */
   @Test
-  public void decimal_integer_literals() {
+  void decimalIntegerLiterals() {
     var values = new ArrayList<LiteralValuesBuilder>(Arrays.asList(
       LiteralValuesBuilder.builder("0").tokenValue("0").tokenType(CxxTokenType.NUMBER).build(),
       LiteralValuesBuilder.builder("7").tokenValue("7").tokenType(CxxTokenType.NUMBER).build(),
@@ -132,19 +222,27 @@ public class CxxLexerTest {
       LiteralValuesBuilder.builder("7LLU").tokenValue("7LLU").tokenType(CxxTokenType.NUMBER).build(),
       // With Microsoft specific 64-bit integer-suffix: i64
       LiteralValuesBuilder.builder("7i64").tokenValue("7i64").tokenType(CxxTokenType.NUMBER).build(),
-      LiteralValuesBuilder.builder("7ui64").tokenValue("7ui64").tokenType(CxxTokenType.NUMBER).build()
+      LiteralValuesBuilder.builder("7ui64").tokenValue("7ui64").tokenType(CxxTokenType.NUMBER).build(),
+      // C++23
+      LiteralValuesBuilder.builder("7z").tokenValue("7z").tokenType(CxxTokenType.NUMBER).build(),
+      LiteralValuesBuilder.builder("7uz").tokenValue("7uz").tokenType(CxxTokenType.NUMBER).build(),
+      LiteralValuesBuilder.builder("7zu").tokenValue("7zu").tokenType(CxxTokenType.NUMBER).build(),
+      LiteralValuesBuilder.builder("7Z").tokenValue("7Z").tokenType(CxxTokenType.NUMBER).build(),
+      LiteralValuesBuilder.builder("7UZ").tokenValue("7UZ").tokenType(CxxTokenType.NUMBER).build(),
+      LiteralValuesBuilder.builder("7ZU").tokenValue("7ZU").tokenType(CxxTokenType.NUMBER).build()
     ));
 
-    values.forEach(value
+    values.forEach((LiteralValuesBuilder value)
       -> assertThat(lexer.lex(value.lexerValue)).as("Literal %s", value.lexerValue).anySatisfy(token
-        -> assertThat(token).isValue(value.tokenValue).hasType(value.tokenType)));
+        -> assertThat(token).isValue(value.tokenValue).hasType(value.tokenType))
+    );
   }
 
   /**
    * C++ Standard, Section 2.14.2 "Integer literals"
    */
   @Test
-  public void octal_integer_literals() {
+  void octalIntegerLiterals() {
     var values = new ArrayList<LiteralValuesBuilder>(Arrays.asList(
       // Octal integer
       LiteralValuesBuilder.builder("07").tokenValue("07").tokenType(CxxTokenType.NUMBER).build(),
@@ -179,19 +277,27 @@ public class CxxLexerTest {
       LiteralValuesBuilder.builder("07LLU").tokenValue("07LLU").tokenType(CxxTokenType.NUMBER).build(),
       // With Microsoft specific 64-bit integer-suffix: i64
       LiteralValuesBuilder.builder("07i64").tokenValue("07i64").tokenType(CxxTokenType.NUMBER).build(),
-      LiteralValuesBuilder.builder("07ui64").tokenValue("07ui64").tokenType(CxxTokenType.NUMBER).build()
+      LiteralValuesBuilder.builder("07ui64").tokenValue("07ui64").tokenType(CxxTokenType.NUMBER).build(),
+      // C++23
+      LiteralValuesBuilder.builder("07z").tokenValue("07z").tokenType(CxxTokenType.NUMBER).build(),
+      LiteralValuesBuilder.builder("07uz").tokenValue("07uz").tokenType(CxxTokenType.NUMBER).build(),
+      LiteralValuesBuilder.builder("07zu").tokenValue("07zu").tokenType(CxxTokenType.NUMBER).build(),
+      LiteralValuesBuilder.builder("07Z").tokenValue("07Z").tokenType(CxxTokenType.NUMBER).build(),
+      LiteralValuesBuilder.builder("07UZ").tokenValue("07UZ").tokenType(CxxTokenType.NUMBER).build(),
+      LiteralValuesBuilder.builder("07ZU").tokenValue("07ZU").tokenType(CxxTokenType.NUMBER).build()
     ));
 
-    values.forEach(value
+    values.forEach((LiteralValuesBuilder value)
       -> assertThat(lexer.lex(value.lexerValue)).as("Literal %s", value.lexerValue).anySatisfy(token
-        -> assertThat(token).isValue(value.tokenValue).hasType(value.tokenType)));
+        -> assertThat(token).isValue(value.tokenValue).hasType(value.tokenType))
+    );
   }
 
   /**
    * C++ Standard, Section 2.14.2 "Integer literals"
    */
   @Test
-  public void hex_integer_literals() {
+  void hexIntegerLiterals() {
     var values = new ArrayList<LiteralValuesBuilder>(Arrays.asList(
       // Hex integer
       LiteralValuesBuilder.builder("0x7").tokenValue("0x7").tokenType(CxxTokenType.NUMBER).build(),
@@ -226,36 +332,52 @@ public class CxxLexerTest {
       LiteralValuesBuilder.builder("0x7LLU").tokenValue("0x7LLU").tokenType(CxxTokenType.NUMBER).build(),
       // With Microsoft specific 64-bit integer-suffix: i64
       LiteralValuesBuilder.builder("0x7i64").tokenValue("0x7i64").tokenType(CxxTokenType.NUMBER).build(),
-      LiteralValuesBuilder.builder("0x7ui64").tokenValue("0x7ui64").tokenType(CxxTokenType.NUMBER).build()
+      LiteralValuesBuilder.builder("0x7ui64").tokenValue("0x7ui64").tokenType(CxxTokenType.NUMBER).build(),
+      // C++23
+      LiteralValuesBuilder.builder("0x7z").tokenValue("0x7z").tokenType(CxxTokenType.NUMBER).build(),
+      LiteralValuesBuilder.builder("0x7uz").tokenValue("0x7uz").tokenType(CxxTokenType.NUMBER).build(),
+      LiteralValuesBuilder.builder("0x7zu").tokenValue("0x7zu").tokenType(CxxTokenType.NUMBER).build(),
+      LiteralValuesBuilder.builder("0x7Z").tokenValue("0x7Z").tokenType(CxxTokenType.NUMBER).build(),
+      LiteralValuesBuilder.builder("0x7UZ").tokenValue("0x7UZ").tokenType(CxxTokenType.NUMBER).build(),
+      LiteralValuesBuilder.builder("0x7ZU").tokenValue("0x7ZU").tokenType(CxxTokenType.NUMBER).build()
     ));
 
-    values.forEach(value
+    values.forEach((LiteralValuesBuilder value)
       -> assertThat(lexer.lex(value.lexerValue)).as("Literal %s", value.lexerValue).anySatisfy(token
-        -> assertThat(token).isValue(value.tokenValue).hasType(value.tokenType)));
+        -> assertThat(token).isValue(value.tokenValue).hasType(value.tokenType))
+    );
   }
 
   /**
    * C++ Standard, Section 2.14.2 "Integer literals"
    */
   @Test
-  public void bin_integer_literals() {
+  void binIntegerLiterals() {
     var values = new ArrayList<LiteralValuesBuilder>(Arrays.asList(
       // bin integer
       LiteralValuesBuilder.builder("0b0").tokenValue("0b0").tokenType(CxxTokenType.NUMBER).build(),
       LiteralValuesBuilder.builder("0B1").tokenValue("0B1").tokenType(CxxTokenType.NUMBER).build(),
-      LiteralValuesBuilder.builder("0b10101001").tokenValue("0b10101001").tokenType(CxxTokenType.NUMBER).build()
+      LiteralValuesBuilder.builder("0b10101001").tokenValue("0b10101001").tokenType(CxxTokenType.NUMBER).build(),
+      // C++23
+      LiteralValuesBuilder.builder("0b1z").tokenValue("0b1z").tokenType(CxxTokenType.NUMBER).build(),
+      LiteralValuesBuilder.builder("0b1uz").tokenValue("0b1uz").tokenType(CxxTokenType.NUMBER).build(),
+      LiteralValuesBuilder.builder("0b1zu").tokenValue("0b1zu").tokenType(CxxTokenType.NUMBER).build(),
+      LiteralValuesBuilder.builder("0b1Z").tokenValue("0b1Z").tokenType(CxxTokenType.NUMBER).build(),
+      LiteralValuesBuilder.builder("0b1UZ").tokenValue("0b1UZ").tokenType(CxxTokenType.NUMBER).build(),
+      LiteralValuesBuilder.builder("0b1ZU").tokenValue("0b1ZU").tokenType(CxxTokenType.NUMBER).build()
     ));
 
-    values.forEach(value
+    values.forEach((LiteralValuesBuilder value)
       -> assertThat(lexer.lex(value.lexerValue)).as("Literal %s", value.lexerValue).anySatisfy(token
-        -> assertThat(token).isValue(value.tokenValue).hasType(value.tokenType)));
+        -> assertThat(token).isValue(value.tokenValue).hasType(value.tokenType))
+    );
   }
 
   /**
    * C++ Standard, Section 2.14.2 "Integer literals"
    */
   @Test
-  public void hex_integer_literals_bigX() {
+  void hexIntegerLiteralsBigX() {
     var values = new ArrayList<LiteralValuesBuilder>(Arrays.asList(
       // Hex integer (big X)
       LiteralValuesBuilder.builder("0X7").tokenValue("0X7").tokenType(CxxTokenType.NUMBER).build(),
@@ -293,16 +415,17 @@ public class CxxLexerTest {
       LiteralValuesBuilder.builder("0X7ui64").tokenValue("0X7ui64").tokenType(CxxTokenType.NUMBER).build()
     ));
 
-    values.forEach(value
+    values.forEach((LiteralValuesBuilder value)
       -> assertThat(lexer.lex(value.lexerValue)).as("Literal %s", value.lexerValue).anySatisfy(token
-        -> assertThat(token).isValue(value.tokenValue).hasType(value.tokenType)));
+        -> assertThat(token).isValue(value.tokenValue).hasType(value.tokenType))
+    );
   }
 
   /**
    * C++ Standard, Section 2.14.2 "Integer literals"
    */
   @Test
-  public void bin_integer_literals_bigB() {
+  void binIntegerLiteralsBigB() {
     var values = new ArrayList<LiteralValuesBuilder>(Arrays.asList(
       // Binary literal (big B)
       LiteralValuesBuilder.builder("0B1").tokenValue("0B1").tokenType(CxxTokenType.NUMBER).build(),
@@ -340,16 +463,17 @@ public class CxxLexerTest {
       LiteralValuesBuilder.builder("0B1ui64").tokenValue("0B1ui64").tokenType(CxxTokenType.NUMBER).build()
     ));
 
-    values.forEach(value
+    values.forEach((LiteralValuesBuilder value)
       -> assertThat(lexer.lex(value.lexerValue)).as("Literal %s", value.lexerValue).anySatisfy(token
-        -> assertThat(token).isValue(value.tokenValue).hasType(value.tokenType)));
+        -> assertThat(token).isValue(value.tokenValue).hasType(value.tokenType))
+    );
   }
 
   /**
    * C++ Standard, Section 2.14.4 "Floating literals"
    */
   @Test
-  public void floating_point_literals() {
+  void floatingPointLiterals() {
     var values = new ArrayList<LiteralValuesBuilder>(Arrays.asList(
       LiteralValuesBuilder.builder("3.14").tokenValue("3.14").tokenType(CxxTokenType.NUMBER).build(),
       LiteralValuesBuilder.builder("10.").tokenValue("10.").tokenType(CxxTokenType.NUMBER).build(),
@@ -386,25 +510,37 @@ public class CxxLexerTest {
       LiteralValuesBuilder.builder("3.14e-10L").tokenValue("3.14e-10L").tokenType(CxxTokenType.NUMBER).build(),
       LiteralValuesBuilder.builder("3.14E-10L").tokenValue("3.14E-10L").tokenType(CxxTokenType.NUMBER).build(),
       LiteralValuesBuilder.builder("0e0L").tokenValue("0e0L").tokenType(CxxTokenType.NUMBER).build(),
-      // c++17: hexadecimal floating literals
+      // C++17: hexadecimal floating literals
       LiteralValuesBuilder.builder("0x1ffp10").tokenValue("0x1ffp10").tokenType(CxxTokenType.NUMBER).build(),
       LiteralValuesBuilder.builder("0X0p-1").tokenValue("0X0p-1").tokenType(CxxTokenType.NUMBER).build(),
       LiteralValuesBuilder.builder("0x1.p0").tokenValue("0x1.p0").tokenType(CxxTokenType.NUMBER).build(),
       LiteralValuesBuilder.builder("0xf.p-1").tokenValue("0xf.p-1").tokenType(CxxTokenType.NUMBER).build(),
       LiteralValuesBuilder.builder("0x0.123p-1").tokenValue("0x0.123p-1").tokenType(CxxTokenType.NUMBER).build(),
-      LiteralValuesBuilder.builder("0xa.bp10l").tokenValue("0xa.bp10l").tokenType(CxxTokenType.NUMBER).build()
+      LiteralValuesBuilder.builder("0xa.bp10l").tokenValue("0xa.bp10l").tokenType(CxxTokenType.NUMBER).build(),
+      // C++23
+      LiteralValuesBuilder.builder("1.f16").tokenValue("1.f16").tokenType(CxxTokenType.NUMBER).build(),
+      LiteralValuesBuilder.builder("1.f32").tokenValue("1.f32").tokenType(CxxTokenType.NUMBER).build(),
+      LiteralValuesBuilder.builder("1.f64").tokenValue("1.f64").tokenType(CxxTokenType.NUMBER).build(),
+      LiteralValuesBuilder.builder("1.f128").tokenValue("1.f128").tokenType(CxxTokenType.NUMBER).build(),
+      LiteralValuesBuilder.builder("1.bf16").tokenValue("1.bf16").tokenType(CxxTokenType.NUMBER).build(),
+      LiteralValuesBuilder.builder("1.F16").tokenValue("1.F16").tokenType(CxxTokenType.NUMBER).build(),
+      LiteralValuesBuilder.builder("1.F32").tokenValue("1.F32").tokenType(CxxTokenType.NUMBER).build(),
+      LiteralValuesBuilder.builder("1.F64").tokenValue("1.F64").tokenType(CxxTokenType.NUMBER).build(),
+      LiteralValuesBuilder.builder("1.F128").tokenValue("1.F128").tokenType(CxxTokenType.NUMBER).build(),
+      LiteralValuesBuilder.builder("1.BF16").tokenValue("1.BF16").tokenType(CxxTokenType.NUMBER).build()
     ));
 
-    values.forEach(value
+    values.forEach((LiteralValuesBuilder value)
       -> assertThat(lexer.lex(value.lexerValue)).as("Literal %s", value.lexerValue).anySatisfy(token
-        -> assertThat(token).isValue(value.tokenValue).hasType(value.tokenType)));
+        -> assertThat(token).isValue(value.tokenValue).hasType(value.tokenType))
+    );
   }
 
   /**
    * C++ Standard, Section 2.13.8 "User-defined literals"
    */
   @Test
-  public void user_defined_literals() {
+  void userDefinedLiterals() {
     var values = new ArrayList<LiteralValuesBuilder>(Arrays.asList(
       LiteralValuesBuilder.builder("12_w").tokenValue("12_w").tokenType(CxxTokenType.NUMBER).build(),
       LiteralValuesBuilder.builder("1.2_w").tokenValue("1.2_w").tokenType(CxxTokenType.NUMBER).build(),
@@ -416,16 +552,17 @@ public class CxxLexerTest {
       LiteralValuesBuilder.builder("'X'_w").tokenValue("'X'_w").tokenType(CxxTokenType.CHARACTER).build()
     ));
 
-    values.forEach(value
+    values.forEach((LiteralValuesBuilder value)
       -> assertThat(lexer.lex(value.lexerValue)).as("Literal %s", value.lexerValue).anySatisfy(token
-        -> assertThat(token).isValue(value.tokenValue).hasType(value.tokenType)));
+        -> assertThat(token).isValue(value.tokenValue).hasType(value.tokenType))
+    );
   }
 
   /**
    * C++ Standard, Section 2.13 ff "digit separators"
    */
   @Test
-  public void digit_separators() {
+  void digitSeparators() {
     var values = new ArrayList<LiteralValuesBuilder>(Arrays.asList(
       LiteralValuesBuilder.builder("1'000'000").tokenValue("1'000'000").tokenType(CxxTokenType.NUMBER).build(),
       LiteralValuesBuilder.builder("0b0100'1100'0110").tokenValue("0b0100'1100'0110").tokenType(CxxTokenType.NUMBER)
@@ -441,45 +578,48 @@ public class CxxLexerTest {
       LiteralValuesBuilder.builder("1'000e-1'000").tokenValue("1'000e-1'000").tokenType(CxxTokenType.NUMBER).build()
     ));
 
-    values.forEach(value
+    values.forEach((LiteralValuesBuilder value)
       -> assertThat(lexer.lex(value.lexerValue)).as("Literal %s", value.lexerValue).anySatisfy(token
-        -> assertThat(token).isValue(value.tokenValue).hasType(value.tokenType)));
+        -> assertThat(token).isValue(value.tokenValue).hasType(value.tokenType))
+    );
   }
 
   /**
    * C++ Standard, Section 2.14.6 "Boolean literals"
    */
   @Test
-  public void boolean_literals() {
+  void booleanLiterals() {
     var values = new ArrayList<LiteralValuesBuilder>(Arrays.asList(
       LiteralValuesBuilder.builder("true").tokenValue("true").tokenType(CxxKeyword.TRUE).build(),
       LiteralValuesBuilder.builder("false").tokenValue("false").tokenType(CxxKeyword.FALSE).build()
     ));
 
-    values.forEach(value
+    values.forEach((LiteralValuesBuilder value)
       -> assertThat(lexer.lex(value.lexerValue)).as("Literal %s", value.lexerValue).anySatisfy(token
-        -> assertThat(token).isValue(value.tokenValue).hasType(value.tokenType)));
+        -> assertThat(token).isValue(value.tokenValue).hasType(value.tokenType))
+    );
   }
 
   /**
    * C++ Standard, Section 2.14.7 "Pointer literals"
    */
   @Test
-  public void pointer_literals() {
+  void pointerLiterals() {
     var values = new ArrayList<LiteralValuesBuilder>(Arrays.asList(
       LiteralValuesBuilder.builder("nullptr").tokenValue("nullptr").tokenType(CxxTokenType.NUMBER).build()
     ));
 
-    values.forEach(value
+    values.forEach((LiteralValuesBuilder value)
       -> assertThat(lexer.lex(value.lexerValue)).as("Literal %s", value.lexerValue).anySatisfy(token
-        -> assertThat(token).isValue(value.tokenValue).hasType(value.tokenType)));
+        -> assertThat(token).isValue(value.tokenValue).hasType(value.tokenType))
+    );
   }
 
   /**
    * C++ Standard, Character literals
    */
   @Test
-  public void character_literals() {
+  void characterLiterals() {
     var values = new ArrayList<LiteralValuesBuilder>(Arrays.asList(
       LiteralValuesBuilder.builder("''").tokenValue("''").tokenType(CxxTokenType.CHARACTER).build(), // char: empty
       LiteralValuesBuilder.builder("u8''").tokenValue("u8''").tokenType(CxxTokenType.CHARACTER).build(), // char: prefix u8
@@ -497,16 +637,17 @@ public class CxxLexerTest {
       LiteralValuesBuilder.builder("'\\'").tokenValue("'").tokenType(GenericTokenType.UNKNOWN_CHAR).build() // This are 3 Tokens of UNKNOWN_CHAR
     ));
 
-    values.forEach(value
+    values.forEach((LiteralValuesBuilder value)
       -> assertThat(lexer.lex(value.lexerValue)).as("Literal %s", value.lexerValue).anySatisfy(token
-        -> assertThat(token).isValue(value.tokenValue).hasType(value.tokenType)));
+        -> assertThat(token).isValue(value.tokenValue).hasType(value.tokenType))
+    );
   }
 
   /**
    * C++ Standard, String literals
    */
   @Test
-  public void string_literals() {
+  void stringLiterals() {
     var values = new ArrayList<LiteralValuesBuilder>(Arrays.asList(
       LiteralValuesBuilder.builder("\"\"").tokenValue("\"\"").tokenType(CxxTokenType.STRING).build(), // string: empty
       LiteralValuesBuilder.builder("u8\"\"").tokenValue("u8\"\"").tokenType(CxxTokenType.STRING).build(), // string: prefix u8
@@ -523,13 +664,14 @@ public class CxxLexerTest {
       LiteralValuesBuilder.builder("\"\\\"").tokenValue("\\").tokenType(GenericTokenType.UNKNOWN_CHAR).build() // string: unescaped backslash
     ));
 
-    values.forEach(value
+    values.forEach((LiteralValuesBuilder value)
       -> assertThat(lexer.lex(value.lexerValue)).as("Literal %s", value.lexerValue).anySatisfy(token
-        -> assertThat(token).isValue(value.tokenValue).hasType(value.tokenType)));
+        -> assertThat(token).isValue(value.tokenValue).hasType(value.tokenType))
+    );
   }
 
   @Test
-  public void rawstring_literals() {
+  void rawstringLiterals() {
     var values = new ArrayList<LiteralValuesBuilder>(Arrays.asList(
       LiteralValuesBuilder.builder("R\"(...)\"").tokenValue("R\"(...)\"").tokenType(CxxTokenType.STRING).build(), // raw string: empty
       LiteralValuesBuilder.builder("uR\"(...)\"").tokenValue("uR\"(...)\"").tokenType(CxxTokenType.STRING).build(), // raw string: prefix u
@@ -569,26 +711,28 @@ public class CxxLexerTest {
         .tokenType(CxxTokenType.STRING).build()
     ));
 
-    values.forEach(value
+    values.forEach((LiteralValuesBuilder value)
       -> assertThat(lexer.lex(value.lexerValue)).as("Literal %s", value.lexerValue).anySatisfy(token
-        -> assertThat(token).isValue(value.tokenValue).hasType(value.tokenType)));
+        -> assertThat(token).isValue(value.tokenValue).hasType(value.tokenType))
+    );
   }
 
   @Test
-  public void operators_and_delimiters() {
+  void operatorsAndDelimiters() {
     var values = new ArrayList<LiteralValuesBuilder>(Arrays.asList(
       LiteralValuesBuilder.builder(":").tokenValue(":").tokenType(CxxPunctuator.COLON).build(),
       LiteralValuesBuilder.builder("=").tokenValue("=").tokenType(CxxPunctuator.ASSIGN).build(),
       LiteralValuesBuilder.builder("~").tokenValue("~").tokenType(CxxPunctuator.BW_NOT).build()
     ));
 
-    values.forEach(value
+    values.forEach((LiteralValuesBuilder value)
       -> assertThat(lexer.lex(value.lexerValue)).as("Operator|Delimiter %s", value.lexerValue).anySatisfy(token
-        -> assertThat(token).isValue(value.tokenValue).hasType(value.tokenType)));
+        -> assertThat(token).isValue(value.tokenValue).hasType(value.tokenType))
+    );
   }
 
   @Test
-  public void keywords_and_identifiers() {
+  void keywordsAndIdentifiers() {
     var values = new ArrayList<LiteralValuesBuilder>(Arrays.asList(
       LiteralValuesBuilder.builder("return").tokenValue("return").tokenType(CxxKeyword.RETURN).build(),
       LiteralValuesBuilder.builder("identifier").tokenValue("identifier").tokenType(GenericTokenType.IDENTIFIER)
@@ -599,13 +743,14 @@ public class CxxLexerTest {
       LiteralValuesBuilder.builder("truetype").tokenValue("truetype").tokenType(GenericTokenType.IDENTIFIER).build() //identifier: containing boolean constant
     ));
 
-    values.forEach(value
+    values.forEach((LiteralValuesBuilder value)
       -> assertThat(lexer.lex(value.lexerValue)).as("Keyword|Identifier %s", value.lexerValue).anySatisfy(token
-        -> assertThat(token).isValue(value.tokenValue).hasType(value.tokenType)));
+        -> assertThat(token).isValue(value.tokenValue).hasType(value.tokenType))
+    );
   }
 
   @Test
-  public void blank_lines() {
+  void blankLines() {
     var softly = new SoftAssertions();
     softly.assertThat(lexer.lex("    // comment\\n")).hasSize(1);
     softly.assertThat(lexer.lex("    \n")).hasSize(1);

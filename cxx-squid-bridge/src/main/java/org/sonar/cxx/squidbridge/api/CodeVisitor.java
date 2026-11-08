@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -23,6 +23,9 @@
  */
 package org.sonar.cxx.squidbridge.api;
 
+/**
+ * Tagging interface for code visitors. It provides run-time type information and all code visitors must implement it.
+ */
 public interface CodeVisitor {
 
 }

@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -21,40 +21,41 @@ package org.sonar.cxx.sensors.compiler;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
-import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.sonar.api.batch.fs.internal.DefaultFileSystem;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.sonar.scanner.plugin.api.impl.fs.DefaultFileSystem;
 import org.sonar.api.batch.sensor.SensorContext;
 import org.sonar.api.batch.sensor.SensorDescriptor;
-import org.sonar.api.batch.sensor.internal.SensorContextTester;
-import org.sonar.api.config.internal.MapSettings;
-import org.sonar.api.utils.log.LogTester;
+import com.sonarsource.scanner.engine.sensor.test.fixtures.SensorContextTester;
+import org.sonar.scanner.plugin.api.impl.config.MapSettings;
+import org.sonar.api.testfixtures.log.LogTesterJUnit5;
 import org.sonar.cxx.sensors.utils.CxxReportSensor;
 import org.sonar.cxx.sensors.utils.TestUtils;
 
-public class CxxCompilerSensorTest {
+class CxxCompilerSensorTest {
 
-  @Rule
-  public LogTester logTester = new LogTester();
+  @RegisterExtension
+  private final LogTesterJUnit5 logTester = new LogTesterJUnit5();
 
   private DefaultFileSystem fs;
   private final MapSettings settings = new MapSettings();
   private SensorContextTester context;
   private CxxCompilerSensorMock sensor;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     settings.setProperty(CxxReportSensor.ERROR_RECOVERY_KEY, true);
     fs = TestUtils.mockFileSystem();
     context = SensorContextTester.create(fs.baseDir());
     context.setSettings(settings);
     sensor = new CxxCompilerSensorMock(context);
+    sensor.setWebApi(null);
   }
 
   @Test
-  public void testFileNotFound() {
+  void testFileNotFound() {
     var report = new File("");
     sensor.setRegex("(?<test>.*)");
     sensor.testExecuteReport(report);
@@ -63,7 +64,7 @@ public class CxxCompilerSensorTest {
   }
 
   @Test
-  public void testRegexEmpty() {
+  void testRegexEmpty() {
     var report = new File("");
     sensor.testExecuteReport(report);
     var log = logTester.logs().toString();
@@ -71,7 +72,7 @@ public class CxxCompilerSensorTest {
   }
 
   @Test
-  public void testRegexInvalid() {
+  void testRegexInvalid() {
     var report = new File(fs.baseDir(), "compiler-reports/VC-report.vclog");
     sensor.setRegex("(?<test>*)");
     sensor.testExecuteReport(report);
@@ -80,7 +81,7 @@ public class CxxCompilerSensorTest {
   }
 
   @Test
-  public void testRegexNamedGroupMissing() {
+  void testRegexNamedGroupMissing() {
     var report = new File(fs.baseDir(), "compiler-reports/VC-report.vclog");
     sensor.setRegex(".*");
     sensor.testExecuteReport(report);
@@ -98,6 +99,7 @@ public class CxxCompilerSensorTest {
 
     @Override
     public void describe(SensorDescriptor descriptor) {
+      // dummy
     }
 
     public void testExecuteReport(File report) {

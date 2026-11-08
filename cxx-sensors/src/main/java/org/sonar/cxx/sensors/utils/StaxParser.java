@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -31,15 +31,15 @@ import javax.xml.stream.XMLStreamException;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.staxmate.SMInputFactory;
 import org.codehaus.staxmate.in.SMHierarchicCursor;
-import org.sonar.api.utils.log.Logger;
-import org.sonar.api.utils.log.Loggers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * helper class StaxParser
  */
 public class StaxParser {
 
-  private static final Logger LOG = Loggers.get(StaxParser.class);
+  private static final Logger LOG = LoggerFactory.getLogger(StaxParser.class);
   private SMInputFactory inf;
   private XmlStreamHandler streamHandler;
   private boolean isoControlCharsAwareParser;
@@ -63,12 +63,9 @@ public class StaxParser {
    */
   public StaxParser(XmlStreamHandler streamHandler, boolean isoControlCharsAwareParser) {
     this.streamHandler = streamHandler;
-    var xmlFactory = XMLInputFactory.newInstance();
-    if (xmlFactory instanceof WstxInputFactory) {
-      var wstxInputfactory = (WstxInputFactory) xmlFactory;
-      wstxInputfactory.configureForLowMemUsage();
-      wstxInputfactory.getConfig().setUndeclaredEntityResolver(new UndeclaredEntitiesXMLResolver());
-    }
+    WstxInputFactory xmlFactory = new WstxInputFactory();
+    xmlFactory.configureForLowMemUsage();
+    xmlFactory.getConfig().setUndeclaredEntityResolver(new UndeclaredEntitiesXMLResolver());
     xmlFactory.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.FALSE);
     xmlFactory.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.FALSE);
     xmlFactory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.FALSE);
@@ -83,10 +80,10 @@ public class StaxParser {
    * @exception XMLStreamException javax.xml.stream.XMLStreamException
    */
   public void parse(File xmlFile) throws XMLStreamException {
-    try ( var input = java.nio.file.Files.newInputStream(xmlFile.toPath())) {
+    try (var input = java.nio.file.Files.newInputStream(xmlFile.toPath())) {
       parse(input);
     } catch (IOException e) {
-      LOG.error("Cannot access file: " + e.getMessage());
+      LOG.error("Cannot access file: {}", e.getMessage(), e);
     }
   }
 
@@ -122,7 +119,7 @@ public class StaxParser {
    */
   public void parse(URL xmlUrl) throws XMLStreamException {
     try {
-      try ( var xml = xmlUrl.openStream()) {
+      try (var xml = xmlUrl.openStream()) {
         parse(xml);
       }
     } catch (IOException e) {

@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,45 +20,45 @@
 package org.sonar.plugins.cxx;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 import org.assertj.core.api.SoftAssertions;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.batch.rule.ActiveRules;
 import org.sonar.api.batch.rule.CheckFactory;
-import org.sonar.api.batch.sensor.cpd.internal.TokensLine;
-import org.sonar.api.batch.sensor.internal.SensorContextTester;
-import org.sonar.api.config.internal.MapSettings;
-import org.sonar.api.issue.NoSonarFilter;
+import org.sonar.duplications.internal.pmd.TokensLine;
+import com.sonarsource.scanner.engine.sensor.test.fixtures.SensorContextTester;
+import org.sonar.scanner.plugin.api.impl.sensor.issue.DefaultNoSonarFilter;
+import org.sonar.scanner.plugin.api.impl.config.MapSettings;
 import org.sonar.api.measures.CoreMetrics;
 import org.sonar.api.measures.FileLinesContext;
 import org.sonar.api.measures.FileLinesContextFactory;
 import org.sonar.cxx.CxxMetrics;
+import org.sonar.cxx.squidbridge.api.CxxCustomRuleRepository;
 
-public class CxxSquidSensorTest {
+class CxxSquidSensorTest {
 
   private CxxSquidSensor sensor;
   private final MapSettings settings = new MapSettings();
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     ActiveRules rules = mock(ActiveRules.class);
     var checkFactory = new CheckFactory(rules);
     FileLinesContextFactory fileLinesContextFactory = mock(FileLinesContextFactory.class);
     FileLinesContext fileLinesContext = mock(FileLinesContext.class);
     when(fileLinesContextFactory.createFor(Mockito.any(InputFile.class))).thenReturn(fileLinesContext);
 
-    sensor = new CxxSquidSensor(fileLinesContextFactory, checkFactory, new NoSonarFilter(), null);
+    sensor = new CxxSquidSensor(fileLinesContextFactory, checkFactory, new DefaultNoSonarFilter(), null);
   }
 
   @Test
-  public void testCollectingSquidMetrics() throws IOException {
+  void testCollectingSquidMetrics() {
     File baseDir = TestUtils.loadResource("/org/sonar/plugins/cxx/codechunks-project");
     var inputFile0 = TestUtils.buildInputFile(baseDir, "code_chunks.cc");
 
@@ -78,7 +78,34 @@ public class CxxSquidSensorTest {
   }
 
   @Test
-  public void testCpdTokens() throws Exception {
+  void testSymbolHighlightingEnabledByDefault() {
+    File baseDir = TestUtils.loadResource("/org/sonar/plugins/cxx/codechunks-project");
+    var inputFile0 = TestUtils.buildInputFile(baseDir, "code_chunks.cc");
+
+    var context = SensorContextTester.create(baseDir);
+    context.fileSystem().add(inputFile0);
+    sensor.execute(context);
+
+    // "int isatty(int fn)": fn declared at line 12, column 15 (0-based).
+    assertThat(context.referencesForSymbolAt(inputFile0.key(), 12, 15)).isNotEmpty();
+  }
+
+  @Test
+  void testSymbolHighlightingDisabledPublishesNoSymbols() {
+    File baseDir = TestUtils.loadResource("/org/sonar/plugins/cxx/codechunks-project");
+    var inputFile0 = TestUtils.buildInputFile(baseDir, "code_chunks.cc");
+
+    settings.setProperty(CxxSquidSensor.SYMBOL_TABLE_KEY, false);
+    var context = SensorContextTester.create(baseDir);
+    context.setSettings(settings);
+    context.fileSystem().add(inputFile0);
+    sensor.execute(context);
+
+    assertThat(context.referencesForSymbolAt(inputFile0.key(), 12, 15)).isNullOrEmpty();
+  }
+
+  @Test
+  void testCpdTokens() {
     File baseDir = TestUtils.loadResource("/org/sonar/plugins/cxx");
     var context = SensorContextTester.create(baseDir);
     settings.setProperty(CxxSquidSensor.CPD_IGNORE_IDENTIFIERS_KEY, true);
@@ -118,7 +145,7 @@ public class CxxSquidSensorTest {
   }
 
   @Test
-  public void testComplexitySquidMetrics() throws IOException {
+  void testComplexitySquidMetrics() {
     File baseDir = TestUtils.loadResource("/org/sonar/plugins/cxx/complexity-project");
     var context = SensorContextTester.create(baseDir);
     settings.setProperty(CxxSquidSensor.FUNCTION_COMPLEXITY_THRESHOLD_KEY, 3);
@@ -150,7 +177,7 @@ public class CxxSquidSensorTest {
   }
 
   @Test
-  public void testDocumentationSquidMetrics() throws IOException {
+  void testDocumentationSquidMetrics() {
     File baseDir = TestUtils.loadResource("/org/sonar/plugins/cxx/documentation-project");
     var inputFile = TestUtils.buildInputFile(baseDir, "documentation0.hh");
 
@@ -163,7 +190,7 @@ public class CxxSquidSensorTest {
     softly.assertThat(context.measure(inputFile.key(), CxxMetrics.PUBLIC_UNDOCUMENTED_API_KEY).value()).isEqualTo(2);
     softly.assertThat(context.measure(inputFile.key(), CxxMetrics.PUBLIC_DOCUMENTED_API_DENSITY_KEY)).isNull(); // see DensityMeasureComputer
 
-    final String moduleKey = context.project().key();
+    String moduleKey = context.project().key();
     softly.assertThat(context.measure(moduleKey, CxxMetrics.PUBLIC_API_KEY)).isNull(); // see AggregateMeasureComputer
     softly.assertThat(context.measure(moduleKey, CxxMetrics.PUBLIC_UNDOCUMENTED_API_KEY)).isNull(); // see AggregateMeasureComputer
     softly.assertThat(context.measure(moduleKey, CxxMetrics.PUBLIC_DOCUMENTED_API_DENSITY_KEY)).isNull(); // see AggregateMeasureComputer
@@ -171,7 +198,7 @@ public class CxxSquidSensorTest {
   }
 
   @Test
-  public void testReplacingOfExtenalMacros() throws IOException {
+  void testReplacingOfExtenalMacros() {
     File baseDir = TestUtils.loadResource("/org/sonar/plugins/cxx/external-macro-project");
     var context = SensorContextTester.create(baseDir);
     settings.setProperty(CxxSquidSensor.DEFINES_KEY, "MACRO class A{};");
@@ -190,7 +217,7 @@ public class CxxSquidSensorTest {
   }
 
   @Test
-  public void testFindingIncludedFiles() throws IOException {
+  void testFindingIncludedFiles() {
     File baseDir = TestUtils.loadResource("/org/sonar/plugins/cxx/include-directories-project");
     var context = SensorContextTester.create(baseDir);
     settings.setProperty(CxxSquidSensor.INCLUDE_DIRECTORIES_KEY, "include");
@@ -210,7 +237,7 @@ public class CxxSquidSensorTest {
   }
 
   @Test
-  public void testForceIncludedFiles() throws IOException {
+  void testForceIncludedFiles() {
     File baseDir = TestUtils.loadResource("/org/sonar/plugins/cxx/force-include-project");
     var context = SensorContextTester.create(baseDir);
     settings.setProperty(CxxSquidSensor.INCLUDE_DIRECTORIES_KEY, "include");
@@ -231,7 +258,7 @@ public class CxxSquidSensorTest {
   }
 
   @Test
-  public void testBehaviourOnCircularIncludes() throws IOException {
+  void testBehaviourOnCircularIncludes() {
     // especially: when two files, both belonging to the set of
     // files to analyse, include each other, the preprocessor guards have to be disabled
     // and both have to be counted in terms of metrics
@@ -243,6 +270,35 @@ public class CxxSquidSensorTest {
     sensor.execute(context);
 
     assertThat(context.measure(inputFile.key(), CoreMetrics.NCLOC).value()).isEqualTo(1);
+  }
+
+  // Repository wiring itself is verified in CxxChecksTest#shouldReturnChecksFromCustomRuleRepository.
+  @Test
+  void constructorCompilesWithBothCustomRuleArrayParameters() {
+    ActiveRules rules = mock(ActiveRules.class);
+    var checkFactory = new CheckFactory(rules);
+    FileLinesContextFactory fileLinesContextFactory = mock(FileLinesContextFactory.class);
+
+    CxxCustomRuleRepository repository = new CxxCustomRuleRepository() {
+      @Override
+      public String repositoryKey() {
+        return "test-repo";
+      }
+
+      @Override
+      public java.util.List<Class<?>> checkClasses() {
+        return java.util.List.of();
+      }
+    };
+
+    var sensorWithRepositories = new CxxSquidSensor(
+      fileLinesContextFactory,
+      checkFactory,
+      new DefaultNoSonarFilter(),
+      null,
+      new CxxCustomRuleRepository[]{repository});
+
+    assertThat(sensorWithRepositories).isNotNull();
   }
 
 }

@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,20 +20,19 @@
 package org.sonar.cxx.checks.file;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.sonar.cxx.CxxAstScanner;
 import org.sonar.cxx.checks.CxxFileTesterHelper;
 import org.sonar.cxx.squidbridge.api.SourceFile;
 import org.sonar.cxx.squidbridge.checks.CheckMessagesVerifier;
 
-public class TabCharacterCheckTest {
+class TabCharacterCheckTest {
 
   private final TabCharacterCheck check = new TabCharacterCheck();
 
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
-  public void fileWithTabsOneMessagePerFile() throws UnsupportedEncodingException, IOException {
+  void fileWithTabsOneMessagePerFile() throws IOException {
     check.createLineViolation = false;
 
     var tester = CxxFileTesterHelper.create("src/test/resources/checks/TabCharacter.cc", ".");
@@ -46,7 +45,7 @@ public class TabCharacterCheckTest {
 
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
-  public void fileWithTabsOneMessagePerLine() throws UnsupportedEncodingException, IOException {
+  void fileWithTabsOneMessagePerLine() throws IOException {
     check.createLineViolation = true;
     var tester = CxxFileTesterHelper.create("src/test/resources/checks/TabCharacter.cc", ".");
     SourceFile file = CxxAstScanner.scanSingleInputFile(tester.asInputFile(), check);
@@ -59,7 +58,7 @@ public class TabCharacterCheckTest {
 
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
-  public void fileWithoutTabs() throws UnsupportedEncodingException, IOException {
+  void fileWithoutTabs() throws IOException {
     check.createLineViolation = false;
     var tester = CxxFileTesterHelper.create("src/test/resources/checks/NonEmptyFile.cc", ".");
     SourceFile file = CxxAstScanner.scanSingleInputFile(tester.asInputFile(), check);

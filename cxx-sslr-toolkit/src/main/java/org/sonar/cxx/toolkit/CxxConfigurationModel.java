@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,16 +19,16 @@
  */
 package org.sonar.cxx.toolkit;
 
-import com.sonar.sslr.api.Grammar;
-import com.sonar.sslr.impl.Parser;
+import com.sonar.cxx.sslr.api.Grammar;
+import com.sonar.cxx.sslr.impl.Parser;
 import java.io.File;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import javax.annotation.Nullable;
-import org.sonar.api.utils.log.Logger;
-import org.sonar.api.utils.log.Loggers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.sonar.colorizer.CDocTokenizer;
 import org.sonar.colorizer.CppDocTokenizer;
 import org.sonar.colorizer.JavadocTokenizer;
@@ -41,13 +41,13 @@ import org.sonar.cxx.parser.CxxKeyword;
 import org.sonar.cxx.parser.CxxParser;
 import org.sonar.cxx.squidbridge.SquidAstVisitorContextImpl;
 import org.sonar.cxx.squidbridge.api.SourceProject;
-import org.sonar.sslr.toolkit.AbstractConfigurationModel;
-import org.sonar.sslr.toolkit.ConfigurationProperty;
-import org.sonar.sslr.toolkit.Validators;
+import org.sonar.cxx.sslr.toolkit.AbstractConfigurationModel;
+import org.sonar.cxx.sslr.toolkit.ConfigurationProperty;
+import org.sonar.cxx.sslr.toolkit.Validators;
 
 public class CxxConfigurationModel extends AbstractConfigurationModel {
 
-  private static final Logger LOG = Loggers.get(CxxConfigurationModel.class);
+  private static final Logger LOG = LoggerFactory.getLogger(CxxConfigurationModel.class);
 
   private static final String CHARSET_PROPERTY_KEY = "sonar.sourceEncoding";
   private static final String ERROR_RECOVERY_PROPERTY_KEY = "sonar.cxx.errorRecoveryEnabled";
@@ -56,35 +56,34 @@ public class CxxConfigurationModel extends AbstractConfigurationModel {
   private static final String FORCE_INCLUDES_PROPERTY_KEY = "sonar.cxx.forceIncludes";
 
   private final ConfigurationProperty charsetProperty = new ConfigurationProperty("Charset", CHARSET_PROPERTY_KEY,
-                                                                                  getPropertyOrDefaultValue(
-                                                                                    CHARSET_PROPERTY_KEY,
-                                                                                    StandardCharsets.UTF_8.name()),
-                                                                                  Validators.charsetValidator());
+    getPropertyOrDefaultValue(
+      CHARSET_PROPERTY_KEY,
+      StandardCharsets.UTF_8.name()),
+    Validators.charsetValidator());
 
   private final ConfigurationProperty errorRecoveryEnabled = new ConfigurationProperty("Error Recovery",
-                                                                                       ERROR_RECOVERY_PROPERTY_KEY,
-                                                                                       getPropertyOrDefaultValue(
-                                                                                         ERROR_RECOVERY_PROPERTY_KEY,
-                                                                                         "false"),
-                                                                                       Validators.booleanValidator());
+    ERROR_RECOVERY_PROPERTY_KEY,
+    getPropertyOrDefaultValue(
+      ERROR_RECOVERY_PROPERTY_KEY,
+      "false"),
+    Validators.booleanValidator());
 
-  private final ConfigurationProperty defines = new ConfigurationProperty("Defines", DEFINES_PROPERTY_KEY
-                                                                                       + " (use \\n\\ as separator)",
-                                                                          getPropertyOrDefaultValue(DEFINES_PROPERTY_KEY,
-                                                                                                    ""));
+  private final ConfigurationProperty defines = new ConfigurationProperty("Defines",
+    DEFINES_PROPERTY_KEY + " (use \\n\\ as separator)", getPropertyOrDefaultValue(DEFINES_PROPERTY_KEY,
+      ""));
 
   private final ConfigurationProperty includeDirectories = new ConfigurationProperty("Include Directories",
-                                                                                     INCLUDE_DIRECTORIES_PROPERTY_KEY
-                                                                                       + " (use , as separator)",
-                                                                                     getPropertyOrDefaultValue(
-                                                                                       INCLUDE_DIRECTORIES_PROPERTY_KEY,
-                                                                                       ""));
+    INCLUDE_DIRECTORIES_PROPERTY_KEY
+    + " (use , as separator)",
+    getPropertyOrDefaultValue(
+      INCLUDE_DIRECTORIES_PROPERTY_KEY,
+      ""));
 
   private final ConfigurationProperty forceIncludes = new ConfigurationProperty("Force Includes",
-                                                                                FORCE_INCLUDES_PROPERTY_KEY
-                                                                                  + " (use , as separator)",
-                                                                                getPropertyOrDefaultValue(
-                                                                                  FORCE_INCLUDES_PROPERTY_KEY, ""));
+    FORCE_INCLUDES_PROPERTY_KEY
+    + " (use , as separator)",
+    getPropertyOrDefaultValue(
+      FORCE_INCLUDES_PROPERTY_KEY, ""));
 
   static String getPropertyOrDefaultValue(String propertyKey, String defaultValue) {
     var propertyValue = System.getProperty(propertyKey);
@@ -135,32 +134,33 @@ public class CxxConfigurationModel extends AbstractConfigurationModel {
 
   @Override
   public Parser<? extends Grammar> doGetParser() {
-    var context = new SquidAstVisitorContextImpl<>(new SourceProject(""));
+    var context = new SquidAstVisitorContextImpl<>(new SourceProject("", null));
     context.setFile(new File("file.cpp").getAbsoluteFile(), CxxMetric.FILES);
     return CxxParser.create(context, getConfiguration());
   }
 
   @Override
   public List<Tokenizer> doGetTokenizers() {
+    final String tagAfter = "</span>";
     return Arrays.asList(
-      new StringTokenizer("<span class=\"s\">", "</span>"),
-      new CDocTokenizer("<span class=\"cd\">", "</span>"),
-      new JavadocTokenizer("<span class=\"cppd\">", "</span>"),
-      new CppDocTokenizer("<span class=\"cppd\">", "</span>"),
-      new KeywordsTokenizer("<span class=\"k\">", "</span>", CxxKeyword.keywordValues())
+      new StringTokenizer("<span class=\"s\">", tagAfter),
+      new CDocTokenizer("<span class=\"cd\">", tagAfter),
+      new JavadocTokenizer("<span class=\"cppd\">", tagAfter),
+      new CppDocTokenizer("<span class=\"cppd\">", tagAfter),
+      new KeywordsTokenizer("<span class=\"k\">", tagAfter, CxxKeyword.keywordValues())
     );
   }
 
   CxxSquidConfiguration getConfiguration() {
     var config = new CxxSquidConfiguration("", getCharset());
     config.add(CxxSquidConfiguration.SONAR_PROJECT_PROPERTIES, CxxSquidConfiguration.ERROR_RECOVERY_ENABLED,
-               errorRecoveryEnabled.getValue());
+      errorRecoveryEnabled.getValue());
     config.add(CxxSquidConfiguration.SONAR_PROJECT_PROPERTIES, CxxSquidConfiguration.DEFINES,
-               getStringLines(defines.getValue()));
+      getStringLines(defines.getValue()));
     config.add(CxxSquidConfiguration.SONAR_PROJECT_PROPERTIES, CxxSquidConfiguration.FORCE_INCLUDES,
-               getStringArray(forceIncludes.getValue()));
+      getStringArray(forceIncludes.getValue()));
     config.add(CxxSquidConfiguration.SONAR_PROJECT_PROPERTIES, CxxSquidConfiguration.INCLUDE_DIRECTORIES,
-               getStringArray(includeDirectories.getValue()));
+      getStringArray(includeDirectories.getValue()));
     return config;
   }
 

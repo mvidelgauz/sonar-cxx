@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -21,7 +21,7 @@
  * fork of SSLR Squid Bridge: https://github.com/SonarSource/sslr-squid-bridge/tree/2.6.1
  * Copyright (C) 2010 SonarSource / mailto: sonarqube@googlegroups.com / license: LGPL v3
  */
-package org.sonar.cxx.squidbridge.annotations;
+package org.sonar.cxx.squidbridge.annotations; // cxx: in use
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Predicates;
@@ -30,11 +30,16 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.lang.annotation.Annotation;
 import java.net.URL;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Locale;
+import java.util.ResourceBundle;
+import java.util.Set;
 import org.apache.commons.lang.StringUtils;
-import org.sonar.api.server.rule.*;
+import org.sonar.api.server.rule.RulesDefinition;
 import org.sonar.api.server.rule.RulesDefinition.NewRepository;
 import org.sonar.api.server.rule.RulesDefinition.NewRule;
+import org.sonar.api.server.rule.RulesDefinitionAnnotationLoader;
 import org.sonar.api.utils.AnnotationUtils;
 import org.sonar.check.Cardinality;
 import org.sonar.check.Rule;
@@ -42,17 +47,12 @@ import org.sonar.check.RuleProperty;
 import org.sonar.cxx.squidbridge.rules.ExternalDescriptionLoader;
 
 /**
- * Utility class which helps setting up an implementation of {@link RulesDefinition} with a list of
- * rule classes annotated with {@link Rule}, {@link RuleProperty} and SQALE annotations:
- * <ul>
- * <li>{@link SqaleSubCharacteristic}</li>
- * <li>Exactly one of:
+ * Utility class which helps setting up an implementation of {@link RulesDefinition} with a list of rule classes
+ * annotated with {@link Rule}, {@link RuleProperty} and SQALE annotations: Exactly one of:
  * <ul>
  * <li>{@link SqaleConstantRemediation}</li>
  * <li>{@link SqaleLinearRemediation}</li>
  * <li>{@link SqaleLinearWithOffsetRemediation}</li>
- * </ul>
- * </li>
  * </ul>
  * Names and descriptions are also retrieved based on the legacy SonarQube conventions:
  * <ul>
@@ -70,18 +70,18 @@ public class AnnotationBasedRulesDefinition {
   private final String languageKey;
   private final ExternalDescriptionLoader externalDescriptionLoader;
 
+  public AnnotationBasedRulesDefinition(NewRepository repository, String languageKey) {
+    this.repository = repository;
+    this.languageKey = languageKey;
+    var externalDescriptionBasePath = String.format("/org/sonar/l10n/%s/rules/%s", languageKey, repository.key());
+    this.externalDescriptionLoader = new ExternalDescriptionLoader(externalDescriptionBasePath);
+  }
+
   /**
    * Adds annotated rule classes to an instance of NewRepository. Fails if one the classes has no SQALE annotation.
    */
   public static void load(NewRepository repository, String languageKey, Iterable<Class> ruleClasses) {
     new AnnotationBasedRulesDefinition(repository, languageKey).addRuleClasses(true, ruleClasses);
-  }
-
-  public AnnotationBasedRulesDefinition(NewRepository repository, String languageKey) {
-    this.repository = repository;
-    this.languageKey = languageKey;
-    var externalDescriptionBasePath = String.format("/org/sonar/l10n/%s/rules/%s", languageKey, repository.key());
-    this.externalDescriptionLoader = new ExternalDescriptionLoader(repository, externalDescriptionBasePath);
   }
 
   public void addRuleClasses(boolean failIfSqaleNotFound, Iterable<Class> ruleClasses) {
@@ -109,7 +109,10 @@ public class AnnotationBasedRulesDefinition {
   }
 
   private boolean isSqaleAnnotated(Class<?> ruleClass) {
-    return getSqaleSubCharAnnotation(ruleClass) != null || getNoSqaleAnnotation(ruleClass) != null;
+    return AnnotationUtils.getAnnotation(ruleClass, SqaleConstantRemediation.class) != null
+      || AnnotationUtils.getAnnotation(ruleClass, SqaleLinearRemediation.class) != null
+      || AnnotationUtils.getAnnotation(ruleClass, SqaleLinearWithOffsetRemediation.class) != null
+      || getNoSqaleAnnotation(ruleClass) != null;
   }
 
   @VisibleForTesting
@@ -156,12 +159,7 @@ public class AnnotationBasedRulesDefinition {
     }
   }
 
-  private void setupSqaleModel(NewRule rule, Class<?> ruleClass) {
-    SqaleSubCharacteristic subChar = getSqaleSubCharAnnotation(ruleClass);
-    if (subChar != null) {
-      rule.setDebtSubCharacteristic(subChar.value());
-    }
-
+  private static void setupSqaleModel(NewRule rule, Class<?> ruleClass) {
     var constant = AnnotationUtils.getAnnotation(ruleClass, SqaleConstantRemediation.class);
     var linear = AnnotationUtils.getAnnotation(ruleClass, SqaleLinearRemediation.class);
     var linearWithOffset = AnnotationUtils.getAnnotation(ruleClass, SqaleLinearWithOffsetRemediation.class);
@@ -176,20 +174,16 @@ public class AnnotationBasedRulesDefinition {
     }
     if (linear != null) {
       rule.setDebtRemediationFunction(rule.debtRemediationFunctions().linear(linear.coeff()));
-      rule.setEffortToFixDescription(linear.effortToFixDescription());
+      rule.setGapDescription(linear.effortToFixDescription());
     }
     if (linearWithOffset != null) {
       rule.setDebtRemediationFunction(
         rule.debtRemediationFunctions().linearWithOffset(linearWithOffset.coeff(), linearWithOffset.offset()));
-      rule.setEffortToFixDescription(linearWithOffset.effortToFixDescription());
+      rule.setGapDescription(linearWithOffset.effortToFixDescription());
     }
   }
 
-  private SqaleSubCharacteristic getSqaleSubCharAnnotation(Class<?> ruleClass) {
-    return AnnotationUtils.getAnnotation(ruleClass, SqaleSubCharacteristic.class);
-  }
-
-  private NoSqale getNoSqaleAnnotation(Class<?> ruleClass) {
+  private static NoSqale getNoSqaleAnnotation(Class<?> ruleClass) {
     return AnnotationUtils.getAnnotation(ruleClass, NoSqale.class);
   }
 

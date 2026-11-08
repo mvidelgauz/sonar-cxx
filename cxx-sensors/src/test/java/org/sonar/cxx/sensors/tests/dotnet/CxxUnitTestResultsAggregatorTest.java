@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -27,22 +27,22 @@ import java.io.File;
 import static java.util.Arrays.asList;
 import java.util.Collections;
 import java.util.HashSet;
-import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.sonar.api.config.Configuration;
-import org.sonar.api.config.internal.MapSettings;
+import org.sonar.scanner.plugin.api.impl.config.MapSettings;
 
-public class CxxUnitTestResultsAggregatorTest {
+class CxxUnitTestResultsAggregatorTest {
 
   private final String key1 = UnitTestConfiguration.VISUAL_STUDIO_TEST_RESULTS_PROPERTY_KEY;
   private final String key3 = UnitTestConfiguration.NUNIT_TEST_RESULTS_PROPERTY_KEY;
 
   @Test
-  public void hasUnitTestResultsProperty() {
+  void hasUnitTestResultsProperty() {
 
     Configuration config = mock(Configuration.class);
 
@@ -64,7 +64,7 @@ public class CxxUnitTestResultsAggregatorTest {
   }
 
   @Test
-  public void aggregate() {
+  void aggregate() {
     WildcardPatternFileProvider wildcardPatternFileProvider = mock(WildcardPatternFileProvider.class);
     var config = new MapSettings();
 

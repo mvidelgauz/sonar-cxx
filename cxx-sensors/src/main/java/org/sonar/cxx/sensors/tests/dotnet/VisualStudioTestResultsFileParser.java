@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -30,16 +30,16 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.regex.Pattern;
-import org.sonar.api.utils.log.Logger;
-import org.sonar.api.utils.log.Loggers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class VisualStudioTestResultsFileParser implements UnitTestResultsParser {
 
-  private static final Logger LOG = Loggers.get(VisualStudioTestResultsFileParser.class);
+  private static final Logger LOG = LoggerFactory.getLogger(VisualStudioTestResultsFileParser.class);
 
   @Override
   public void accept(File file, UnitTestResults unitTestResults) {
-    LOG.info("Parsing the Visual Studio Test Results file " + file.getAbsolutePath());
+    LOG.info("Parsing the Visual Studio Test Results file {}", file.getAbsolutePath());
     new Parser(file, unitTestResults).parse();
   }
 
@@ -117,12 +117,12 @@ public class VisualStudioTestResultsFileParser implements UnitTestResultsParser 
         return dateFormat.parse(value);
       } catch (ParseException e) {
         throw xmlParserHelper.parseError("Expected an valid date and time instead of \"" + value
-                                           + "\" for the attribute \"" + name + "\". " + e.getMessage());
+          + "\" for the attribute \"" + name + "\". " + e.getMessage());
       }
     }
 
     private String keepOnlyMilliseconds(String value) {
-      var sb = new StringBuffer(256);
+      var sb = new StringBuilder(256);
 
       var matcher = millisecondsPattern.matcher(value);
       var trailingZeros = new StringBuilder(128);

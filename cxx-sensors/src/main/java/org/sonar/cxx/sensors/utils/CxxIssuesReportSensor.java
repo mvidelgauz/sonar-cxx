@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,18 +20,21 @@
 package org.sonar.cxx.sensors.utils;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.CheckForNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.batch.fs.TextRange;
 import org.sonar.api.batch.sensor.issue.NewIssue;
 import org.sonar.api.batch.sensor.issue.NewIssueLocation;
+import org.sonar.api.config.Configuration;
 import org.sonar.api.rule.RuleKey;
-import org.sonar.api.utils.log.Logger;
-import org.sonar.api.utils.log.Loggers;
 import org.sonar.cxx.utils.CxxReportIssue;
 import org.sonar.cxx.utils.CxxReportLocation;
 
@@ -41,10 +44,17 @@ import org.sonar.cxx.utils.CxxReportLocation;
  */
 public abstract class CxxIssuesReportSensor extends CxxReportSensor {
 
-  private static final Logger LOG = Loggers.get(CxxIssuesReportSensor.class);
+  private static final Logger LOG = LoggerFactory.getLogger(CxxIssuesReportSensor.class);
 
-  private final Set<CxxReportIssue> uniqueIssues = new HashSet<>();
+  public static final String DEFAULT_UNKNOWN_RULE_KEY = "unknown";
+
+  private final HashSet<CxxReportIssue> uniqueIssues = new HashSet<>();
   private int savedNewIssues = 0;
+
+  private SonarServerWebApi webApi = new SonarServerWebApi();
+  private final HashMap<String, Set<String>> knownRulesPerRepositoryKey = new HashMap<>();
+  private final HashMap<String, String> deprecatedRuleIds = new HashMap<>();
+  private final HashSet<String> mappedRuleIds = new HashSet<>();
 
   /**
    * {@inheritDoc}
@@ -53,23 +63,93 @@ public abstract class CxxIssuesReportSensor extends CxxReportSensor {
   }
 
   /**
+   * Set WebApi access object.
+   *
+   * Can be mocked in unit tests.
+   *
+   * @param webApi WebApi object to use
+   * @return return current object
+   */
+  public CxxIssuesReportSensor setWebApi(SonarServerWebApi webApi) {
+    this.webApi = webApi;
+    return this;
+  }
+
+  /**
    * {@inheritDoc}
    */
   @Override
   public void executeImpl() {
+    if (webApi != null) {
+      downloadRulesFromServer(context.config());
+    }
     List<File> reports = getReports(getReportPathsKey());
     for (var report : reports) {
       executeReport(report);
     }
   }
 
+  private void downloadRulesFromServer(Configuration configuration) {
+    try {
+      LOG.info("Downloading rules for '{}' from server", getRuleRepositoryKey());
+      var rules = webApi.setServerConfig(configuration).getRules("cxx", getRuleRepositoryKey());
+      // deactivate mapping if 'unknown' rule is not active
+      var ruleMappingActive = true;
+      if (context.activeRules().find(RuleKey.of(getRuleRepositoryKey(), DEFAULT_UNKNOWN_RULE_KEY)) == null) {
+        LOG.info("Rule mapping to '{}:{}' is not active", getRuleRepositoryKey(), DEFAULT_UNKNOWN_RULE_KEY);
+        ruleMappingActive = false;
+      }
+
+      var ruleKeys = new HashSet<String>();
+      for (var rule : rules) {
+        var ruleKey = rule.key().replace(getRuleRepositoryKey() + ":", "");
+        ruleKeys.add(ruleKey);
+        for (var deprecatedKey : rule.deprecatedKeys().deprecatedKey()) {
+          if (deprecatedKey.startsWith(getRuleRepositoryKey())) {
+            deprecatedKey = deprecatedKey.replace(getRuleRepositoryKey() + ":", "");
+            deprecatedRuleIds.put(deprecatedKey, ruleKey);
+            LOG.debug("Map deprecated rule '{}' to '{}' for '{}'",
+              deprecatedKey, ruleKey, getRuleRepositoryKey());
+          }
+        }
+      }
+      if (ruleMappingActive) {
+        knownRulesPerRepositoryKey.put(getRuleRepositoryKey(), ruleKeys);
+      }
+      LOG.debug("{} rules for '{}' were loaded from server", ruleKeys.size(), getRuleRepositoryKey());
+    } catch (IOException e) {
+      LOG.warn("Rules for '{}' could not be loaded from server", getRuleRepositoryKey(), e);
+    }
+  }
+
   private void saveIssue(String ruleId, CxxReportIssue issue) {
+    ruleId = mapDeprecatedRuleId(ruleId);
+    ruleId = mapUnknownRuleId(ruleId, issue);
     var newIssue = context.newIssue();
     if (addLocations(newIssue, ruleId, issue)) {
       addFlow(newIssue, issue);
       newIssue.save();
       savedNewIssues++;
     }
+  }
+
+  private String mapDeprecatedRuleId(String ruleId) {
+    return deprecatedRuleIds.getOrDefault(ruleId, ruleId);
+  }
+
+  private String mapUnknownRuleId(String ruleId, CxxReportIssue issue) {
+    var repository = knownRulesPerRepositoryKey.get(getRuleRepositoryKey());
+    if (repository != null && !repository.contains(ruleId)) {
+      if (mappedRuleIds.add(ruleId)) {
+        LOG.info("Rule '{}' is unknown in '{}' and will be mapped to '{}'",
+          ruleId,
+          getRuleRepositoryKey(),
+          DEFAULT_UNKNOWN_RULE_KEY);
+      }
+      issue.addMappedInfo();
+      ruleId = DEFAULT_UNKNOWN_RULE_KEY;
+    }
+    return ruleId;
   }
 
   /**
@@ -157,7 +237,7 @@ public abstract class CxxIssuesReportSensor extends CxxReportSensor {
   private boolean addLocations(NewIssue newIssue, String ruleId, CxxReportIssue issue) {
     var first = true;
     for (var location : issue.getLocations()) {
-      NewIssueLocation newLocation = null;
+      NewIssueLocation newLocation;
       if (location.getFile() != null && !location.getFile().isEmpty()) {
         newLocation = createNewIssueLocation(newIssue, location);
       } else {

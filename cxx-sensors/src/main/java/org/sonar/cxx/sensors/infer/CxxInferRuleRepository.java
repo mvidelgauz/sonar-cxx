@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,8 +20,8 @@
 package org.sonar.cxx.sensors.infer;
 
 import org.sonar.api.platform.ServerFileSystem;
-import org.sonar.api.server.rule.RulesDefinitionXmlLoader;
 import org.sonar.cxx.sensors.utils.RulesDefinitionXml;
+import org.sonar.cxx.sensors.utils.RulesDefinitionXmlLoader;
 
 /**
  * {@inheritDoc}

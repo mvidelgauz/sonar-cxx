@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -21,10 +21,13 @@
  * fork of SSLR Squid Bridge: https://github.com/SonarSource/sslr-squid-bridge/tree/2.6.1
  * Copyright (C) 2010 SonarSource / mailto: sonarqube@googlegroups.com / license: LGPL v3
  */
-package org.sonar.cxx.squidbridge.api;
+package org.sonar.cxx.squidbridge.api; // cxx: in use
 
 import java.nio.charset.Charset;
 
+/**
+ * Configuration for the AST Scanner.
+ */
 public class SquidConfiguration {
 
   private Charset charset = Charset.defaultCharset();
@@ -33,18 +36,38 @@ public class SquidConfiguration {
   public SquidConfiguration() {
   }
 
+  /**
+   * Configuration object.
+   *
+   * @param charset to use for scanning
+   */
   public SquidConfiguration(Charset charset) {
     this.charset = charset;
   }
 
+  /**
+   * Get default charset to use for scanning.
+   *
+   * @return default charset to use for scanning
+   */
   public Charset getCharset() {
     return charset;
   }
 
+  /**
+   * Defines error behavior for scanner.
+   *
+   * @param stopSquidOnException true, stop on exception
+   */
   public void setStopSquidOnException(boolean stopSquidOnException) {
     this.stopSquidOnException = stopSquidOnException;
   }
 
+  /**
+   * Get error behavior for scanner.
+   *
+   * @return true if scanner should stop on exception
+   */
   public boolean stopSquidOnException() {
     return stopSquidOnException;
   }

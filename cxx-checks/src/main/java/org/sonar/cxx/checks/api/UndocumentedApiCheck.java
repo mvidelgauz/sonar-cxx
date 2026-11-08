@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,19 +19,19 @@
  */
 package org.sonar.cxx.checks.api;
 
-import com.sonar.sslr.api.AstNode;
-import com.sonar.sslr.api.Grammar;
-import com.sonar.sslr.api.Token;
+import com.sonar.cxx.sslr.api.AstNode;
+import com.sonar.cxx.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.Token;
 import java.util.Arrays;
 import java.util.List;
-import org.sonar.api.utils.log.Logger;
-import org.sonar.api.utils.log.Loggers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.sonar.check.Priority;
 import org.sonar.check.Rule;
-import org.sonar.cxx.tag.Tag;
-import org.sonar.cxx.visitors.AbstractCxxPublicApiVisitor;
 import org.sonar.cxx.squidbridge.annotations.ActivatedByDefault;
 import org.sonar.cxx.squidbridge.annotations.SqaleConstantRemediation;
+import org.sonar.cxx.tag.Tag;
+import org.sonar.cxx.visitors.AbstractCxxPublicApiVisitor;
 
 /**
  * Check that generates issue for undocumented API items.<br>
@@ -71,14 +71,18 @@ import org.sonar.cxx.squidbridge.annotations.SqaleConstantRemediation;
 @SqaleConstantRemediation("5min")
 public class UndocumentedApiCheck extends AbstractCxxPublicApiVisitor<Grammar> {
 
-  private static final Logger LOG = Loggers.get(UndocumentedApiCheck.class);
+  private static final Logger LOG = LoggerFactory.getLogger(UndocumentedApiCheck.class);
 
   private static final String[] DEFAULT_NAME_SUFFIX = new String[]{".h", ".hh", ".hpp", ".H"};
 
-  public UndocumentedApiCheck() {
-    super();
+  @Override
+  public void init() {
+    super.init();
+
     withHeaderFileSuffixes(DEFAULT_NAME_SUFFIX);
-    LOG.debug("rule 'cxx:UndocumentedApi' file suffixes: {}", Arrays.toString(DEFAULT_NAME_SUFFIX));
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("rule 'cxx:UndocumentedApi' file suffixes: {}", Arrays.toString(DEFAULT_NAME_SUFFIX));
+    }
   }
 
   @Override

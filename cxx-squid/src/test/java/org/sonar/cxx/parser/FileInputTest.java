@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,12 +19,12 @@
  */
 package org.sonar.cxx.parser;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class FileInputTest extends ParserBaseTestHelper {
+class FileInputTest extends ParserBaseTestHelper {
 
   @Test
-  public void translationUnit() {
+  void translationUnit() {
     setRootRule(CxxGrammarImpl.translationUnit);
 
     mockRule(CxxGrammarImpl.declaration);

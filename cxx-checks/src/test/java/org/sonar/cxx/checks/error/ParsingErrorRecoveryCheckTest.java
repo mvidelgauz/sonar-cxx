@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,26 +20,25 @@
 package org.sonar.cxx.checks.error;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.sonar.cxx.CxxAstScanner;
 import org.sonar.cxx.checks.CxxFileTesterHelper;
 import org.sonar.cxx.config.CxxSquidConfiguration;
 import org.sonar.cxx.squidbridge.api.SourceFile;
 import org.sonar.cxx.squidbridge.checks.CheckMessagesVerifier;
 
-public class ParsingErrorRecoveryCheckTest {
+class ParsingErrorRecoveryCheckTest {
 
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
-  public void test_syntax_error_recovery() throws UnsupportedEncodingException, IOException {
+  void testSyntaxErrorRecovery() throws IOException {
     var squidConfig = new CxxSquidConfiguration();
     squidConfig.add(CxxSquidConfiguration.SONAR_PROJECT_PROPERTIES, CxxSquidConfiguration.ERROR_RECOVERY_ENABLED,
-                    "true");
+      "true");
 
     var tester = CxxFileTesterHelper.create("src/test/resources/checks/parsingError3.cc", ".");
     SourceFile file = CxxAstScanner.scanSingleInputFileConfig(tester.asInputFile(), squidConfig,
-                                                              new ParsingErrorRecoveryCheck());
+      new ParsingErrorRecoveryCheck());
 
     CheckMessagesVerifier.verify(file.getCheckMessages())
       .next().atLine(6)

@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -23,16 +23,16 @@
  */
 package org.sonar.cxx.squidbridge.metrics;
 
-import static org.fest.assertions.Assertions.assertThat;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 import org.sonar.cxx.squidbridge.api.SourceFile;
 import static org.sonar.cxx.squidbridge.metrics.ResourceParser.scanFile;
 import org.sonar.cxx.squidbridge.test.miniC.MiniCAstScanner.MiniCMetrics;
 
-public class LinesOfCodeVisitorTest {
+class LinesOfCodeVisitorTest {
 
   @Test
-  public void linesOfCode() {
+  void linesOfCode() {
     SourceFile sourceFile = scanFile("/metrics/lines_of_code.mc");
 
     assertThat(sourceFile.getInt(MiniCMetrics.LINES_OF_CODE)).isEqualTo(3);

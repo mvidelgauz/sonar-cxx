@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -23,18 +23,20 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.xml.stream.XMLStreamException;
 import org.codehaus.staxmate.in.SMHierarchicCursor;
 import org.codehaus.staxmate.in.SMInputCursor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.sonar.api.batch.sensor.SensorDescriptor;
 import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.resources.Qualifiers;
-import org.sonar.api.utils.log.Logger;
-import org.sonar.api.utils.log.Loggers;
 import org.sonar.cxx.sensors.utils.CxxIssuesReportSensor;
+import org.sonar.cxx.sensors.utils.CxxReportSensor;
 import org.sonar.cxx.sensors.utils.CxxUtils;
 import org.sonar.cxx.sensors.utils.EmptyReportException;
 import org.sonar.cxx.sensors.utils.InvalidReportException;
@@ -53,8 +55,8 @@ public class CxxPCLintSensor extends CxxIssuesReportSensor {
   public static final String REPORT_PATH_KEY = "sonar.cxx.pclint.reportPaths";
   public static final Pattern MISRA_RULE_PATTERN = Pattern.compile(
     // Rule nn.nn -or- Rule nn-nn-nn
-    "Rule\\x20(\\d{1,2}.\\d{1,2}|\\d{1,2}-\\d{1,2}-\\d{1,2})(,|\\])");
-  private static final Logger LOG = Loggers.get(CxxPCLintSensor.class);
+    "Rule\\x20(\\d{1,2}.\\d{1,2}|\\d{1,2}-\\d{1,2}-\\d{1,2})([,\\]])");
+  private static final Logger LOG = LoggerFactory.getLogger(CxxPCLintSensor.class);
 
   private static final String SUPPLEMENTAL_TYPE_ISSUE = "supplemental";
 
@@ -67,14 +69,13 @@ public class CxxPCLintSensor extends CxxIssuesReportSensor {
     return Collections.unmodifiableList(Arrays.asList(
       PropertyDefinition.builder(REPORT_PATH_KEY)
         .name("PC-lint Report(s)")
-        .description(
-          "Comma-separated paths (absolute or relative to the project base directory) to `*.xml` files with"
-            + " `PC-lint` issues. Ant patterns are accepted for relative paths."
-            + " In the SonarQube UI, enter one entry per field."
-        )
-        .category("CXX External Analyzers")
+        .description("""
+          Comma-separated paths (absolute or relative to the project base directory) to `*.xml` files with \
+          `PC-lint` issues. Ant patterns are accepted for relative paths. In the SonarQube UI, enter one \
+          entry per field.""")
+        .category(CxxReportSensor.CATEGORY)
         .subCategory("PC-lint")
-        .onQualifiers(Qualifiers.PROJECT)
+        .onConfigScopes(Set.of(PropertyDefinition.ConfigScope.PROJECT))
         .multiValues(true)
         .build()
     ));
@@ -130,7 +131,7 @@ public class CxxPCLintSensor extends CxxIssuesReportSensor {
                 //remap MISRA IDs. Only Unique rules for MISRA C 2004 and MISRA C/C++ 2008
                 // have been created in the rule repository
                 if (msg.contains("MISRA 2004") || msg.contains("MISRA 2008")
-                      || msg.contains("MISRA C++ 2008") || msg.contains("MISRA C++ Rule")) {
+                  || msg.contains("MISRA C++ 2008") || msg.contains("MISRA C++ Rule")) {
                   id = mapMisraRulesToUniqueSonarRules(msg, false);
                 } else if (msg.contains("MISRA 2012 Rule")) {
                   id = mapMisraRulesToUniqueSonarRules(msg, true);
@@ -151,19 +152,18 @@ public class CxxPCLintSensor extends CxxIssuesReportSensor {
             saveUniqueViolation(currentIssue);
           }
         } catch (com.ctc.wstx.exc.WstxUnexpectedCharException
-                   | com.ctc.wstx.exc.WstxEOFException
-                   | com.ctc.wstx.exc.WstxIOException e) {
+          | com.ctc.wstx.exc.WstxEOFException
+          | com.ctc.wstx.exc.WstxIOException e) {
           throw new InvalidReportException("The 'PC-Lint' report is invalid", e);
         }
       }
 
       private void addSecondaryLocationsToCurrentIssue(@Nonnull CxxReportIssue currentIssue,
-                                                       @Nullable String file,
-                                                       @Nullable String line,
-                                                       @Nullable String msg) {
+        @Nullable String file,
+        @Nullable String line,
+        @Nullable String msg) {
         if (currentIssue.getLocations().isEmpty()) {
-          LOG.error("The issue of {} must have the primary location. Skip adding more locations",
-                    currentIssue.toString());
+          LOG.error("The issue of {} must have the primary location. Skip adding more locations", currentIssue);
           return;
         }
 
@@ -196,7 +196,7 @@ public class CxxPCLintSensor extends CxxIssuesReportSensor {
       }
 
       private boolean isInputValid(@Nullable String file, @Nullable String line,
-                                   @Nullable String id, @Nullable String msg) {
+        @Nullable String id, @Nullable String msg) {
         try {
           if (file == null || file.isEmpty() || (Integer.parseInt(line) == 0)) {
             // issue for project or file level

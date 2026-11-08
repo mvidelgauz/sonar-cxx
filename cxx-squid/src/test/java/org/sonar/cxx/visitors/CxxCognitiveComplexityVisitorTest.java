@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,137 +20,146 @@
 package org.sonar.cxx.visitors;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 import org.sonar.cxx.CxxAstScanner;
 import org.sonar.cxx.CxxFileTesterHelper;
 import org.sonar.cxx.api.CxxMetric;
 import org.sonar.cxx.squidbridge.api.SourceFile;
 
-public class CxxCognitiveComplexityVisitorTest {
+class CxxCognitiveComplexityVisitorTest {
 
   @Test
-  public void if_statement() throws UnsupportedEncodingException, IOException {
+  void ifStatement() throws IOException {
     assertThat(testFile("src/test/resources/visitors/if.cc")).isEqualTo(1);
   }
 
   @Test
-  public void if_else() throws UnsupportedEncodingException, IOException {
+  void ifElse() throws IOException {
     assertThat(testFile("src/test/resources/visitors/if_else.cc")).isEqualTo(2);
   }
 
   @Test
-  public void if_else_if() throws UnsupportedEncodingException, IOException {
+  void ifElseIf() throws IOException {
     assertThat(testFile("src/test/resources/visitors/if_else_if.cc")).isEqualTo(2);
   }
 
   @Test
-  public void if_else_if_else() throws UnsupportedEncodingException, IOException {
+  void ifElseIfElse() throws IOException {
     assertThat(testFile("src/test/resources/visitors/if_else_if_else.cc")).isEqualTo(3);
   }
 
   @Test
-  public void ternary() throws UnsupportedEncodingException, IOException {
+  void ternary() throws IOException {
     assertThat(testFile("src/test/resources/visitors/ternary.cc")).isEqualTo(1);
   }
 
   @Test
-  public void nesting() throws UnsupportedEncodingException, IOException {
+  void nesting() throws IOException {
     assertThat(testFile("src/test/resources/visitors/nesting.cc")).isEqualTo(20);
   }
 
   @Test
-  public void switch_statement() throws UnsupportedEncodingException, IOException {
+  void switchStatement() throws IOException {
     assertThat(testFile("src/test/resources/visitors/switch.cc")).isEqualTo(1);
   }
 
   @Test
-  public void for_statement() throws UnsupportedEncodingException, IOException {
+  void forStatement() throws IOException {
     assertThat(testFile("src/test/resources/visitors/for.cc")).isEqualTo(1);
   }
 
   @Test
-  public void while_statement() throws UnsupportedEncodingException, IOException {
+  void whileStatement() throws IOException {
     assertThat(testFile("src/test/resources/visitors/while.cc")).isEqualTo(1);
   }
 
   @Test
-  public void do_while() throws UnsupportedEncodingException, IOException {
+  void doWhile() throws IOException {
     assertThat(testFile("src/test/resources/visitors/do_while.cc")).isEqualTo(1);
   }
 
   @Test
-  public void catch_statement() throws UnsupportedEncodingException, IOException {
+  void catchStatement() throws IOException {
     assertThat(testFile("src/test/resources/visitors/catch.cc")).isEqualTo(1);
   }
 
   @Test
-  public void multiple_catch() throws UnsupportedEncodingException, IOException {
+  void multipleCatch() throws IOException {
     assertThat(testFile("src/test/resources/visitors/multiple_catch.cc")).isEqualTo(3);
   }
 
   @Test
-  public void goto_statement() throws UnsupportedEncodingException, IOException {
+  void gotoStatement() throws IOException {
     assertThat(testFile("src/test/resources/visitors/goto.cc")).isEqualTo(1);
   }
 
   @Test
-  public void binary_logical() throws UnsupportedEncodingException, IOException {
+  void binaryLogical() throws IOException {
     assertThat(testFile("src/test/resources/visitors/binary_logical.cc")).isEqualTo(2);
   }
 
   @Test
-  public void binary_logical_mixed() throws UnsupportedEncodingException, IOException {
+  void binaryLogicalMixed() throws IOException {
     assertThat(testFile("src/test/resources/visitors/binary_logical_mixed.cc")).isEqualTo(4);
   }
 
   @Test
-  public void binary_logical_mixed_alternative() throws UnsupportedEncodingException, IOException {
+  void binaryLogicalMixedAlternative() throws IOException {
     assertThat(testFile("src/test/resources/visitors/binary_logical_mixed_alternative.cc")).isEqualTo(4);
   }
 
   @Test
-  public void binary_logical_not() throws UnsupportedEncodingException, IOException {
+  void binaryLogicalNot() throws IOException {
     assertThat(testFile("src/test/resources/visitors/binary_logical_not.cc")).isEqualTo(3);
   }
 
   @Test
-  public void lambda() throws UnsupportedEncodingException, IOException {
+  void lambda() throws IOException {
     assertThat(testFile("src/test/resources/visitors/lambda.cc")).isEqualTo(2);
   }
 
   @Test
-  public void sum_of_primes() throws UnsupportedEncodingException, IOException {
+  void sumOfPrimes() throws IOException {
     assertThat(testFile("src/test/resources/visitors/sum_of_primes.cc")).isEqualTo(7);
   }
 
   @Test
-  public void get_words() throws UnsupportedEncodingException, IOException {
+  void getWords() throws IOException {
     assertThat(testFile("src/test/resources/visitors/get_words.cc")).isEqualTo(1);
   }
 
   @Test
-  public void overridden_symbol_from() throws UnsupportedEncodingException, IOException {
+  void overriddenSymbolFrom() throws IOException {
     assertThat(testFile("src/test/resources/visitors/overridden_symbol_from.cc")).isEqualTo(19);
   }
 
   @Test
-  public void add_version() throws UnsupportedEncodingException, IOException {
+  void addVersion() throws IOException {
     assertThat(testFile("src/test/resources/visitors/add_version.cc")).isEqualTo(35);
   }
 
   @Test
-  public void add_version_macro() throws UnsupportedEncodingException, IOException {
+  void addVersionMacro() throws IOException {
     assertThat(testFile("src/test/resources/visitors/add_version_macro.cc")).isEqualTo(1);
   }
 
   @Test
-  public void to_regexp() throws UnsupportedEncodingException, IOException {
+  void toRegexp() throws IOException {
     assertThat(testFile("src/test/resources/visitors/to_regexp.cc")).isEqualTo(20);
   }
 
-  private int testFile(String fileName) throws UnsupportedEncodingException, IOException {
+  @Test
+  void template() throws IOException {
+    assertThat(testFile("src/test/resources/visitors/template.cc")).isZero();
+  }
+
+  @Test
+  void inline() throws IOException {
+    assertThat(testFile("src/test/resources/visitors/inline.cc")).isEqualTo(5);
+  }
+
+  private int testFile(String fileName) throws IOException {
     var tester = CxxFileTesterHelper.create(fileName, ".", "");
     SourceFile sourceFile = CxxAstScanner.scanSingleInputFile(tester.asInputFile());
 

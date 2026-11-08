@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -21,8 +21,8 @@ package org.sonar.cxx;
 
 import org.sonar.api.ce.measure.MeasureComputer;
 import org.sonar.api.measures.CoreMetrics;
-import org.sonar.api.utils.log.Logger;
-import org.sonar.api.utils.log.Loggers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * SonarQube supports hierarchical multi-module projects. It is not enough to calculate a metric M for the file and/or
@@ -40,7 +40,7 @@ import org.sonar.api.utils.log.Loggers;
  */
 public class DensityMeasureComputer implements MeasureComputer {
 
-  private static final Logger LOG = Loggers.get(DensityMeasureComputer.class);
+  private static final Logger LOG = LoggerFactory.getLogger(DensityMeasureComputer.class);
 
   private final String[] inputMetrics;
   private final String[] outputMetrics;

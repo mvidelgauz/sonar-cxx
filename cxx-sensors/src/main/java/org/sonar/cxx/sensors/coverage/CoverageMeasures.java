@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -38,7 +38,7 @@ public final class CoverageMeasures {
     // empty
   }
 
-  static public CoverageMeasures create() {
+  public static CoverageMeasures create() {
     return new CoverageMeasures();
   }
 
@@ -62,7 +62,7 @@ public final class CoverageMeasures {
 
   public Set<Integer> getCoveredLines() {
     var coveredLines = new HashSet<Integer>();
-    lineMeasures.forEach((key, value) -> {
+    lineMeasures.forEach((Integer key, CoverageMeasure value) -> {
       if (value.getHits() != 0) {
         coveredLines.add(value.getLine());
       }
@@ -72,7 +72,7 @@ public final class CoverageMeasures {
 
   public Set<Integer> getCoveredConditions() {
     var coveredConditionLines = new HashSet<Integer>();
-    lineMeasures.forEach((key, value) -> {
+    lineMeasures.forEach((Integer key, CoverageMeasure value) -> {
       if (value.getCoveredConditions() != 0) {
         coveredConditionLines.add(value.getLine());
       }

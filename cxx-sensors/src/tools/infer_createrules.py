@@ -1,5 +1,7 @@
+#!/usr/bin/env python3
+
 # C++ Community Plugin (cxx plugin)
-# Copyright (C) 2010-2019 SonarOpenCommunity
+# Copyright (C) 2010-2026 SonarOpenCommunity
 # http://github.com/SonarOpenCommunity/sonar-cxx
 #
 # This program is free software; you can redistribute it and/or
@@ -228,8 +230,8 @@ TEMPLATE_RULE = """
     <internalKey>%s</internalKey>
     <severity>CRITICAL</severity>
     <type>BUG</type>
-    <remediationFunction>LINEAR</remediationFunction>
-    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
+    <remediationFunction>CONSTANT_ISSUE</remediationFunction>
+    <remediationFunctionBaseEffort>5min</remediationFunctionBaseEffort>
   </rule>"""
 
 

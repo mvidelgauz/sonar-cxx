@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,14 +19,14 @@
  */
 package org.sonar.cxx.channels;
 
-import com.sonar.sslr.api.Token;
-import com.sonar.sslr.api.TokenType;
-import com.sonar.sslr.impl.Lexer;
+import com.sonar.cxx.sslr.api.Token;
+import com.sonar.cxx.sslr.api.TokenType;
+import com.sonar.cxx.sslr.impl.Lexer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.sonar.cxx.parser.CxxTokenType;
-import org.sonar.sslr.channel.Channel;
-import org.sonar.sslr.channel.CodeReader;
+import org.sonar.cxx.sslr.channel.Channel;
+import org.sonar.cxx.sslr.channel.CodeReader;
 
 // Detects preprocessor directives:
 // This channel detects source code lines which should be handled by the preprocessor.
@@ -34,20 +34,23 @@ import org.sonar.sslr.channel.CodeReader;
 //
 public class PreprocessorChannel extends Channel<Lexer> {
 
-  private static final char EOF = (char) -1;
+  private final BackslashChannel backslashChannel = new BackslashChannel();
   private final StringLiteralsChannel stringLiteralsChannel = new StringLiteralsChannel();
+  private final SingleLineCommentChannel singleLineCommentChannel = new SingleLineCommentChannel();
+  private final MultiLineCommentChannel multiLineCommentChannel = new MultiLineCommentChannel();
+
   private final StringBuilder sb = new StringBuilder(256);
+  private final StringBuilder dummy = new StringBuilder(256);
   private final Matcher matcher;
 
-  public PreprocessorChannel(TokenType[]
-    ... keywordSets) {
+  public PreprocessorChannel(TokenType[]... keywordSets) {
     var regexp = new StringBuilder(256);
     regexp.append("#");
     for (var keywords : keywordSets) {
       for (var keyword : keywords) {
         regexp.append("|");
         regexp.append(keyword.getValue());
-        regexp.append("\\s");
+        regexp.append("\\s++");
       }
     }
     matcher = Pattern.compile(regexp.toString()).matcher("");
@@ -57,6 +60,12 @@ public class PreprocessorChannel extends Channel<Lexer> {
   public boolean consume(CodeReader code, Lexer output) {
     int line = code.getLinePosition();
     int column = code.getColumnPosition();
+
+    // if there was already a token in the line it's not a preprocessor command
+    var previousTokens = output.getTokens();
+    if (!previousTokens.isEmpty() && (previousTokens.get(previousTokens.size() - 1).getLine() == line)) {
+      return false;
+    }
 
     if (code.popTo(matcher, sb) <= 0) {
       return false;
@@ -77,67 +86,49 @@ public class PreprocessorChannel extends Channel<Lexer> {
 
   private void read(CodeReader code) {
     while (true) {
-      var ch = code.charAt(0);
-      if (isNewline(ch) || ch == EOF) {
+      var charAt = code.charAt(0);
+      if (ChannelUtils.isNewLine(charAt) || charAt == ChannelUtils.EOF) {
         code.pop();
         break;
-      } else if (stringLiteralsChannel.read(code, sb)) {
+      } else if (stringLiteralsChannel.read(code, sb)) { // string literal
         continue;
       }
-      ch = (char) code.pop();
-      if (ch == '/' && code.charAt(0) == '/') {
-        consumeSingleLineComment(code);
-      } else if (ch == '/' && code.charAt(0) == '*') {
-        consumeMultiLineComment(code);
-      } else if (ch == '\\' && isNewline((char) code.peek())) {
-        // the newline is escaped: we have a the multi line preprocessor directive
-        // consume both the backslash and the newline, insert a space instead
-        consumeNewline(code);
-        sb.append(' ');
-      } else {
-        sb.append(ch);
+
+      var len = 0;
+      switch (charAt) {
+        case '/': // comment?
+          len = singleLineCommentChannel.isComment(code);
+          if (len != 0) {
+            // single line comment
+            code.skip(len);
+            singleLineCommentChannel.read(code, dummy);
+            dummy.delete(0, dummy.length());
+          } else {
+            len = multiLineCommentChannel.isComment(code);
+            if (len != 0) {
+              // multi line comment: replace it with a blank
+              code.skip(len);
+              multiLineCommentChannel.read(code, dummy);
+              sb.append(' ');
+              dummy.delete(0, dummy.length());
+            }
+          }
+          break;
+        case '\\':
+          len = backslashChannel.read(code, dummy);
+          if (len != 0) {
+            // consume backslash and the newline
+            dummy.delete(0, dummy.length());
+          }
+          break;
+        default:
+          break;
+      }
+
+      if (len == 0) {
+        sb.append((char) code.pop());
       }
     }
-  }
-
-  private static void consumeNewline(CodeReader code) {
-    if ((code.charAt(0) == '\r') && (code.charAt(1) == '\n')) {
-      // \r\n
-      code.pop();
-      code.pop();
-    } else {
-      // \r or \n
-      code.pop();
-    }
-  }
-
-  private static void consumeSingleLineComment(CodeReader code) {
-    code.pop(); // initial '/'
-    while (true) {
-      var charAt = code.charAt(0);
-      if (isNewline(charAt) || charAt == EOF) {
-        break;
-      }
-      code.pop();
-    }
-  }
-
-  private static void consumeMultiLineComment(CodeReader code) {
-    code.pop(); // initial '*'
-    while (true) {
-      var ch = (char) code.pop();
-      if (ch == EOF) {
-        break;
-      }
-      if (ch == '*' && code.charAt(0) == '/') {
-        code.pop();
-        break;
-      }
-    }
-  }
-
-  private static boolean isNewline(char ch) {
-    return (ch == '\n') || (ch == '\r');
   }
 
 }

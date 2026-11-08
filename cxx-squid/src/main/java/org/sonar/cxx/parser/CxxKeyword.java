@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,8 +19,9 @@
  */
 package org.sonar.cxx.parser;
 
-import com.sonar.sslr.api.AstNode;
-import com.sonar.sslr.api.TokenType;
+import com.sonar.cxx.sslr.api.AstNode;
+import com.sonar.cxx.sslr.api.TokenType;
+import javax.annotation.Nullable;
 
 /**
  * C++ Standard, Section 2.12 "Keywords"
@@ -150,7 +151,7 @@ public enum CxxKeyword implements TokenType {
   }
 
   @Override
-  public boolean hasToBeSkippedFromAst(AstNode node) {
+  public boolean hasToBeSkippedFromAst(@Nullable AstNode node) {
     return false;
   }
 

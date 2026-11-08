@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -22,28 +22,27 @@ package org.sonar.cxx.checks;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import org.apache.commons.io.ByteOrderMark;
 import org.apache.commons.io.input.BOMInputStream;
-import org.sonar.api.batch.fs.internal.DefaultInputFile;
-import org.sonar.api.batch.fs.internal.TestInputFileBuilder;
-import org.sonar.api.batch.sensor.internal.SensorContextTester;
+import org.sonar.scanner.plugin.api.impl.fs.DefaultInputFile;
+import com.sonarsource.scanner.engine.sensor.test.fixtures.TestInputFileBuilder;
+import com.sonarsource.scanner.engine.sensor.test.fixtures.SensorContextTester;
 
-public class CxxFileTesterHelper {
+public final class CxxFileTesterHelper {
 
   private CxxFileTesterHelper() {
     // utility class
   }
 
   public static CxxFileTester create(String fileName, String basePath)
-    throws UnsupportedEncodingException, IOException {
+    throws IOException {
     return create(fileName, basePath, Charset.defaultCharset());
   }
 
   public static CxxFileTester create(String fileName, String basePath, Charset charset)
-    throws UnsupportedEncodingException, IOException {
+    throws IOException {
     var tester = new CxxFileTester();
 
     tester.context = SensorContextTester.create(new File(basePath));
@@ -57,19 +56,24 @@ public class CxxFileTesterHelper {
     var fb = TestInputFileBuilder.create("", fileName);
 
     fb.setCharset(charset);
-    fb.setProjectBaseDir(Paths.get(basePath));
-    fb.setContents(getSourceCode(Paths.get(basePath, fileName).toFile(), charset));
+    fb.setProjectBaseDir(Path.of(basePath));
+    fb.setContents(getSourceCode(Path.of(basePath, fileName).toFile(), charset));
 
     return fb.build();
   }
 
   private static String getSourceCode(File filename, Charset defaultCharset) throws IOException {
-    try ( var bomInputStream = new BOMInputStream(new FileInputStream(filename),
-                                              ByteOrderMark.UTF_8,
-                                              ByteOrderMark.UTF_16LE,
-                                              ByteOrderMark.UTF_16BE,
-                                              ByteOrderMark.UTF_32LE,
-                                              ByteOrderMark.UTF_32BE)) {
+    try (var bomInputStream = BOMInputStream.builder()
+      .setInputStream(new FileInputStream(filename))
+      .setInclude(false)
+      .setByteOrderMarks(
+        ByteOrderMark.UTF_8,
+        ByteOrderMark.UTF_16LE,
+        ByteOrderMark.UTF_16BE,
+        ByteOrderMark.UTF_32LE,
+        ByteOrderMark.UTF_32BE
+      )
+      .get()) {
       ByteOrderMark bom = bomInputStream.getBOM();
       Charset charset = bom != null ? Charset.forName(bom.getCharsetName()) : defaultCharset;
       byte[] bytes = bomInputStream.readAllBytes();

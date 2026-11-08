@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -22,8 +22,8 @@ package org.sonar.cxx.sensors.valgrind;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 
 /**
  * Represents an error found by valgrind. It always has an id, a descriptive text and a stack trace.
@@ -88,11 +88,7 @@ class ValgrindError {
 
   @Override
   public int hashCode() {
-    return new HashCodeBuilder()
-      .append(kind)
-      .append(text)
-      .append(stacks)
-      .toHashCode();
+    return Objects.hash(kind, text, stacks);
   }
 
   public String getText() {

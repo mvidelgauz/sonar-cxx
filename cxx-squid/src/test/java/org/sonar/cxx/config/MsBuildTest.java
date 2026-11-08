@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -22,9 +22,10 @@ package org.sonar.cxx.config;
 import java.io.File;
 import java.util.List;
 import org.assertj.core.api.SoftAssertions;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.sonar.api.internal.apachecommons.lang.SystemUtils;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.sonar.api.internal.apachecommons.lang3.SystemUtils;
 
 /**
  * These tests ensure that the relative paths in the INCLUDES are correctly converted to absolute paths. The project
@@ -33,19 +34,19 @@ import org.sonar.api.internal.apachecommons.lang.SystemUtils;
  *
  * @author rudolfgrauberger
  */
-public class MsBuildTest {
+class MsBuildTest {
 
-  public static final String REFERENCE_DETAILED_LOG = "src/test/resources/msbuild/msbuild-detailed-en.txt";
-  public static final String UNIQUE_FILE = "C:\\Development\\Source\\Cpp\\Dummy\\src\\main.cpp";
+  private static final String REFERENCE_DETAILED_LOG = "src/test/resources/msbuild/msbuild-detailed-en.txt";
+  private static final String UNIQUE_FILE = "C:\\Development\\Source\\Cpp\\Dummy\\src\\main.cpp";
   private static final String VC_CHARSET = "UTF8";
 
-  @BeforeClass
-  public static void init() {
-    org.junit.Assume.assumeTrue(SystemUtils.IS_OS_WINDOWS);
+  @BeforeAll
+  public static void setUp() {
+    Assumptions.assumeTrue(SystemUtils.IS_OS_WINDOWS);
   }
 
   @Test
-  public void relativeIncludesFromReferenceLog() {
+  void relativeIncludesFromReferenceLog() {
 
     List<String> includes = getIncludesForReferenceLogFile();
 
@@ -62,9 +63,9 @@ public class MsBuildTest {
   }
 
   @Test
-  public void relativeIncludesVS2019ReferenceLog() {
+  void relativeIncludesVS2019ReferenceLog() {
 
-    var REFERENCE_LOG = "src/test/resources/msbuild/msbuild-azure-devops-en.txt";
+    final var REFERENCE_LOG = "src/test/resources/msbuild/msbuild-azure-devops-en.txt";
     List<String> includes = getIncludesForUniqueFile(REFERENCE_LOG);
 
     var softly = new SoftAssertions();
@@ -75,7 +76,7 @@ public class MsBuildTest {
   }
 
   @Test
-  public void relativeIncludesFromGermanLog() {
+  void relativeIncludesFromGermanLog() {
 
     List<String> refIncludes = getIncludesForReferenceLogFile();
     List<String> includes = getIncludesForUniqueFile("src/test/resources/msbuild/msbuild-detailed-de.txt");
@@ -87,7 +88,7 @@ public class MsBuildTest {
   }
 
   @Test
-  public void relativeIncludesFromFrenchLog() {
+  void relativeIncludesFromFrenchLog() {
 
     List<String> refIncludes = getIncludesForReferenceLogFile();
     List<String> includes = getIncludesForUniqueFile("src/test/resources/msbuild/msbuild-detailed-fr.txt");
@@ -109,7 +110,6 @@ public class MsBuildTest {
     var parser = new MsBuild(squidConfig);
     parser.parse(logFile, ".", VC_CHARSET);
 
-    List<String> includes = squidConfig.getValues(UNIQUE_FILE, CxxSquidConfiguration.INCLUDE_DIRECTORIES);
-    return includes;
+    return squidConfig.getValues(UNIQUE_FILE, CxxSquidConfiguration.INCLUDE_DIRECTORIES);
   }
 }

@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,28 +19,28 @@
  */
 package org.sonar.cxx.lexer;
 
-import com.sonar.sslr.api.Grammar;
-import com.sonar.sslr.api.Token;
+import com.sonar.cxx.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.Token;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import javax.annotation.Nullable;
-import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import org.sonar.cxx.config.CxxSquidConfiguration;
-import org.sonar.cxx.parser.CxxLexer;
+import org.sonar.cxx.parser.CxxLexerPool;
 import org.sonar.cxx.preprocessor.CxxPreprocessor;
 import org.sonar.cxx.preprocessor.JoinStringsPreprocessor;
-import org.sonar.cxx.utils.TestUtils;
 import org.sonar.cxx.squidbridge.SquidAstVisitorContext;
+import org.sonar.cxx.utils.TestUtils;
 
-public class CxxLexerIncludeTest {
+class CxxLexerIncludeTest {
 
   @Test
-  public void quoted_include_without_IncludeDirectories() {
+  void quotedIncludeWithoutIncludeDirectories() {
     // Quoted form / preprocessor include file search order:
     // 1) In the same directory as the file that contains the #include statement.
 
@@ -49,7 +49,7 @@ public class CxxLexerIncludeTest {
   }
 
   @Test
-  public void quoted_include_with_IncludeDirectories1() {
+  void quotedIncludeWithIncludeDirectories1() {
     // Quoted form / preprocessor include file search order:
     // 1) In the same directory as the file that contains the #include statement.
 
@@ -58,7 +58,7 @@ public class CxxLexerIncludeTest {
   }
 
   @Test
-  public void quoted_include_with_IncludeDirectories2() {
+  void quotedIncludeWithIncludeDirectories2() {
     // Quoted form / preprocessor include file search order:
     // 2) In the directories of the currently opened include files, in the reverse order in which they were opened.
     // The search begins in the directory of the parent include file and continues upward through the directories of
@@ -69,7 +69,7 @@ public class CxxLexerIncludeTest {
   }
 
   @Test
-  public void quoted_include_with_IncludeDirectories3a() {
+  void quotedIncludeWithIncludeDirectories3a() {
     // Quoted form / preprocessor include file search order:
     // 3) Along the path that's specified by each /I compiler option.
 
@@ -78,7 +78,7 @@ public class CxxLexerIncludeTest {
   }
 
   @Test
-  public void quoted_include_with_IncludeDirectories3b() {
+  void quotedIncludeWithIncludeDirectories3b() {
     // Quoted form / preprocessor include file search order:
     // 3) Along the path that's specified by each /I compiler option.
 
@@ -87,7 +87,7 @@ public class CxxLexerIncludeTest {
   }
 
   @Test
-  public void bracket_include_without_IncludeDirectories() {
+  void bracketIncludeWithoutIncludeDirectories() {
     // Angle-bracket form / preprocessor include file search order:
     // 1) Along the path that's specified by each /I compiler option (IncludeDirectories).
 
@@ -96,7 +96,7 @@ public class CxxLexerIncludeTest {
   }
 
   @Test
-  public void bracket_include_with_IncludeDirectories1a() {
+  void bracketIncludeWithIncludeDirectories1a() {
     // Angle-bracket form / preprocessor include file search order:
     // 1) Along the path that's specified by each /I compiler option (IncludeDirectories).
 
@@ -105,7 +105,7 @@ public class CxxLexerIncludeTest {
   }
 
   @Test
-  public void bracket_include_with_IncludeDirectories1b() {
+  void bracketIncludeWithIncludeDirectories1b() {
     // Angle-bracket form / preprocessor include file search order:
     // 1) Along the path that's specified by each /I compiler option (IncludeDirectories).
 
@@ -114,7 +114,7 @@ public class CxxLexerIncludeTest {
   }
 
   @Test
-  public void bracket_include_with_IncludeDirectories1c() {
+  void bracketIncludeWithIncludeDirectories1c() {
     // Angle-bracket form / preprocessor include file search order:
     // 1) Along the path that's specified by each /I compiler option (IncludeDirectories).
 
@@ -123,7 +123,7 @@ public class CxxLexerIncludeTest {
   }
 
   @Test
-  public void compilation_database_settings_propagated() {
+  void compilationDatabaseSettingsPropagated() {
     // test: are compilation database settings propagated in case of nested includes
 
     List<String> defines = Arrays.asList("GLOBAL 1");
@@ -132,7 +132,7 @@ public class CxxLexerIncludeTest {
   }
 
   @Test
-  public void bracket_import_with_IncludeDirectories() {
+  void bracketImportWithIncludeDirectories() {
     // Angle-bracket form / preprocessor include file search order:
     // 1) Along the path that's specified by each /I compiler option (IncludeDirectories).
 
@@ -155,28 +155,28 @@ public class CxxLexerIncludeTest {
   }
 
   private String tryInclude(String include, String macro,
-                            @Nullable List<String> includeDirectories,
-                            @Nullable List<String> defines) {
+    @Nullable List<String> includeDirectories,
+    @Nullable List<String> defines) {
     return tryCmd("#include", include, macro, includeDirectories, defines);
   }
 
   private String tryImport(String include, String macro,
-                           @Nullable List<String> includeDirectories,
-                           @Nullable List<String> defines) {
+    @Nullable List<String> includeDirectories,
+    @Nullable List<String> defines) {
     return tryCmd("import", include, macro, includeDirectories, defines);
   }
 
   private String tryCmd(String cmd, String include, String macro,
-                        @Nullable List<String> includeDirectories,
-                        @Nullable List<String> defines) {
+    @Nullable List<String> includeDirectories,
+    @Nullable List<String> defines) {
     var squidConfig = new CxxSquidConfiguration();
     if (includeDirectories != null) {
       squidConfig.add(CxxSquidConfiguration.SONAR_PROJECT_PROPERTIES, CxxSquidConfiguration.INCLUDE_DIRECTORIES,
-                      includeDirectories);
+        includeDirectories);
     }
     if (defines != null) {
       squidConfig.add(CxxSquidConfiguration.SONAR_PROJECT_PROPERTIES, CxxSquidConfiguration.DEFINES,
-                      defines);
+        defines);
     }
 
     var file = new File(root(), "root.cpp");
@@ -184,7 +184,7 @@ public class CxxLexerIncludeTest {
     when(context.getFile()).thenReturn(file);
 
     var pp = new CxxPreprocessor(context, squidConfig);
-    var lexer = CxxLexer.create(squidConfig.getCharset(), pp, new JoinStringsPreprocessor());
+    var lexer = CxxLexerPool.create(squidConfig.getCharset(), pp, new JoinStringsPreprocessor()).getLexer();
 
     String fileContent = cmd + " " + include + "\n" + macro;
     List<Token> tokens = lexer.lex(fileContent);

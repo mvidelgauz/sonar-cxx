@@ -1,5 +1,7 @@
+#!/usr/bin/env python3
+
 # C++ Community Plugin (cxx plugin)
-# Copyright (C) 2020 SonarOpenCommunity
+# Copyright (C) 2020-2025 SonarOpenCommunity
 # http://github.com/SonarOpenCommunity/sonar-cxx
 #
 # This program is free software; you can redistribute it and/or
@@ -36,6 +38,7 @@ import sys
 from bs4 import BeautifulSoup
 from bs4.dammit import EntitySubstitution
 from selenium import webdriver
+from selenium.webdriver.firefox.service import Service
 
 from utils_createrules import CDATA
 from utils_createrules import write_rules_xml
@@ -48,31 +51,39 @@ from utils_createrules import get_cdata_capable_xml_etree
 # - add more than one 'tag' as a comma separated string: 'tag': 'a,b,c'
 URLS = {
     # pylint: disable=line-too-long
-    'https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-4-c4001' : {
+    'https://learn.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warnings-c4000-through-c4199' : {
         'severity': 'INFO',
         'type': 'CODE_SMELL',
         },
-    'https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-levels-2-and-4-c4200' : {
+    'https://learn.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warnings-c4200-through-c4399' : {
         'severity': 'INFO',
         'type': 'CODE_SMELL',
         },
-    'https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-4-c4400' : {
+    'https://learn.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warnings-c4400-through-c4599' : {
         'severity': 'INFO',
         'type': 'CODE_SMELL',
         },
-    'https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-1-c4600' : {
+    'https://learn.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warnings-c4600-through-c4799' : {
         'severity': 'INFO',
         'type': 'CODE_SMELL',
         },
-    'https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-3-c4800' : {
+    'https://learn.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warnings-c4800-through-c4999' : {
         'severity': 'INFO',
         'type': 'CODE_SMELL',
         },
-    'https://docs.microsoft.com/en-us/cpp/code-quality/code-analysis-for-c-cpp-warnings' : {
+    'https://learn.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warnings-c5000-through-c5199' : {
+        'severity': 'INFO',
+        'type': 'CODE_SMELL',
+        },
+    'https://learn.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warnings-c5200-through-c5399' : {
+        'severity': 'INFO',
+        'type': 'CODE_SMELL',
+        },
+    'https://learn.microsoft.com/en-us/cpp/code-quality/code-analysis-for-c-cpp-warnings' : {
         'severity': 'CRITICAL',
         'type': 'CODE_SMELL',
         },
-    'https://docs.microsoft.com/en-us/cpp/code-quality/code-analysis-for-cpp-corecheck' : {
+    'https://learn.microsoft.com/en-us/cpp/code-quality/code-analysis-for-cpp-corecheck' : {
         'severity': 'INFO',
         'type': 'CODE_SMELL',
         'tag': 'core-guideline',
@@ -262,7 +273,7 @@ def parse_warning_hrefs(page_source, warnings):
     soup = BeautifulSoup(page_source, 'html.parser')
 
     # read all warnings from menu: Cnnnnn
-    for menu_item in  soup.find_all('a', href=True, string=re.compile('C[0-9]{4,5}$')):
+    for menu_item in  soup.find_all('a', href=True, string=re.compile('(Warning)?[ ]?C[0-9]{4,5}$')):
         key = warning_key(menu_item.string)
         href = menu_item['href']
         if key and href:
@@ -306,7 +317,10 @@ def parse_warning_page(page_source, warning):
     """
     # parse HTML page
     soup = BeautifulSoup(page_source, 'html.parser')
-    content = soup.find('main')
+    content = soup.find("div", class_="content")
+
+    if not content:
+        return warning
 
     # use header, sometimes only message ID
     key = warning['key']
@@ -315,7 +329,7 @@ def parse_warning_page(page_source, warning):
     warning['name'] = name(content.select_one('blockquote > p'), key, warning['name'])
 
     desc = ''
-    for paragraph in  content.select('main > p'):
+    for paragraph in  content.select('div > p'):
         txt = str(paragraph)
         if 'Compiler Warning ' in warning['name']:
             # compiler messages: first p element is header
@@ -340,7 +354,7 @@ def read_warning_pages(browser, warnings):
     Iterate over all HTML warning pages and parse content.
     """
     # read HTML pages of warnings
-    for _key, data in warnings.items():
+    for _key, data in list(warnings.items()):
         page_source = read_page_source(browser, data['href'])
         data = parse_warning_page(page_source, data)
 
@@ -387,10 +401,10 @@ def create_rules(warnings, rules):
     - default 'type' is 'CODE_SMELL'
     - default 'severity' is 'INFO'
     - if not 'INFO' / 'CODE_SMELL' set:
-      - 'remediationFunction' to 'LINEAR'
-    - - 'remediationFunctionGapMultiplier' to '5min'
+      - 'remediationFunction' to 'CONSTANT_ISSUE'
+    - - 'remediationFunctionBaseEffort' to '5min'
     """
-    for _key, data in warnings.items():
+    for _key, data in list(warnings.items()):
         rule = et.Element('rule')
 
         # mandatory
@@ -408,23 +422,23 @@ def create_rules(warnings, rules):
             et.SubElement(rule, 'internalKey').text = data['internalKey']
 
         if 'severity' in data:
-            et.SubElement(rule, 'severity').text = data['severity']
+            if data['severity'] != 'MAJOR': # MAJOR is the default
+                et.SubElement(rule, 'severity').text = data['severity']
         else:
             et.SubElement(rule, 'severity').text = 'INFO'
 
         if 'type' in data:
-            et.SubElement(rule, 'type').text = data['type']
-        else:
-            et.SubElement(rule, 'type').text = 'CODE_SMELL'
+            if data['type'] != 'CODE_SMELL': # CODE_SMELL is the default
+                et.SubElement(rule, 'type').text = data['type']
 
-        if ('remediationFunction' in data) and ('remediationFunctionGapMultiplier' in data):
+        if ('remediationFunction' in data) and ('remediationFunctionBaseEffort' in data):
             et.SubElement(rule, 'remediationFunction').text = data['remediationFunction']
-            et.SubElement(rule, 'remediationFunctionGapMultiplier').text = data['remediationFunctionGapMultiplier']
+            et.SubElement(rule, 'remediationFunctionBaseEffort').text = data['remediationFunctionBaseEffort']
         else:
             if ('severity' in data) and ('type' in data) and not (
                     (data['severity'] == 'INFO') and (data['type'] == 'CODE_SMELL')):
-                et.SubElement(rule, 'remediationFunction').text = 'LINEAR'
-                et.SubElement(rule, 'remediationFunctionGapMultiplier').text = '5min'
+                et.SubElement(rule, 'remediationFunction').text = 'CONSTANT_ISSUE'
+                et.SubElement(rule, 'remediationFunctionBaseEffort').text = '5min'
 
         rules.append(rule)
 
@@ -449,7 +463,7 @@ def assign_warning_properties(warning, defaults, override):
         # set default values only once
         assign = True
     if assign:
-        for key, value in defaults.items():
+        for key, value in list(defaults.items()):
             warning[key] = value
 
 
@@ -461,26 +475,27 @@ def read_warnings():
     """
     # page contains JavaScript. Use Firefox to create HTML page
     # you have to download and install https://github.com/mozilla/geckodriver/releases
-    browser = webdriver.Firefox(executable_path=r'C:\Program Files\geckodriver\geckodriver.exe')
+    service = Service(executable_path=r'C:\Program Files\geckodriver\geckodriver.exe')
+    browser = webdriver.Firefox(service=service)
 
     # read links to warning pages from menu of overview pages
     warnings = {}
-    for url, properties in URLS.items():
+    for url, properties in list(URLS.items()):
         page_source = read_page_source(browser, url)
         parse_warning_hrefs(page_source, warnings)
-        for key, warning in warnings.items():
+        for key, warning in list(warnings.items()):
             assign_warning_properties(warning, properties, False)
 
     # warnings = dict(list(warnings.items())[:1]) # for testing only
 
     # sort warnings ascending by message number
-    warnings = dict(sorted(warnings.items(), key=sorter))
+    warnings = dict(sorted(list(warnings.items()), key=sorter))
 
-    # read cotent of warning pages
+    # read content of warning pages
     read_warning_pages(browser, warnings)
 
     # override defaults
-    for key, defaults in RULE_MAP.items():
+    for key, defaults in list(RULE_MAP.items()):
         if key in warnings:
             warning = warnings[key]
             assign_warning_properties(warning, defaults, True)

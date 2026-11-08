@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -26,16 +26,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.tools.ant.DirectoryScanner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.sonar.api.batch.sensor.SensorContext;
 import org.sonar.api.config.Configuration;
 import org.sonar.api.utils.PathUtils;
-import org.sonar.api.utils.log.Logger;
-import org.sonar.api.utils.log.Loggers;
 
 /**
  * Utility class holding various, well, utilities
@@ -43,7 +42,7 @@ import org.sonar.api.utils.log.Loggers;
 public final class CxxUtils {
 
   public static final Pattern EOL_PATTERN = Pattern.compile("\\R");
-  private static final Logger LOG = Loggers.get(CxxUtils.class);
+  private static final Logger LOG = LoggerFactory.getLogger(CxxUtils.class);
 
   private CxxUtils() {
     // only static methods
@@ -68,15 +67,15 @@ public final class CxxUtils {
    * @param config
    */
   public static void validateRecovery(String msg, Exception ex, Configuration config) {
-    var message = (msg + ", cause='" + ExceptionUtils.getRootCauseMessage(ex) + "'")
+    var message = (msg + ", cause='" + ExceptionUtils.getRootCauseMessage(ex) + "'{}")
       .replaceAll("\\R+", " ");
     Optional<Boolean> recovery = config.getBoolean(CxxReportSensor.ERROR_RECOVERY_KEY);
-    if (recovery.isPresent() && recovery.get()) {
-      LOG.warn(message + ", skipping");
+    if (recovery.isPresent() && Boolean.TRUE.equals(recovery.get())) {
+      LOG.warn(message, ", skipping");
       return;
     }
     LOG.info("Error recovery is disabled");
-    LOG.error(message + ", stop analysis");
+    LOG.error(message, ", stop analysis");
     throw new IllegalStateException(msg, ex);
   }
 
@@ -131,22 +130,26 @@ public final class CxxUtils {
         LOG.debug("Not a valid path '{}'", reportPath);
       }
     }
-    LOG.debug("Search files(s) in path(s): '{}'", String.join(", ", normalizedReportPaths));
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Search files(s) in path(s): '{}'", String.join(", ", normalizedReportPaths));
+    }
 
     // Includes array cannot contain null elements
     var directoryScanner = new DirectoryScanner();
-    directoryScanner.setIncludes(normalizedReportPaths.toArray(new String[normalizedReportPaths.size()]));
+    directoryScanner.setIncludes(normalizedReportPaths.toArray(String[]::new));
     directoryScanner.scan();
     String[] existingReportPaths = directoryScanner.getIncludedFiles();
 
     if (existingReportPaths.length == 0) {
-      LOG.warn("Property '{}': cannot find any files matching the Ant pattern(s) '{}'", reportPathsKey,
-               String.join(", ", normalizedReportPaths));
+      if (LOG.isWarnEnabled()) {
+        LOG.warn("Property '{}': cannot find any files matching the Ant pattern(s) '{}'", reportPathsKey,
+          String.join(", ", normalizedReportPaths));
+      }
       return Collections.emptyList();
     }
 
     LOG.debug("Found '{}' file(s)", existingReportPaths.length);
-    return Arrays.stream(existingReportPaths).map(File::new).collect(Collectors.toList());
+    return Arrays.stream(existingReportPaths).map(File::new).toList();
   }
 
 }

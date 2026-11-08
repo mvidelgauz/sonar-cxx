@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,17 +19,17 @@
  */
 package org.sonar.cxx.channels;
 
-import static com.sonar.sslr.api.GenericTokenType.IDENTIFIER;
-import com.sonar.sslr.api.Token;
-import com.sonar.sslr.api.TokenType;
-import com.sonar.sslr.impl.Lexer;
+import static com.sonar.cxx.sslr.api.GenericTokenType.IDENTIFIER;
+import com.sonar.cxx.sslr.api.Token;
+import com.sonar.cxx.sslr.api.TokenType;
+import com.sonar.cxx.sslr.impl.Lexer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import static org.sonar.cxx.preprocessor.CppPunctuator.HASH;
-import org.sonar.sslr.channel.Channel;
-import org.sonar.sslr.channel.CodeReader;
+import static org.sonar.cxx.preprocessor.PPPunctuator.HASH;
+import org.sonar.cxx.sslr.channel.Channel;
+import org.sonar.cxx.sslr.channel.CodeReader;
 
 public class KeywordChannel extends Channel<Lexer> {
 
@@ -38,8 +38,7 @@ public class KeywordChannel extends Channel<Lexer> {
   private final Matcher matcher;
   private final Token.Builder tokenBuilder = Token.builder();
 
-  public KeywordChannel(String regexp, TokenType[]
-    ... keywordSets) {
+  public KeywordChannel(String regexp, TokenType[]... keywordSets) {
     for (var keywords : keywordSets) {
       for (var keyword : keywords) {
         keywordsMap.put(keyword.getValue(), keyword);

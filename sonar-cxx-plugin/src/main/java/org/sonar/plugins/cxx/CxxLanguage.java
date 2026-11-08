@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -24,10 +24,10 @@ import com.google.common.collect.Iterables;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import org.sonar.api.config.Configuration;
 import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.resources.AbstractLanguage;
-import org.sonar.api.resources.Qualifiers;
 
 /**
  * {@inheritDoc}
@@ -70,14 +70,12 @@ public class CxxLanguage extends AbstractLanguage {
         .defaultValue(DEFAULT_FILE_SUFFIXES)
         .name("File suffixes")
         .multiValues(true)
-        .description(
-          "List of suffixes for files to analyze (e.g. `.cxx,.cpp,.cc,.c,.hxx,.hpp,.hh,.h`)."
-            + " In the SonarQube UI, enter one file suffixe per field."
-            + " To turn off the CXX language, set the first entry to `-`."
-        )
+        .description("""
+          List of suffixes for files to analyze (e.g. `.cxx,.cpp,.cc,.c,.hxx,.hpp,.hh,.h`). In the SonarQube UI, \
+          enter one file suffixe per field. To turn off the CXX language, set the first entry to `-`.""")
         .category("CXX")
         .subCategory("(1) General")
-        .onQualifiers(Qualifiers.PROJECT)
+        .onConfigScopes(Set.of(PropertyDefinition.ConfigScope.PROJECT))
         .build()
     ));
   }

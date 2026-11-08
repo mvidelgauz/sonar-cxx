@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,9 +19,8 @@
  */
 package org.sonar.cxx.parser;
 
-import com.sonar.sslr.api.Grammar;
-import com.sonar.sslr.impl.Parser;
-import java.io.File;
+import com.sonar.cxx.sslr.api.Grammar;
+import com.sonar.cxx.sslr.impl.Parser;
 import java.lang.ref.WeakReference;
 import org.sonar.cxx.config.CxxSquidConfiguration;
 import org.sonar.cxx.preprocessor.CxxPreprocessor;
@@ -37,13 +36,13 @@ public final class CxxParser {
   private CxxParser() {
   }
 
-  public static void finishedParsing(File path) {
-    currentPreprocessorInstance.get().finishedPreprocessing(path);
+  public static void finishedParsing() {
+    currentPreprocessorInstance.get().finishedPreprocessing();
   }
 
   public static Parser<Grammar> create() {
-    return create(new SquidAstVisitorContextImpl<>(new SourceProject("")),
-                  new CxxSquidConfiguration());
+    return create(new SquidAstVisitorContextImpl<>(new SourceProject("", null)),
+      new CxxSquidConfiguration());
   }
 
   public static Parser<Grammar> create(SquidAstVisitorContext<Grammar> context) {
@@ -54,7 +53,7 @@ public final class CxxParser {
     var cxxpp = new CxxPreprocessor(context, squidConfig);
     currentPreprocessorInstance = new WeakReference<>(cxxpp);
     return Parser.builder(CxxGrammarImpl.create(squidConfig))
-      .withLexer(CxxLexer.create(squidConfig.getCharset(), cxxpp, new JoinStringsPreprocessor()))
+      .withLexer(CxxLexerPool.create(squidConfig.getCharset(), cxxpp, new JoinStringsPreprocessor()).getLexer())
       .build();
   }
 

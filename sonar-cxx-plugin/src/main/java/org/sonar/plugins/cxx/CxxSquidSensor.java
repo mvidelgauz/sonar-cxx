@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,9 +19,12 @@
  */
 package org.sonar.plugins.cxx;
 
-import com.sonar.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.Grammar;
 import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -29,8 +32,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.StreamSupport;
 import javax.annotation.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.sonar.api.PropertyType;
 import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.batch.fs.TextRange;
@@ -40,17 +47,15 @@ import org.sonar.api.batch.sensor.SensorDescriptor;
 import org.sonar.api.batch.sensor.cpd.NewCpdTokens;
 import org.sonar.api.batch.sensor.highlighting.NewHighlighting;
 import org.sonar.api.batch.sensor.highlighting.TypeOfText;
+import org.sonar.api.batch.sensor.symbol.NewSymbolTable;
 import org.sonar.api.batch.sensor.issue.NewIssueLocation;
 import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.issue.NoSonarFilter;
 import org.sonar.api.measures.CoreMetrics;
 import org.sonar.api.measures.FileLinesContextFactory;
 import org.sonar.api.measures.Metric;
-import org.sonar.api.resources.Qualifiers;
 import org.sonar.api.rule.RuleKey;
 import org.sonar.api.scanner.sensor.ProjectSensor;
-import org.sonar.api.utils.log.Logger;
-import org.sonar.api.utils.log.Loggers;
 import org.sonar.cxx.CxxAstScanner;
 import org.sonar.cxx.CxxMetrics;
 import org.sonar.cxx.api.CxxMetric;
@@ -59,12 +64,14 @@ import org.sonar.cxx.config.CxxSquidConfiguration;
 import org.sonar.cxx.config.MsBuild;
 import org.sonar.cxx.sensors.utils.CxxUtils;
 import org.sonar.cxx.squidbridge.SquidAstVisitor;
+import org.sonar.cxx.squidbridge.api.CxxCustomRuleRepository;
 import org.sonar.cxx.squidbridge.api.SourceCode;
 import org.sonar.cxx.squidbridge.api.SourceFile;
 import org.sonar.cxx.squidbridge.indexer.QueryByType;
 import org.sonar.cxx.visitors.CxxCpdVisitor;
 import org.sonar.cxx.visitors.CxxHighlighterVisitor;
 import org.sonar.cxx.visitors.CxxPublicApiVisitor;
+import org.sonar.cxx.visitors.CxxSymbolHighlighterVisitor;
 import org.sonar.cxx.visitors.MultiLocatitionSquidCheck;
 
 /**
@@ -78,6 +85,8 @@ public class CxxSquidSensor implements ProjectSensor {
   public static final String ERROR_RECOVERY_KEY = "sonar.cxx.errorRecoveryEnabled";
   public static final String FORCE_INCLUDES_KEY = "sonar.cxx.forceIncludes";
   public static final String JSON_COMPILATION_DATABASE_KEY = "sonar.cxx.jsonCompilationDatabase";
+  public static final String JSON_COMPILATION_DATABASE_ONLY_CONTAINED_FILES_KEY
+    = "sonar.cxx.jsonCompilationDatabase.analyzeOnlyContainedFiles";
 
   public static final String FUNCTION_COMPLEXITY_THRESHOLD_KEY = "sonar.cxx.metric.func.complexity.threshold";
   public static final String FUNCTION_SIZE_THRESHOLD_KEY = "sonar.cxx.metric.func.size.threshold";
@@ -85,7 +94,9 @@ public class CxxSquidSensor implements ProjectSensor {
   public static final String CPD_IGNORE_LITERALS_KEY = "sonar.cxx.metric.cpd.ignoreLiterals";
   public static final String CPD_IGNORE_IDENTIFIERS_KEY = "sonar.cxx.metric.cpd.ignoreIdentifiers";
 
-  private static final Logger LOG = Loggers.get(CxxSquidSensor.class);
+  public static final String SYMBOL_TABLE_KEY = "sonar.cxx.symbolTable";
+
+  private static final Logger LOG = LoggerFactory.getLogger(CxxSquidSensor.class);
 
   private final FileLinesContextFactory fileLinesContextFactory;
   private final CxxChecks checks;
@@ -97,8 +108,8 @@ public class CxxSquidSensor implements ProjectSensor {
    * {@inheritDoc}
    */
   public CxxSquidSensor(FileLinesContextFactory fileLinesContextFactory,
-                        CheckFactory checkFactory,
-                        NoSonarFilter noSonarFilter) {
+    CheckFactory checkFactory,
+    NoSonarFilter noSonarFilter) {
     this(fileLinesContextFactory, checkFactory, noSonarFilter, null);
   }
 
@@ -106,9 +117,9 @@ public class CxxSquidSensor implements ProjectSensor {
    * {@inheritDoc}
    */
   public CxxSquidSensor(FileLinesContextFactory fileLinesContextFactory,
-                        CheckFactory checkFactory,
-                        NoSonarFilter noSonarFilter,
-                        @Nullable CustomCxxRulesDefinition[] customRulesDefinition) {
+    CheckFactory checkFactory,
+    NoSonarFilter noSonarFilter,
+    @Nullable CustomCxxRulesDefinition[] customRulesDefinition) {
     this.checks = CxxChecks.createCxxCheck(checkFactory)
       .addChecks(CheckList.REPOSITORY_KEY, CheckList.getChecks())
       .addCustomChecks(customRulesDefinition);
@@ -116,164 +127,191 @@ public class CxxSquidSensor implements ProjectSensor {
     this.noSonarFilter = noSonarFilter;
   }
 
+  /**
+   * Greediest constructor; picked by SonarQube's IoC container.
+   */
+  public CxxSquidSensor(FileLinesContextFactory fileLinesContextFactory,
+    CheckFactory checkFactory,
+    NoSonarFilter noSonarFilter,
+    @Nullable CustomCxxRulesDefinition[] customRulesDefinition,
+    @Nullable CxxCustomRuleRepository[] customRuleRepositories) {
+    this.checks = CxxChecks.createCxxCheck(checkFactory)
+      .addChecks(CheckList.REPOSITORY_KEY, CheckList.getChecks())
+      .addCustomChecks(customRulesDefinition)
+      .addCustomRuleRepositories(customRuleRepositories);
+    this.fileLinesContextFactory = fileLinesContextFactory;
+    this.noSonarFilter = noSonarFilter;
+  }
+
   public static List<PropertyDefinition> properties() {
+    var category = "CXX";
+    var subcategory = "(2) Preprocessor";
     return Collections.unmodifiableList(Arrays.asList(
       PropertyDefinition.builder(INCLUDE_DIRECTORIES_KEY)
         .multiValues(true)
         .name("(2.2) Include Directories")
-        .description(
-          "Comma-separated list of directories where the preprocessor looks for include files."
-            + " The path may be either absolute or relative to the project base directory."
-            + " In the SonarQube UI, enter one entry per field."
-        )
-        .category("CXX")
-        .subCategory("(2) Preprocessor")
-        .onQualifiers(Qualifiers.PROJECT)
+        .description("""
+          Comma-separated list of directories where the preprocessor looks for include files. The path may be \
+          either absolute or relative to the project base directory. In the SonarQube UI, enter one entry per field.""")
+        .category(category)
+        .subCategory(subcategory)
+        .onConfigScopes(Set.of(PropertyDefinition.ConfigScope.PROJECT))
         .build(),
       PropertyDefinition.builder(FORCE_INCLUDES_KEY)
         .multiValues(true)
-        .category("CXX")
-        .subCategory("(2) Preprocessor")
+        .category(category)
+        .subCategory(subcategory)
         .name("(2.3) Force Includes")
-        .description(
-          "Comma-separated list of include files implicitly inserted at the beginning of each source file."
-            + " This has the same effect as specifying the file with double quotation marks in an `#include` directive"
-            + " on the first line of every source file. If you add multiple files they are included in the order they"
-            + " are listed from left to right. The path may be either absolute or relative to the"
-            + " project base directory."
-            + " In the SonarQube UI, enter one entry per field."
-        )
-        .onQualifiers(Qualifiers.PROJECT)
+        .description("""
+          Comma-separated list of include files implicitly inserted at the beginning of each source file. This has \
+          the same effect as specifying the file with double quotation marks in an `#include` directive on the first \
+          line of every source file. If you add multiple files they are included in the order they are listed from \
+          left to right. The path may be either absolute or relative to the project base directory. \
+          In the SonarQube UI, enter one entry per field.""")
+        .onConfigScopes(Set.of(PropertyDefinition.ConfigScope.PROJECT))
         .build(),
       PropertyDefinition.builder(SQUID_DISABLED_KEY)
         .defaultValue(Boolean.FALSE.toString())
         .name("Disable Squid sensor")
-        .description(
-          "Disable parsing of source code, syntax hightligthing and metric generation."
-            + " The source files are still indexed, reports can be read and their results displayed."
-            + " Turning off will speed up reading of source files."
-        )
-        .category("CXX")
+        .description("""
+          Disable parsing of source code, syntax hightligthing and metric generation. The source files are still \
+          indexed, reports can be read and their results displayed. Turning off will speed up reading of \
+          source files.""")
+        .category(category)
         .subCategory("(1) General")
-        .onQualifiers(Qualifiers.PROJECT)
+        .onConfigScopes(Set.of(PropertyDefinition.ConfigScope.PROJECT))
         .type(PropertyType.BOOLEAN)
         .build(),
       PropertyDefinition.builder(DEFINES_KEY)
         .name("(2.1) Macros")
-        .description(
-          "List of macros to be used by the preprocessor during analysis. Enter one macro per line."
-            + " The syntax is the same as `#define` directives, except for the `#define` keyword itself."
-        )
-        .category("CXX")
-        .subCategory("(2) Preprocessor")
-        .onQualifiers(Qualifiers.PROJECT)
+        .description("""
+          List of macros to be used by the preprocessor during analysis. Enter one macro per line. The syntax is \
+          the same as `#define` directives, except for the `#define` keyword itself.""")
+        .category(category)
+        .subCategory(subcategory)
+        .onConfigScopes(Set.of(PropertyDefinition.ConfigScope.PROJECT))
         .type(PropertyType.TEXT)
         .build(),
       PropertyDefinition.builder(ERROR_RECOVERY_KEY)
         .defaultValue(Boolean.TRUE.toString())
         .name("Parse Error Recovery")
-        .description(
-          "Defines the mode for error handling of report files and parsing errors."
-            + " `False` (strict) terminates after an error or `True` (tolerant) continues."
-        )
-        .category("CXX")
+        .description("""
+          Defines the mode for error handling of report files and parsing errors. `False` (strict) terminates \
+          after an error or `True` (tolerant) continues.""")
+        .category(category)
         .subCategory("(1) General")
-        .onQualifiers(Qualifiers.PROJECT)
+        .onConfigScopes(Set.of(PropertyDefinition.ConfigScope.PROJECT))
         .type(PropertyType.BOOLEAN)
         .build(),
       PropertyDefinition.builder(MsBuild.REPORT_PATH_KEY)
-        .name("(2.5) Path(s) to MSBuild Log(s)")
-        .description(
-          "Read one ore more MSBuild .LOG files to automatically extract the required macros `sonar.cxx.defines`"
-            + " and include directories `sonar.cxx.includeDirectories`. The path may be either absolute or relative"
-            + " to the project base directory."
-            + " In the SonarQube UI, enter one entry per field."
-        )
-        .category("CXX")
-        .subCategory("(2) Preprocessor")
-        .onQualifiers(Qualifiers.PROJECT)
+        .name("(2.6) Path(s) to MSBuild Log(s)")
+        .description("""
+          Read one ore more MSBuild .LOG files to automatically extract the required macros `sonar.cxx.defines` and \
+          include directories `sonar.cxx.includeDirectories`. The path may be either absolute or relative to the \
+          project base directory. In the SonarQube UI, enter one entry per field.""")
+        .category(category)
+        .subCategory(subcategory)
+        .onConfigScopes(Set.of(PropertyDefinition.ConfigScope.PROJECT))
         .multiValues(true)
         .build(),
       PropertyDefinition.builder(MsBuild.REPORT_ENCODING_DEF)
         .defaultValue(MsBuild.DEFAULT_ENCODING_DEF)
-        .name("(2.6) MSBuild Log Encoding")
+        .name("(2.7) MSBuild Log Encoding")
         .description(
           "Defines the encoding to be used to read the files from `sonar.cxx.msbuild.reportPaths` (default is `UTF-8`)."
         )
-        .category("CXX")
-        .subCategory("(2) Preprocessor")
-        .onQualifiers(Qualifiers.PROJECT)
+        .category(category)
+        .subCategory(subcategory)
+        .onConfigScopes(Set.of(PropertyDefinition.ConfigScope.PROJECT))
         .build(),
       PropertyDefinition.builder(JSON_COMPILATION_DATABASE_KEY)
-        .category("CXX")
-        .subCategory("(2) Preprocessor")
+        .category(category)
+        .subCategory(subcategory)
         .name("(2.4) JSON Compilation Database")
-        .description(
-          "Read a JSON Compilation Database file to automatically extract the required macros `sonar.cxx.defines`"
-            + " and include directories `sonar.cxx.includeDirectories` from a file. The path may be either absolute"
-            + " or relative to the project base directory."
-        )
-        .onQualifiers(Qualifiers.PROJECT)
+        .description("""
+          Read a JSON Compilation Database file to automatically extract the required macros `sonar.cxx.defines` and \
+          include directories `sonar.cxx.includeDirectories` from a file. The path may be either absolute or relative \
+          to the project base directory.""")
+        .onConfigScopes(Set.of(PropertyDefinition.ConfigScope.PROJECT))
+        .build(),
+      PropertyDefinition.builder(JSON_COMPILATION_DATABASE_ONLY_CONTAINED_FILES_KEY)
+        .defaultValue(Boolean.FALSE.toString())
+        .category(category)
+        .subCategory(subcategory)
+        .name("(2.5) JSON Compilation Database analyze only contained files")
+        .description("""
+          If 'analyzeOnlyContainedFiles=True' is used, the analyzed files will be limited to the files contained in \
+          the 'JSON Compilation Database' file - the intersection of the files configured via 'sonar.projectBaseDir' \
+          and the files contained in the 'JSON Compilation Database' file (default is False).""")
+        .onConfigScopes(Set.of(PropertyDefinition.ConfigScope.PROJECT))
+        .type(PropertyType.BOOLEAN)
         .build(),
       PropertyDefinition.builder(CxxPublicApiVisitor.API_FILE_SUFFIXES_KEY)
         .defaultValue(CxxPublicApiVisitor.API_DEFAULT_FILE_SUFFIXES)
         .name("Public API File suffixes")
         .multiValues(true)
-        .description(
-          "Comma-separated list of suffixes for files to be searched for API comments and to create API metrics."
-            + " In the SonarQube UI, enter one entry per field."
-        )
-        .category("CXX")
+        .description("""
+          Comma-separated list of suffixes for files to be searched for API comments and to create API metrics. \
+          In the SonarQube UI, enter one entry per field.""")
+        .category(category)
         .subCategory("(3) Metrics")
-        .onQualifiers(Qualifiers.PROJECT)
+        .onConfigScopes(Set.of(PropertyDefinition.ConfigScope.PROJECT))
         .build(),
       PropertyDefinition.builder(FUNCTION_COMPLEXITY_THRESHOLD_KEY)
         .defaultValue("10")
         .name("Complex Functions ...")
-        .description(
-          "The parameter defines the threshold for `Complex Functions ...`."
-            + " Functions and methods with a higher cyclomatic complexity are classified as `complex`."
-        )
-        .category("CXX")
+        .description("""
+          The parameter defines the threshold for `Complex Functions ...`. \
+          Functions and methods with a higher cyclomatic complexity are classified as `complex`.""")
+        .category(category)
         .subCategory("(3) Metrics")
-        .onQualifiers(Qualifiers.PROJECT)
+        .onConfigScopes(Set.of(PropertyDefinition.ConfigScope.PROJECT))
         .type(PropertyType.INTEGER)
         .build(),
       PropertyDefinition.builder(FUNCTION_SIZE_THRESHOLD_KEY)
         .defaultValue("20")
         .name("Big Functions ...")
-        .description(
-          "The parameter defines the threshold for `Big Functions ...`."
-            + " Functions and methods with more lines of code are classified as `big`."
-        )
-        .category("CXX")
+        .description("""
+          The parameter defines the threshold for `Big Functions ...`. \
+          Functions and methods with more lines of code are classified as `big`.""")
+        .category(category)
         .subCategory("(3) Metrics")
-        .onQualifiers(Qualifiers.PROJECT)
+        .onConfigScopes(Set.of(PropertyDefinition.ConfigScope.PROJECT))
         .type(PropertyType.INTEGER)
         .build(),
       PropertyDefinition.builder(CPD_IGNORE_LITERALS_KEY)
         .defaultValue(Boolean.FALSE.toString())
         .name("Ignores Literal Value Differences")
-        .description(
-          "Configure the metrics `Duplications` (Copy Paste Detection). `True` ignores literal"
-            + " (numbers, characters and strings) value differences when evaluating a duplicate block. This means"
-            + " that e.g. `foo=42;` and `foo=43;` will be seen as equivalent."
-        )
-        .category("CXX")
+        .description("""
+          Configure the metrics `Duplications` (Copy Paste Detection). `True` ignores literal (numbers, characters \
+          and strings) value differences when evaluating a duplicate block. This means that e.g. `foo=42;` and \
+          `foo=43;` will be seen as equivalent.""")
+        .category(category)
         .subCategory("(4) Duplications")
-        .onQualifiers(Qualifiers.PROJECT)
+        .onConfigScopes(Set.of(PropertyDefinition.ConfigScope.PROJECT))
         .type(PropertyType.BOOLEAN)
         .build(),
       PropertyDefinition.builder(CPD_IGNORE_IDENTIFIERS_KEY)
         .defaultValue(Boolean.FALSE.toString())
         .name("Ignores Identifier Value Differences")
-        .description(
-          "Configure the metrics `Duplications` (Copy Paste Detection). `True` ignores identifier value differences"
-            + " when evaluating a duplicate block e.g. variable names, methods names, and so forth."
-        )
-        .category("CXX")
+        .description("""
+          Configure the metrics `Duplications` (Copy Paste Detection). `True` ignores identifier value differences \
+          when evaluating a duplicate block e.g. variable names, methods names, and so forth.""")
+        .category(category)
         .subCategory("(4) Duplications")
-        .onQualifiers(Qualifiers.PROJECT)
+        .onConfigScopes(Set.of(PropertyDefinition.ConfigScope.PROJECT))
+        .type(PropertyType.BOOLEAN)
+        .build(),
+      PropertyDefinition.builder(SYMBOL_TABLE_KEY)
+        .defaultValue(Boolean.TRUE.toString())
+        .name("Symbol Table")
+        .description("""
+          Resolves declarations and usages of identifiers (variables, functions, types) so the UI can highlight all \
+          occurrences of a symbol when one is selected. `False` skips symbol resolution entirely, so a project that \
+          does not need this has no scanning cost for it.""")
+        .category(category)
+        .subCategory("(3) Metrics")
+        .onConfigScopes(Set.of(PropertyDefinition.ConfigScope.PROJECT))
         .type(PropertyType.BOOLEAN)
         .build()
     ));
@@ -283,7 +321,7 @@ public class CxxSquidSensor implements ProjectSensor {
   public void describe(SensorDescriptor descriptor) {
     descriptor
       .name("CXX")
-      .onlyOnLanguage("cxx")
+      .onlyOnLanguage(CxxLanguage.KEY)
       .onlyOnFileType(InputFile.Type.MAIN)
       .onlyWhenConfiguration(conf -> !conf.getBoolean(SQUID_DISABLED_KEY).orElse(false));
   }
@@ -299,22 +337,15 @@ public class CxxSquidSensor implements ProjectSensor {
     var visitors = new ArrayList<SquidAstVisitor<Grammar>>();
     for (var check : checks.all()) {
       RuleKey key = checks.ruleKey(check);
-      if (key != null) {
-        if (context.activeRules().find(key) != null) {
-          visitors.add(check);
-        }
+      if ((key != null) && (context.activeRules().find(key) != null)) {
+        visitors.add(check);
       }
     }
 
-    var scanner = CxxAstScanner.create(
-      createConfiguration(),
-      visitors.toArray(new SquidAstVisitor[visitors.size()])
-    );
+    var squidConfig = createConfiguration();
+    var scanner = CxxAstScanner.create(squidConfig, visitors.toArray(SquidAstVisitor[]::new));
 
-    Iterable<InputFile> inputFiles = context.fileSystem().inputFiles(
-      context.fileSystem().predicates().and(context.fileSystem().predicates().hasLanguage("cxx"),
-                                            context.fileSystem().predicates().hasType(InputFile.Type.MAIN))
-    );
+    Iterable<InputFile> inputFiles = getInputFiles(context, squidConfig);
     scanner.scanInputFiles(inputFiles);
 
     Collection<SourceCode> squidSourceFiles = scanner.getIndex().search(new QueryByType(SourceFile.class));
@@ -329,61 +360,102 @@ public class CxxSquidSensor implements ProjectSensor {
   private String[] stripValue(String key, String regex) {
     Optional<String> value = context.config().get(key);
     if (value.isPresent()) {
-      var PATTERN = Pattern.compile(regex);
-      return PATTERN.split(value.get(), -1);
+      var pattern = Pattern.compile(regex);
+      return pattern.split(value.get(), -1);
     }
     return new String[0];
   }
 
   private CxxSquidConfiguration createConfiguration() {
     var squidConfig = new CxxSquidConfiguration(context.fileSystem().baseDir().getAbsolutePath(),
-                                            context.fileSystem().encoding());
+      context.fileSystem().encoding());
 
     squidConfig.add(CxxSquidConfiguration.SONAR_PROJECT_PROPERTIES, CxxSquidConfiguration.ERROR_RECOVERY_ENABLED,
-                    context.config().get(ERROR_RECOVERY_KEY));
+      context.config().get(ERROR_RECOVERY_KEY));
     squidConfig.add(CxxSquidConfiguration.SONAR_PROJECT_PROPERTIES, CxxSquidConfiguration.CPD_IGNORE_LITERALS,
-                    context.config().get(CPD_IGNORE_LITERALS_KEY));
+      context.config().get(CPD_IGNORE_LITERALS_KEY));
     squidConfig.add(CxxSquidConfiguration.SONAR_PROJECT_PROPERTIES, CxxSquidConfiguration.CPD_IGNORE_IDENTIFIERS,
-                    context.config().get(CPD_IGNORE_IDENTIFIERS_KEY));
+      context.config().get(CPD_IGNORE_IDENTIFIERS_KEY));
     squidConfig.add(CxxSquidConfiguration.SONAR_PROJECT_PROPERTIES, CxxSquidConfiguration.FUNCTION_COMPLEXITY_THRESHOLD,
-                    context.config().get(FUNCTION_COMPLEXITY_THRESHOLD_KEY));
+      context.config().get(FUNCTION_COMPLEXITY_THRESHOLD_KEY));
     squidConfig.add(CxxSquidConfiguration.SONAR_PROJECT_PROPERTIES, CxxSquidConfiguration.FUNCTION_SIZE_THRESHOLD,
-                    context.config().get(FUNCTION_SIZE_THRESHOLD_KEY));
+      context.config().get(FUNCTION_SIZE_THRESHOLD_KEY));
     squidConfig.add(CxxSquidConfiguration.SONAR_PROJECT_PROPERTIES, CxxSquidConfiguration.API_FILE_SUFFIXES,
-                    context.config().getStringArray(CxxPublicApiVisitor.API_FILE_SUFFIXES_KEY));
+      context.config().getStringArray(CxxPublicApiVisitor.API_FILE_SUFFIXES_KEY));
     squidConfig.add(CxxSquidConfiguration.SONAR_PROJECT_PROPERTIES, CxxSquidConfiguration.JSON_COMPILATION_DATABASE,
-                    context.config().get(JSON_COMPILATION_DATABASE_KEY));
+      context.config().get(JSON_COMPILATION_DATABASE_KEY));
+    squidConfig.add(CxxSquidConfiguration.SONAR_PROJECT_PROPERTIES, CxxSquidConfiguration.SYMBOL_TABLE_ENABLED,
+      context.config().get(SYMBOL_TABLE_KEY));
 
     squidConfig.add(CxxSquidConfiguration.SONAR_PROJECT_PROPERTIES, CxxSquidConfiguration.DEFINES,
-                    stripValue(DEFINES_KEY, "\\R"));
+      stripValue(DEFINES_KEY, "\\R"));
     squidConfig.add(CxxSquidConfiguration.SONAR_PROJECT_PROPERTIES, CxxSquidConfiguration.FORCE_INCLUDES,
-                    context.config().getStringArray(FORCE_INCLUDES_KEY));
+      context.config().getStringArray(FORCE_INCLUDES_KEY));
     squidConfig.add(CxxSquidConfiguration.SONAR_PROJECT_PROPERTIES, CxxSquidConfiguration.INCLUDE_DIRECTORIES,
-                    context.config().getStringArray(INCLUDE_DIRECTORIES_KEY));
+      context.config().getStringArray(INCLUDE_DIRECTORIES_KEY));
 
     squidConfig.readJsonCompilationDb();
 
     if (context.config().hasKey(MsBuild.REPORT_PATH_KEY)) {
       List<File> logFiles = CxxUtils.getFiles(context, MsBuild.REPORT_PATH_KEY);
       squidConfig.readMsBuildFiles(logFiles, context.config().get(MsBuild.REPORT_ENCODING_DEF)
-                                   .orElse(MsBuild.DEFAULT_ENCODING_DEF));
+        .orElse(MsBuild.DEFAULT_ENCODING_DEF));
     }
 
     return squidConfig;
+  }
+
+  private static Iterable<InputFile> getInputFiles(SensorContext context, CxxSquidConfiguration squidConfig) {
+    Iterable<InputFile> inputFiles = context.fileSystem().inputFiles(
+      context.fileSystem().predicates().and(
+        context.fileSystem().predicates().hasLanguage(CxxLanguage.KEY),
+        context.fileSystem().predicates().hasType(InputFile.Type.MAIN)
+      )
+    );
+
+    if (context.config().hasKey(JSON_COMPILATION_DATABASE_KEY)
+      && context.config().getBoolean(JSON_COMPILATION_DATABASE_ONLY_CONTAINED_FILES_KEY).orElse(Boolean.FALSE)) {
+
+      // if the source of the configuration is JSON Compilation Database and analyzeOnlyContainedFiles=True,
+      // then analyze only the files contained in the db.
+      var inputFilesInConfig = new ArrayList<Path>();
+      for (var inputfile : squidConfig.getFiles()) {
+        try {
+          // resolution of symbolic links and case-sensitive paths: In Json DB the path/filenames are often lowercase
+          inputFilesInConfig.add(inputfile.toRealPath(LinkOption.NOFOLLOW_LINKS));
+        } catch (IOException | RuntimeException e) {
+          // ...
+        }
+      }
+      var result = StreamSupport.stream(inputFiles.spliterator(), false)
+        .filter(f -> inputFilesInConfig.contains(Path.of(f.uri())))
+        .toList();
+      inputFiles = result;
+
+      LOG.info("Analyze only files contained in 'JSON Compilation Database': {} files", result.size());
+      if (result.isEmpty()) {
+        LOG.error(
+          "No files are analyzed, check the settings of 'sonar.projectBaseDir' and 'sonar.cxx.jsonCompilationDatabase'."
+        );
+      }
+    }
+
+    return inputFiles;
   }
 
   private void save(Collection<SourceCode> sourceCodeFiles) {
     for (var sourceCodeFile : sourceCodeFiles) {
       try {
         var sourceFile = (SourceFile) sourceCodeFile;
-        var ioFile = new File(sourceFile.getKey());
-        InputFile inputFile = context.fileSystem().inputFile(context.fileSystem().predicates().is(ioFile));
-
+        InputFile inputFile = context.fileSystem().inputFile(
+          context.fileSystem().predicates().hasPath(sourceFile.getKey())
+        );
         saveMeasures(inputFile, sourceFile);
         saveViolations(inputFile, sourceFile);
         saveFileLinesContext(inputFile, sourceFile);
         saveCpdTokens(inputFile, sourceFile);
         saveHighlighting(inputFile, sourceFile);
+        saveSymbols(inputFile, sourceFile);
       } catch (IllegalStateException e) {
         var msg = "Cannot save all measures for file '" + sourceCodeFile.getKey() + "'";
         CxxUtils.validateRecovery(msg, e, context.config());
@@ -434,7 +506,7 @@ public class CxxSquidSensor implements ProjectSensor {
 
         RuleKey ruleKey = checks.ruleKey((SquidAstVisitor<Grammar>) message.getCheck());
         if (ruleKey != null) {
-          var newIssue = context.newIssue().forRule(RuleKey.of(CheckList.REPOSITORY_KEY, ruleKey.rule()));
+          var newIssue = context.newIssue().forRule(RuleKey.of(ruleKey.repository(), ruleKey.rule()));
           var location = newIssue.newLocation()
             .on(inputFile)
             .at(inputFile.selectLine(line))
@@ -443,14 +515,20 @@ public class CxxSquidSensor implements ProjectSensor {
           newIssue.at(location);
           newIssue.save();
         } else {
-          LOG.debug("Unknown rule key: %s", message);
+          LOG.debug("Unknown rule key: {}", message);
         }
       }
     }
 
     if (MultiLocatitionSquidCheck.hasMultiLocationCheckMessages(sourceFile)) {
       for (var issue : MultiLocatitionSquidCheck.getMultiLocationCheckMessages(sourceFile)) {
-        var newIssue = context.newIssue().forRule(RuleKey.of(CheckList.REPOSITORY_KEY, issue.getRuleId()));
+        // ruleId alone is not unique across repositories, so resolve by check class first.
+        var checkClass = issue.getCheckClass();
+        RuleKey resolvedRuleKey = checkClass != null ? checks.ruleKeyForClass(checkClass) : null;
+        RuleKey ruleKey = resolvedRuleKey != null
+          ? resolvedRuleKey
+          : RuleKey.of(CheckList.REPOSITORY_KEY, issue.getRuleId());
+        var newIssue = context.newIssue().forRule(ruleKey);
         var locationNr = 0;
         for (var location : issue.getLocations()) {
           final Integer line = Integer.valueOf(location.getLine());
@@ -473,7 +551,7 @@ public class CxxSquidSensor implements ProjectSensor {
     // measures for the lines of file
     var fileLinesContext = fileLinesContextFactory.createFor(inputFile);
     List<Integer> linesOfCode = (List<Integer>) sourceFile.getData(CxxMetric.NCLOC_DATA);
-    linesOfCode.stream().sequential().distinct().forEach((line) -> {
+    linesOfCode.stream().sequential().distinct().forEach((Integer line) -> {
       try {
         fileLinesContext.setIntValue(CoreMetrics.NCLOC_DATA_KEY, line, 1);
       } catch (IllegalArgumentException | IllegalStateException e) {
@@ -482,12 +560,12 @@ public class CxxSquidSensor implements ProjectSensor {
       }
     });
     List<Integer> executableLines = (List<Integer>) sourceFile.getData(CxxMetric.EXECUTABLE_LINES_DATA);
-    executableLines.stream().sequential().distinct().forEach((line) -> {
+    executableLines.stream().sequential().distinct().forEach((Integer line) -> {
       try {
         fileLinesContext.setIntValue(CoreMetrics.EXECUTABLE_LINES_DATA_KEY, line, 1);
       } catch (IllegalArgumentException | IllegalStateException e) {
         // ignore errors: parsing errors could lead to wrong location data
-        LOG.debug("EXECUTABLE LINES error in file '{}' at line:{}", inputFile.filename(), line);
+        LOG.debug("EXECUTABLE LINES error in file '{}' at line:{}", inputFile.filename(), line, e);
       }
     });
     fileLinesContext.save();
@@ -496,14 +574,14 @@ public class CxxSquidSensor implements ProjectSensor {
   private void saveCpdTokens(InputFile inputFile, SourceFile sourceFile) {
     NewCpdTokens cpdTokens = context.newCpdTokens().onFile(inputFile);
 
-    List<CxxCpdVisitor.CpdToken> data = (List<CxxCpdVisitor.CpdToken>) sourceFile.getData(CxxMetric.CPD_TOKENS_DATA);
-    data.forEach((item) -> {
+    var data = (List<CxxCpdVisitor.CpdToken>) sourceFile.getData(CxxMetric.CPD_TOKENS_DATA);
+    data.forEach((CxxCpdVisitor.CpdToken item) -> {
       try {
         TextRange range = inputFile.newRange(item.startLine, item.startCol, item.endLine, item.endCol);
         cpdTokens.addToken(range, item.token);
       } catch (IllegalArgumentException | IllegalStateException e) {
         // ignore range errors: parsing errors could lead to wrong location data
-        LOG.debug("CPD error in file '{}' at line:{}, column:{}", inputFile.filename(), item.startLine, item.startCol);
+        LOG.debug("CPD error in file '{}' at line:{}, column:{}", inputFile.filename(), item.startLine, item.startCol, e);
       }
     });
 
@@ -513,20 +591,44 @@ public class CxxSquidSensor implements ProjectSensor {
   private void saveHighlighting(InputFile inputFile, SourceFile sourceFile) {
     NewHighlighting newHighlighting = context.newHighlighting().onFile(inputFile);
 
-    List<CxxHighlighterVisitor.Highlight> data = (List<CxxHighlighterVisitor.Highlight>) sourceFile.getData(
-      CxxMetric.HIGHLIGTHING_DATA);
-    data.forEach((item) -> {
+    var data = (List<CxxHighlighterVisitor.Highlight>) sourceFile.getData(CxxMetric.HIGHLIGTHING_DATA);
+    data.forEach((CxxHighlighterVisitor.Highlight item) -> {
       try {
         newHighlighting.highlight(item.startLine, item.startLineOffset, item.endLine, item.endLineOffset,
-                                  TypeOfText.forCssClass(item.typeOfText));
+          TypeOfText.forCssClass(item.typeOfText));
       } catch (IllegalArgumentException | IllegalStateException e) {
         // ignore highlight errors: parsing errors could lead to wrong location data
         LOG.debug("Highlighting error in file '{}' at start:{}:{} end:{}:{}", inputFile.filename(),
-                  item.startLine, item.startLineOffset, item.endLine, item.endLineOffset);
+          item.startLine, item.startLineOffset, item.endLine, item.endLineOffset, e);
       }
     });
 
     newHighlighting.save();
+  }
+
+  @SuppressWarnings("unchecked")
+  private void saveSymbols(InputFile inputFile, SourceFile sourceFile) {
+    var data = (List<CxxSymbolHighlighterVisitor.SymbolReference>) sourceFile.getData(CxxMetric.SYMBOL_TABLE_DATA);
+    if (data == null || data.isEmpty()) {
+      return;
+    }
+
+    NewSymbolTable newSymbolTable = context.newSymbolTable().onFile(inputFile);
+    data.forEach((CxxSymbolHighlighterVisitor.SymbolReference reference) -> {
+      try {
+        var declaration = reference.declaration();
+        var newSymbol = newSymbolTable.newSymbol(declaration.startLine(), declaration.startLineOffset(),
+          declaration.endLine(), declaration.endLineOffset());
+        reference.usages().forEach(usage ->
+          newSymbol.newReference(usage.startLine(), usage.startLineOffset(), usage.endLine(),
+            usage.endLineOffset()));
+      } catch (IllegalArgumentException | IllegalStateException e) {
+        // ignore symbol errors: parsing errors could lead to wrong location data
+        LOG.debug("Symbol highlighting error in file '{}'", inputFile.filename(), e);
+      }
+    });
+
+    newSymbolTable.save();
   }
 
   private <T extends Serializable> void saveMetric(InputFile file, Metric<T> metric, T value) {

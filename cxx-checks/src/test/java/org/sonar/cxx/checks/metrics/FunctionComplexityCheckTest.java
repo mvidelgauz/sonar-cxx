@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,19 +20,18 @@
 package org.sonar.cxx.checks.metrics;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 import org.assertj.core.api.SoftAssertions;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.sonar.cxx.CxxAstScanner;
 import org.sonar.cxx.checks.CxxFileTesterHelper;
 import org.sonar.cxx.utils.CxxReportLocation;
 import org.sonar.cxx.visitors.MultiLocatitionSquidCheck;
 
-public class FunctionComplexityCheckTest {
+class FunctionComplexityCheckTest {
 
   @Test
-  public void check() throws UnsupportedEncodingException, IOException {
+  void check() throws IOException {
     var check = new FunctionComplexityCheck();
     check.setMaxComplexity(5);
     var tester = CxxFileTesterHelper.create("src/test/resources/checks/FunctionComplexity.cc", ".");
@@ -40,15 +39,16 @@ public class FunctionComplexityCheckTest {
     var issues = MultiLocatitionSquidCheck.getMultiLocationCheckMessages(file);
     assertThat(issues).isNotNull();
     var softly = new SoftAssertions();
-    softly.assertThat(issues).hasSize(5);
-    softly.assertThat(issues).allSatisfy(issue -> assertThat(issue.getRuleId()).isEqualTo("FunctionComplexity"));
+    softly.assertThat(issues)
+      .hasSize(5)
+      .allSatisfy(issue -> assertThat(issue.getRuleId()).isEqualTo("FunctionComplexity"));
 
     var issue0 = issues.stream()
       .filter(issue -> issue.getLocations().get(0).getLine().equals("13"))
       .findFirst().orElseThrow(() -> new AssertionError("No issue at line 13"));
     softly.assertThat(issue0.getLocations()).containsOnly(
       new CxxReportLocation(null, "13", null,
-                            "The Cyclomatic Complexity of this function is 8 which is greater than 5 authorized."),
+        "The Cyclomatic Complexity of this function is 8 which is greater than 5 authorized."),
       new CxxReportLocation(null, "13", null, "+1: function definition"),
       new CxxReportLocation(null, "14", null, "+1: if statement"),
       new CxxReportLocation(null, "15", null, "+1: if statement"),
@@ -63,7 +63,7 @@ public class FunctionComplexityCheckTest {
       .findFirst().orElseThrow(() -> new AssertionError("No issue at line 33"));
     softly.assertThat(issue1.getLocations()).containsOnly(
       new CxxReportLocation(null, "33", null,
-                            "The Cyclomatic Complexity of this function is 8 which is greater than 5 authorized."),
+        "The Cyclomatic Complexity of this function is 8 which is greater than 5 authorized."),
       new CxxReportLocation(null, "33", null, "+1: function definition"),
       new CxxReportLocation(null, "34", null, "+1: if statement"),
       new CxxReportLocation(null, "35", null, "+1: if statement"),
@@ -78,7 +78,7 @@ public class FunctionComplexityCheckTest {
       .findFirst().orElseThrow(() -> new AssertionError("No issue at line 51"));
     softly.assertThat(issue2.getLocations()).containsOnly(
       new CxxReportLocation(null, "51", null,
-                            "The Cyclomatic Complexity of this function is 8 which is greater than 5 authorized."),
+        "The Cyclomatic Complexity of this function is 8 which is greater than 5 authorized."),
       new CxxReportLocation(null, "51", null, "+1: function definition"),
       new CxxReportLocation(null, "52", null, "+1: if statement"),
       new CxxReportLocation(null, "53", null, "+1: if statement"),
@@ -93,7 +93,7 @@ public class FunctionComplexityCheckTest {
       .findFirst().orElseThrow(() -> new AssertionError("No issue at line 72"));
     softly.assertThat(issue3.getLocations()).containsOnly(
       new CxxReportLocation(null, "72", null,
-                            "The Cyclomatic Complexity of this function is 8 which is greater than 5 authorized."),
+        "The Cyclomatic Complexity of this function is 8 which is greater than 5 authorized."),
       new CxxReportLocation(null, "72", null, "+1: function definition"),
       new CxxReportLocation(null, "73", null, "+1: if statement"),
       new CxxReportLocation(null, "74", null, "+1: if statement"),
@@ -108,7 +108,7 @@ public class FunctionComplexityCheckTest {
       .findFirst().orElseThrow(() -> new AssertionError("No issue at line 89"));
     softly.assertThat(issue4.getLocations()).containsOnly(
       new CxxReportLocation(null, "89", null,
-                            "The Cyclomatic Complexity of this function is 14 which is greater than 5 authorized."),
+        "The Cyclomatic Complexity of this function is 14 which is greater than 5 authorized."),
       new CxxReportLocation(null, "89", null, "+1: function definition"),
       new CxxReportLocation(null, "91", null, "+1: if statement"),
       new CxxReportLocation(null, "91", null, "+1: logical operator"),

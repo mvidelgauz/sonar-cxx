@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,12 +19,12 @@
  */
 package org.sonar.cxx.parser;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class AttributeTest extends ParserBaseTestHelper {
+class AttributeTest extends ParserBaseTestHelper {
 
   @Test
-  public void classSpecifier_reallife() {
+  void classSpecifierReallife() {
     setRootRule(CxxGrammarImpl.attributeSpecifierSeq);
 
     assertThatParser()
@@ -46,7 +46,9 @@ public class AttributeTest extends ParserBaseTestHelper {
       .matches("[[fallthrough]]")
       .matches("[[nodiscard]]")
       .matches("[[maybe_unused]]")
-      .matches("[[attr1]] [[attr2]] [[attr3]]");
+      .matches("[[attr1]] [[attr2]] [[attr3]]")
+      //C++23
+      .matches("[[assume((x - 1) * 3 == 12)]]");
   }
 
 }

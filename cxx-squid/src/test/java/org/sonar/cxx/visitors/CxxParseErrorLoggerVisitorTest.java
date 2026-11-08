@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,30 +19,26 @@
  */
 package org.sonar.cxx.visitors;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.sonar.api.utils.log.LogTester;
-import org.sonar.api.utils.log.LoggerLevel;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.slf4j.event.Level;
+import org.sonar.api.testfixtures.log.LogTesterJUnit5;
 import org.sonar.cxx.CxxAstScanner;
 import org.sonar.cxx.CxxFileTesterHelper;
 
-public class CxxParseErrorLoggerVisitorTest {
+class CxxParseErrorLoggerVisitorTest {
 
-  @Rule
-  public LogTester logTester = new LogTester();
-
-  @Before
-  public void scanFile() throws Exception {
-    var tester = CxxFileTesterHelper.create("src/test/resources/visitors/syntaxerror.cc", ".", "");
-    logTester.setLevel(LoggerLevel.DEBUG);
-    CxxAstScanner.scanSingleInputFile(tester.asInputFile());
-  }
+  @RegisterExtension
+  private final LogTesterJUnit5 logTester = new LogTesterJUnit5();
 
   @Test
-  public void handleParseErrorTest() throws Exception {
-    var log = String.join("\n", logTester.logs(LoggerLevel.DEBUG));
+  void handleParseErrorTest() throws Exception {
+    logTester.setLevel(Level.DEBUG);
+    var tester = CxxFileTesterHelper.create("src/test/resources/visitors/syntaxerror.cc", ".", "");
+    CxxAstScanner.scanSingleInputFile(tester.asInputFile());
+
+    var log = String.join("\n", logTester.logs(Level.DEBUG));
 
     assertThat(log)
       .isNotEmpty()

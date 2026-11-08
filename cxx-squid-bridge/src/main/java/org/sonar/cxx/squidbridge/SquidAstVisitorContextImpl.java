@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -21,11 +21,11 @@
  * fork of SSLR Squid Bridge: https://github.com/SonarSource/sslr-squid-bridge/tree/2.6.1
  * Copyright (C) 2010 SonarSource / mailto: sonarqube@googlegroups.com / license: LGPL v3
  */
-package org.sonar.cxx.squidbridge;
+package org.sonar.cxx.squidbridge; // cxx: in use
 
-import com.sonar.sslr.api.AstNode;
-import com.sonar.sslr.api.Grammar;
-import com.sonar.sslr.api.Token;
+import com.sonar.cxx.sslr.api.AstNode;
+import com.sonar.cxx.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.Token;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayDeque;
@@ -210,11 +210,14 @@ public class SquidAstVisitorContextImpl<G extends Grammar> extends SquidAstVisit
   public void log(CheckMessage message) {
     if (peekSourceCode() instanceof SourceFile) {
       peekSourceCode().log(message);
-    } else if (peekSourceCode().getParent(SourceFile.class) != null) {
-      peekSourceCode().getParent(SourceFile.class).log(message);
     } else {
-      throw new IllegalStateException("Unable to log a check message on source code '"
-                                        + (peekSourceCode() == null ? "[NULL]" : peekSourceCode().getKey()) + "'");
+      var sourceFile = peekSourceCode().getParent(SourceFile.class);
+      if (sourceFile != null) {
+        sourceFile.log(message);
+      } else {
+        throw new IllegalStateException("Unable to log a check message on source code '"
+          + (peekSourceCode() == null ? "[NULL]" : peekSourceCode().getKey()) + "'");
+      }
     }
   }
 

@@ -1,10 +1,8 @@
 |     |     |     |
 | --- | --- | --- |
 | **SonarCloud** / SonarSource SA<br>(Technical Debt analysis) | [![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=org.sonarsource.sonarqube-plugins.cxx%3Acxx&metric=alert_status)](https://sonarcloud.io/dashboard?id=org.sonarsource.sonarqube-plugins.cxx%3Acxx) | ![Coverage](https://sonarcloud.io/api/project_badges/measure?project=org.sonarsource.sonarqube-plugins.cxx%3Acxx&metric=coverage) |
-| **DeepCode** / DeepCode AG<br>(real-time AI powered semantic code analysis) | [![deepcode](https://www.deepcode.ai/api/gh/badge?key=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwbGF0Zm9ybTEiOiJnaCIsIm93bmVyMSI6IlNvbmFyT3BlbkNvbW11bml0eSIsInJlcG8xIjoic29uYXItY3h4IiwiaW5jbHVkZUxpbnQiOmZhbHNlLCJhdXRob3JJZCI6MTU1ODMsImlhdCI6MTYwMTI4MjcwOH0.Wz0G-HIoHfLfP1SjzxUnbyA598JfjKkQTsBqGG4Kleo)](https://www.deepcode.ai/app/gh/SonarOpenCommunity/sonar-cxx/_/dashboard?utm_content=gh%2FSonarOpenCommunity%2Fsonar-cxx) |
 | **JProfiler** / ej-technologies GmbH<br>(when it comes to profiling: [Java profiler](https://www.ej-technologies.com/products/jprofiler/overview.html) tool) | [![JProfiler](https://www.ej-technologies.com/images/product_banners/jprofiler_small.png)](https://www.ej-technologies.com/products/jprofiler/overview.html)|
-| **Travis CI**<br>(Linux Build and Integration Tests) | [![Build Status](https://www.travis-ci.com/SonarOpenCommunity/sonar-cxx.svg?branch=master)](https://www.travis-ci.com/SonarOpenCommunity/sonar-cxx) |
-| **AppVeyor CI**<br>(Windows Build and Deployment) | [![Build status](https://ci.appveyor.com/api/projects/status/f6p12h9n59w01770/branch/master?svg=true)](https://ci.appveyor.com/project/SonarOpenCommunity/sonar-cxx/branch/master) | [Download latest snapshot](https://ci.appveyor.com/project/SonarOpenCommunity/sonar-cxx/branch/master/artifacts) |
+| **GitHub Actions**<br>(Windows & Linux CI/CD) | [![Build Status](https://github.com/SonarOpenCommunity/sonar-cxx/actions/workflows/cxx-ci.yml/badge.svg?branch=master&event=push)](https://github.com/SonarOpenCommunity/sonar-cxx/actions/workflows/cxx-ci.yml) | [You can download latest snapshot from here.](https://github.com/SonarOpenCommunity/sonar-cxx/releases/tag/latest-snapshot) |
 
 # SonarQube C++ Community plugin (_cxx plugin_)
 
@@ -18,7 +16,7 @@ This plugin is free software; you can redistribute it and/or modify it under the
 
 ## Features
 * parser supporting
-  * `C++03`, `C++11`, `C++14`,`C++17`, `C++20`
+  * `C++03`, `C++11`, `C++14`,`C++17`, `C++20`, `C++23`
   * `C89`, `C99`, `C11`, `C17`
 * compiler specific extensions
   * Microsoft extensions: `C++/CLI`, `Attributed ATL`
@@ -50,7 +48,9 @@ Sensors for **static and dynamic code analysis**:
 * **Dr. Memory** warnings support (http://drmemory.org/)
   - [sonar.cxx.drmemory.reportPaths](https://github.com/SonarOpenCommunity/sonar-cxx/wiki/sonar.cxx.drmemory.reportPaths)
 * [Generic Issue Import Format](https://docs.sonarqube.org/latest/analysis/generic-issue/) support
-* any other tool can be integrated
+* any other tool can be integrated:
+  - [Generic issue import format](https://docs.sonarqube.org/latest/analyzing-source-code/importing-external-issues/generic-issue-import-format/) support
+  - [Importing issues from SARIF reports](https://docs.sonarqube.org/latest/analyzing-source-code/importing-external-issues/importing-issues-from-sarif-reports/)
   - [sonar.cxx.other.reportPaths](https://github.com/SonarOpenCommunity/sonar-cxx/wiki/sonar.cxx.other.reportPaths)
 
 **Test framework** sensors for:
@@ -60,17 +60,19 @@ Sensors for **static and dynamic code analysis**:
   - [sonar.cxx.xunit.reportPaths](https://github.com/SonarOpenCommunity/sonar-cxx/wiki/sonar.cxx.xunit.reportPaths)
 * **Boost.Test** file format (https://www.boost.org/doc/libs/release/libs/test/)
   - [sonar.cxx.xunit.reportPaths](https://github.com/SonarOpenCommunity/sonar-cxx/wiki/sonar.cxx.xunit.reportPaths) with [sonar.cxx.xslt](https://github.com/SonarOpenCommunity/sonar-cxx/wiki/sonar.cxx.xslt)
+* **ctest (cmake)** file format (https://cmake.org/cmake/help/latest/manual/ctest.1.html)
+  - [sonar.cxx.xunit.reportPaths](https://github.com/SonarOpenCommunity/sonar-cxx/wiki/sonar.cxx.xunit.reportPaths) with ctest option `--output-junit <file>`
 * **CppTest** file format (https://cpptest.sourceforge.io/)
-  - [sonar.cxx.xunit.reportPaths](https://github.com/SonarOpenCommunity/sonar-cxx/wiki/sonar.cxx.xunit.reportPaths) with [sonar.cxx.xslt](https://github.com/SonarOpenCommunity/sonar-cxx/wiki/sonar.cxx.xslt) 
+  - [sonar.cxx.xunit.reportPaths](https://github.com/SonarOpenCommunity/sonar-cxx/wiki/sonar.cxx.xunit.reportPaths) with [sonar.cxx.xslt](https://github.com/SonarOpenCommunity/sonar-cxx/wiki/sonar.cxx.xslt)
 * **CppUnit** file format (https://sourceforge.net/projects/cppunit/)
   - [sonar.cxx.xunit.reportPaths](https://github.com/SonarOpenCommunity/sonar-cxx/wiki/sonar.cxx.xunit.reportPaths) with [sonar.cxx.xslt](https://github.com/SonarOpenCommunity/sonar-cxx/wiki/sonar.cxx.xslt)
 * **VSTest** file format (https://github.com/microsoft/vstest)
   - [sonar.cxx.vstest.reportPaths](https://github.com/SonarOpenCommunity/sonar-cxx/wiki/sonar.cxx.vstest.reportPaths)
 * **NUnit** file format (https://nunit.org/)
   - [sonar.cxx.nunit.reportPaths](https://github.com/SonarOpenCommunity/sonar-cxx/wiki/sonar.cxx.nunit.reportPaths)
-* [Generic Test Data](https://docs.sonarqube.org/latest/analysis/generic-test/) support
-* extensions over XSLT possible
-  - [sonar.cxx.xslt](https://github.com/SonarOpenCommunity/sonar-cxx/wiki/sonar.cxx.xslt)
+* any other tool can be integrated:
+  - [Generic test execution report format](https://docs.sonarqube.org/latest/analysis/generic-test/) support
+  - adaptations possible via XLST: [sonar.cxx.xslt](https://github.com/SonarOpenCommunity/sonar-cxx/wiki/sonar.cxx.xslt)
 
 **Coverage** sensors for:
 * **Visual Studio** coverage reports (https://www.visualstudio.com/)
@@ -78,12 +80,14 @@ Sensors for **static and dynamic code analysis**:
 * **BullseyeCoverage** reports (http://www.bullseye.com/)
   - [sonar.cxx.bullseye.reportPaths](https://github.com/SonarOpenCommunity/sonar-cxx/wiki/sonar.cxx.bullseye.reportPaths)
 * **Cobertura** coverage reports (http://cobertura.github.io/cobertura/)
-   * **gcov / gcovr** coverage reports --xml https://gcovr.com/en/stable/guide.html
-   * **OpenCppCoverage** --export_type=cobertura (https://github.com/OpenCppCoverage/OpenCppCoverage/)
+   * **gcov / gcovr** coverage reports with option `--xml` https://gcovr.com/en/stable/guide.html
+   * **OpenCppCoverage** with option `--export_type=cobertura` (https://github.com/OpenCppCoverage/OpenCppCoverage/)
    * [sonar.cxx.cobertura.reportPaths](https://github.com/SonarOpenCommunity/sonar-cxx/wiki/sonar.cxx.cobertura.reportPaths)
 * **Testwell CTC++** coverage reports (https://www.verifysoft.com/en_ctcpp.html)
   - [sonar.cxx.ctctxt.reportPaths](https://github.com/SonarOpenCommunity/sonar-cxx/wiki/sonar.cxx.ctctxt.reportPaths)
-* [Generic Coverage](https://docs.sonarqube.org/latest/analysis/generic-test/) support
+* any other tool can be integrated:
+  - [Generic test coverage report format](https://docs.sonarqube.org/latest/analysis/generic-test/) support
+  - adaptations possible via XLST: [sonar.cxx.xslt](https://github.com/SonarOpenCommunity/sonar-cxx/wiki/sonar.cxx.xslt)
 
 Simple to **customize**
 * custom rules by [regular expression template](https://github.com/SonarOpenCommunity/sonar-cxx/wiki/CXX-Custom-Regex-Rules) possible
@@ -101,7 +105,7 @@ Simple to **customize**
 
 ## Resources
 - [Latest release](https://github.com/SonarOpenCommunity/sonar-cxx/releases)
-- [Download latest snapshot](https://ci.appveyor.com/project/SonarOpenCommunity/sonar-cxx/branch/master/artifacts)
+- [Download latest snapshot](https://github.com/SonarOpenCommunity/sonar-cxx/releases/tag/latest-snapshot)
 - [Documentation](https://github.com/SonarOpenCommunity/sonar-cxx/wiki)
 - [Issue Tracker](https://github.com/SonarOpenCommunity/sonar-cxx/issues)
 
@@ -112,7 +116,7 @@ You are welcome to contribute. [Help is needed](https://github.com/SonarOpenComm
 That's not the only choice when you are looking for C++ support in SonarQube there is also
 * the commercial [SonarCFamily plugin from SonarSource](https://www.sonarsource.com/cpp)
 * the commercial [C/C++ plugin from CppDepend](http://www.cppdepend.com/sonarplugin)
-* the [Coverity plugin](https://github.com/coverity/coverity-sonar-plugin)
 * the commercial [PVS-Studio plugin](https://www.viva64.com/en/pvs-studio-download)
+* the [Coverity plugin](https://github.com/coverity/coverity-sonar-plugin)
 
 Choose whatever fits your needs.

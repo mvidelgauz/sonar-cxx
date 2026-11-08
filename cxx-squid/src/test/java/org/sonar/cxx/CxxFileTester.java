@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,7 +20,7 @@
 package org.sonar.cxx;
 
 import org.sonar.api.batch.fs.InputFile;
-import org.sonar.api.batch.sensor.internal.SensorContextTester;
+import com.sonarsource.scanner.engine.sensor.test.fixtures.SensorContextTester;
 
 public class CxxFileTester {
 

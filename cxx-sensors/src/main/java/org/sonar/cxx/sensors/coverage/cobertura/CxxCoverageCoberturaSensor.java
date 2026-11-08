@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -22,33 +22,34 @@ package org.sonar.cxx.sensors.coverage.cobertura;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import org.sonar.api.batch.sensor.SensorDescriptor;
 import org.sonar.api.config.PropertyDefinition;
-import org.sonar.api.resources.Qualifiers;
 import org.sonar.cxx.sensors.coverage.CoverageSensor;
+import org.sonar.cxx.sensors.utils.CxxReportSensor;
 
 public class CxxCoverageCoberturaSensor extends CoverageSensor {
 
   public static final String REPORT_PATH_KEY = "sonar.cxx.cobertura.reportPaths";
 
+  public CxxCoverageCoberturaSensor() {
+    super(REPORT_PATH_KEY, new CoberturaParser());
+  }
+
   public static List<PropertyDefinition> properties() {
     return Collections.unmodifiableList(Arrays.asList(
       PropertyDefinition.builder(REPORT_PATH_KEY)
         .name("Cobertura Coverage Report(s)")
-        .description(
-          "Comma-separated list of paths pointing to coverage reports (absolute or relative to the project base directory)."
-          + " Ant patterns are accepted for relative path. The reports have to conform to the `Cobertura XML format`."
-        )
-        .category("CXX External Analyzers")
+        .description("""
+          Comma-separated list of paths pointing to coverage reports (absolute or relative to the project \
+          base directory). Ant patterns are accepted for relative path. The reports have to conform to \
+          the `Cobertura XML format`.""")
+        .category(CxxReportSensor.CATEGORY)
         .subCategory("Cobertura")
-        .onQualifiers(Qualifiers.PROJECT)
+        .onConfigScopes(Set.of(PropertyDefinition.ConfigScope.PROJECT))
         .multiValues(true)
         .build()
     ));
-  }
-
-  public CxxCoverageCoberturaSensor() {
-    super(REPORT_PATH_KEY, new CoberturaParser());
   }
 
   @Override

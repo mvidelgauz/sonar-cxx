@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,10 +19,10 @@
  */
 package org.sonar.cxx.preprocessor;
 
-import com.sonar.sslr.api.Preprocessor;
-import com.sonar.sslr.api.PreprocessorAction;
-import com.sonar.sslr.api.Token;
-import com.sonar.sslr.api.Trivia;
+import com.sonar.cxx.sslr.api.Preprocessor;
+import com.sonar.cxx.sslr.api.PreprocessorAction;
+import com.sonar.cxx.sslr.api.Token;
+import com.sonar.cxx.sslr.api.Trivia;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -31,14 +31,14 @@ import org.sonar.cxx.parser.CxxTokenType;
 public class JoinStringsPreprocessor extends Preprocessor {
 
   private static String stripQuotes(String str) {
-    return str.substring(str.indexOf('"') + 1, str.lastIndexOf('"'));
+    return str.substring(1, str.length() - 1);
   }
 
   private static String concatenateStringLiterals(List<Token> concatenatedTokens) {
     var sb = new StringBuilder(256);
     sb.append("\"");
-    for (var t : concatenatedTokens) {
-      sb.append(stripQuotes(t.getValue()));
+    for (int i = 0; i < concatenatedTokens.size(); i++) {
+      sb.append(stripQuotes(concatenatedTokens.get(i).getValue()));
     }
     sb.append("\"");
     return sb.toString();
@@ -46,15 +46,19 @@ public class JoinStringsPreprocessor extends Preprocessor {
 
   @Override
   public PreprocessorAction process(List<Token> tokens) {
+    if (tokens.size() < 3 || !CxxTokenType.STRING.equals(tokens.get(0).getType())) { // min 3 tokens, 2 srings and EOF
+      return PreprocessorAction.NO_OPERATION; // fast exit
+    }
 
-    var nrOfAdjacentStringLiterals = 0;
+    var nrOfAdjacentStringLiterals = 1;
     var isGenerated = false;
-    for (var t : tokens) {
-      if (!CxxTokenType.STRING.equals(t.getType())) {
+    for (int i = 1; i < tokens.size(); i++) {
+      var token = tokens.get(i);
+      if (!CxxTokenType.STRING.equals(token.getType())) {
         break;
       }
       nrOfAdjacentStringLiterals++;
-      isGenerated |= t.isGeneratedCode();
+      isGenerated |= token.isGeneratedCode();
     }
 
     if (nrOfAdjacentStringLiterals < 2) {

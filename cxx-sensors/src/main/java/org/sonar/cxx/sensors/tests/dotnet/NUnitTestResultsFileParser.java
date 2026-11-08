@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -26,12 +26,12 @@ package org.sonar.cxx.sensors.tests.dotnet;
 import java.io.File;
 import java.io.IOException;
 import javax.annotation.CheckForNull;
-import org.sonar.api.utils.log.Logger;
-import org.sonar.api.utils.log.Loggers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class NUnitTestResultsFileParser implements UnitTestResultsParser {
 
-  private static final Logger LOG = Loggers.get(NUnitTestResultsFileParser.class);
+  private static final Logger LOG = LoggerFactory.getLogger(NUnitTestResultsFileParser.class);
 
   @Override
   public void accept(File file, UnitTestResults unitTestResults) {
@@ -54,7 +54,7 @@ public class NUnitTestResultsFileParser implements UnitTestResultsParser {
         xmlParserHelper.checkRootTag("test-results");
         return true;
       } catch (ParseErrorException e) {
-        LOG.warn("One of the assemblies contains no test result, please make sure this is expected.");
+        LOG.warn("One of the assemblies contains no test result, please make sure this is expected.", e);
         return false;
       }
     }
@@ -85,7 +85,7 @@ public class NUnitTestResultsFileParser implements UnitTestResultsParser {
     }
 
     public void parse() {
-      try ( var xmlParserHelper = new XmlParserHelper(file)) {
+      try (var xmlParserHelper = new XmlParserHelper(file)) {
         if (checkRootTag(xmlParserHelper)) {
           handleTestResultsTag(xmlParserHelper);
         }
@@ -108,7 +108,7 @@ public class NUnitTestResultsFileParser implements UnitTestResultsParser {
       Double executionTime = readExecutionTimeFromDirectlyNestedTestSuiteTags(xmlParserHelper);
 
       unitTestResults.add(tests, passed, skipped, failures, errors,
-                          executionTime != null ? (long) executionTime.doubleValue() : null);
+        executionTime != null ? (long) executionTime.doubleValue() : null);
     }
 
   }

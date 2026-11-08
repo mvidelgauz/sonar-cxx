@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,17 +19,17 @@
  */
 package org.sonar.cxx;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 import org.sonar.api.ce.measure.Component;
 import org.sonar.api.ce.measure.Component.Type;
-import org.sonar.api.ce.measure.test.TestComponent;
-import org.sonar.api.ce.measure.test.TestComponent.FileAttributesImpl;
-import org.sonar.api.ce.measure.test.TestMeasureComputerContext;
-import org.sonar.api.ce.measure.test.TestMeasureComputerDefinition.MeasureComputerDefinitionBuilderImpl;
-import org.sonar.api.ce.measure.test.TestSettings;
+import org.sonar.api.testfixtures.measure.TestComponent;
+import org.sonar.api.testfixtures.measure.TestComponent.FileAttributesImpl;
+import org.sonar.api.testfixtures.measure.TestMeasureComputerContext;
+import org.sonar.api.testfixtures.measure.TestMeasureComputerDefinition.MeasureComputerDefinitionBuilderImpl;
+import org.sonar.api.testfixtures.measure.TestSettings;
 
-public class AggregateMeasureComputerTest {
+class AggregateMeasureComputerTest {
 
   private static TestMeasureComputerContext createContext(AggregateMeasureComputer aggregator, Component component) {
     return new TestMeasureComputerContext(component, new TestSettings(),
@@ -39,13 +39,13 @@ public class AggregateMeasureComputerTest {
   }
 
   @Test
-  public void metricsNumber() {
+  void metricsNumber() {
     var aggregator = new AggregateMeasureComputer();
     assertThat(aggregator.getAggregatedMetrics()).hasSize(7);
   }
 
   @Test
-  public void ignoreFiles() {
+  void ignoreFiles() {
     var aggregator = new AggregateMeasureComputer();
 
     var file = new TestComponent("file", Type.FILE, new FileAttributesImpl("cxx", false));
@@ -58,7 +58,7 @@ public class AggregateMeasureComputerTest {
   }
 
   @Test
-  public void ignoreAlreadyAggregatedMetric() {
+  void ignoreAlreadyAggregatedMetric() {
     var aggregator = new AggregateMeasureComputer();
 
     var module = new TestComponent("module0", Type.MODULE, null);
@@ -72,7 +72,7 @@ public class AggregateMeasureComputerTest {
   }
 
   @Test
-  public void ignoreIfNothingToAggregate() {
+  void ignoreIfNothingToAggregate() {
     var aggregator = new AggregateMeasureComputer();
 
     var module = new TestComponent("module0", Type.MODULE, null);
@@ -84,7 +84,7 @@ public class AggregateMeasureComputerTest {
   }
 
   @Test
-  public void aggregate() {
+  void aggregate() {
     var aggregator = new AggregateMeasureComputer();
 
     var module = new TestComponent("module0", Type.MODULE, null);

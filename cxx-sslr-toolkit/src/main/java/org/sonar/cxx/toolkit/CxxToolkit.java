@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,7 +19,7 @@
  */
 package org.sonar.cxx.toolkit;
 
-import org.sonar.sslr.toolkit.Toolkit;
+import org.sonar.cxx.sslr.toolkit.Toolkit;
 
 public final class CxxToolkit {
 

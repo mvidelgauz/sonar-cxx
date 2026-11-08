@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -23,15 +23,16 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import javax.xml.stream.XMLStreamException;
 import org.codehaus.staxmate.in.SMHierarchicCursor;
 import org.codehaus.staxmate.in.SMInputCursor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.sonar.api.batch.sensor.SensorDescriptor;
 import org.sonar.api.config.PropertyDefinition;
-import org.sonar.api.resources.Qualifiers;
-import org.sonar.api.utils.log.Logger;
-import org.sonar.api.utils.log.Loggers;
 import org.sonar.cxx.sensors.utils.CxxIssuesReportSensor;
+import org.sonar.cxx.sensors.utils.CxxReportSensor;
 import org.sonar.cxx.sensors.utils.EmptyReportException;
 import org.sonar.cxx.sensors.utils.InvalidReportException;
 import org.sonar.cxx.sensors.utils.StaxParser;
@@ -43,20 +44,19 @@ import org.sonar.cxx.utils.CxxReportIssue;
 public class CxxVeraxxSensor extends CxxIssuesReportSensor {
 
   public static final String REPORT_PATH_KEY = "sonar.cxx.vera.reportPaths";
-  private static final Logger LOG = Loggers.get(CxxVeraxxSensor.class);
+  private static final Logger LOG = LoggerFactory.getLogger(CxxVeraxxSensor.class);
 
   public static List<PropertyDefinition> properties() {
     return Collections.unmodifiableList(Arrays.asList(
       PropertyDefinition.builder(REPORT_PATH_KEY)
         .name("Vera++ Report(s)")
-        .description(
-          "Comma-separated paths (absolute or relative to the project base directory) to `*.xml` files with"
-            + " `Vera++` issues. Ant patterns are accepted for relative paths."
-            + " In the SonarQube UI, enter one entry per field."
-        )
-        .category("CXX External Analyzers")
+        .description("""
+          Comma-separated paths (absolute or relative to the project base directory) to `*.xml` files with \
+          `Vera++` issues. Ant patterns are accepted for relative paths. In the SonarQube UI, enter one \
+          entry per field.""")
+        .category(CxxReportSensor.CATEGORY)
         .subCategory("Vera++")
-        .onQualifiers(Qualifiers.PROJECT)
+        .onConfigScopes(Set.of(PropertyDefinition.ConfigScope.PROJECT))
         .multiValues(true)
         .build()
     ));
@@ -95,9 +95,13 @@ public class CxxVeraxxSensor extends CxxIssuesReportSensor {
               var issue = new CxxReportIssue(source, name, line, null, message);
               saveUniqueViolation(issue);
             } else {
-              LOG.debug("Error in file '{}', with message '{}'",
-                        name + "(" + errorCursor.getAttrValue("line") + ")",
-                        errorCursor.getAttrValue("message"));
+              if (LOG.isDebugEnabled()) {
+                LOG.debug("Error in file '{}({})', with message '{}'",
+                  name,
+                  errorCursor.getAttrValue("line"),
+                  errorCursor.getAttrValue("message")
+                );
+              }
             }
           }
         }

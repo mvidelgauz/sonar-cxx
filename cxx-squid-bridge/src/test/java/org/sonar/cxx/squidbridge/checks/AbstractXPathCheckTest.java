@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -23,19 +23,14 @@
  */
 package org.sonar.cxx.squidbridge.checks;
 
-import com.sonar.sslr.api.Grammar;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import com.sonar.cxx.sslr.api.Grammar;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 import static org.sonar.cxx.squidbridge.metrics.ResourceParser.scanFile;
 
-public class AbstractXPathCheckTest {
+class AbstractXPathCheckTest {
 
-  @Rule
-  public CheckMessagesVerifierRule checkMessagesVerifier = new CheckMessagesVerifierRule();
-
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
+  private final CheckMessagesVerifierRule checkMessagesVerifier = new CheckMessagesVerifierRule();
 
   private static class Check extends AbstractXPathCheck<Grammar> {
 
@@ -54,10 +49,10 @@ public class AbstractXPathCheckTest {
 
   }
 
-  private Check check = new Check();
+  private final Check check = new Check();
 
   @Test
-  public void emptyXPathCheck() {
+  void emptyXPathCheck() {
     check.xpath = "";
     check.message = "Empty XPath check.";
 
@@ -65,7 +60,7 @@ public class AbstractXPathCheckTest {
   }
 
   @Test
-  public void booleanXPathCheckWithResults() {
+  void booleanXPathCheckWithResults() {
     check.xpath = "count(//VARIABLE_DEFINITION) > 0";
     check.message = "Boolean XPath rule with results.";
 
@@ -74,7 +69,7 @@ public class AbstractXPathCheckTest {
   }
 
   @Test
-  public void booleanXPathCheckWithoutResults() {
+  void booleanXPathCheckWithoutResults() {
     check.xpath = "count(//variableDefinition) > 2";
     check.message = "Boolean XPath rule without results.";
 
@@ -82,7 +77,7 @@ public class AbstractXPathCheckTest {
   }
 
   @Test
-  public void astNodesXpathCheck() {
+  void astNodesXpathCheck() {
     check.xpath = "//VARIABLE_DEFINITION";
     check.message = "No variable definitions allowed!";
 
@@ -92,19 +87,21 @@ public class AbstractXPathCheckTest {
   }
 
   @Test
-  public void parse_error() {
+  void parseError() {
     check.xpath = "//VARIABLE_DEFINITION";
 
     checkMessagesVerifier.verify(scanFile("/checks/parse_error.mc", check).getCheckMessages());
   }
 
   @Test
-  public void wrong_xpath() {
+  void wrongXpath() {
     check.xpath = "//";
-
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("Unable to initialize the XPath engine, perhaps because of an invalid query: //");
-    scanFile("/checks/xpath.mc", check);
+    IllegalStateException thrown = catchThrowableOfType(IllegalStateException.class, () -> {
+      scanFile("/checks/xpath.mc", check);
+    });
+    assertThat(thrown)
+      .isExactlyInstanceOf(IllegalStateException.class)
+      .hasMessage("Unable to initialize the XPath engine, perhaps because of an invalid query: //");
   }
 
 }

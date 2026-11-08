@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -25,8 +25,6 @@ import java.util.Map;
 import javax.xml.stream.XMLStreamException;
 import org.codehaus.staxmate.in.SMHierarchicCursor;
 import org.codehaus.staxmate.in.SMInputCursor;
-import org.sonar.api.utils.log.Logger;
-import org.sonar.api.utils.log.Loggers;
 import org.sonar.cxx.sensors.coverage.CoverageMeasures;
 import org.sonar.cxx.sensors.coverage.CoverageParser;
 import org.sonar.cxx.sensors.utils.EmptyReportException;
@@ -37,8 +35,6 @@ import org.sonar.cxx.sensors.utils.StaxParser;
  * {@inheritDoc}
  */
 public class VisualStudioParser implements CoverageParser {
-
-  private static final Logger LOG = Loggers.get(VisualStudioParser.class);
 
   private static void collectModuleMeasures(SMInputCursor module, Map<String, CoverageMeasures> coverageData)
     throws XMLStreamException {
@@ -96,12 +92,7 @@ public class VisualStudioParser implements CoverageParser {
       int covered = !"no".equalsIgnoreCase(range.getAttrValue("covered")) ? 1 : 0;
 
       if (!sourceId.equals(lastSourceId) || builder == null) {
-        builder = coverageData.get(sourceId);
-        if (builder == null) {
-          builder = CoverageMeasures.create();
-          coverageData.put(sourceId, builder);
-        }
-
+        builder = coverageData.computeIfAbsent(sourceId, k -> CoverageMeasures.create());
         lastSourceId = sourceId;
       }
 

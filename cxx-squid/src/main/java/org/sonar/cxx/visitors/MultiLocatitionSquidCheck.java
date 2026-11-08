@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,7 +19,7 @@
  */
 package org.sonar.cxx.visitors;
 
-import com.sonar.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.Grammar;
 import java.util.HashSet;
 import java.util.Set;
 import javax.annotation.CheckForNull;
@@ -68,15 +68,28 @@ public class MultiLocatitionSquidCheck<G extends Grammar> extends SquidCheck<G> 
     sourceFile.addData(DataKey.FILE_VIOLATIONS_WITH_MULTIPLE_LOCATIONS, messages);
   }
 
+  /**
+   * Adds a multi-location issue to an explicitly given {@code SourceFile}, for a cross-file
+   * detection recorded against a file other than the one currently being visited.
+   */
+  public static void addMultiLocationViolation(SourceFile sourceFile, CxxReportIssue message) {
+    Set<CxxReportIssue> messages = getMultiLocationCheckMessages(sourceFile);
+    if (messages == null) {
+      messages = new HashSet<>();
+    }
+    messages.add(message);
+    setMultiLocationViolation(sourceFile, messages);
+  }
+
   private SourceFile getSourceFile() {
-    final SquidAstVisitorContext<G> c = getContext();
-    if (c.peekSourceCode() instanceof SourceFile) {
-      return (SourceFile) c.peekSourceCode();
+    SquidAstVisitorContext<G> c = getContext();
+    if (c.peekSourceCode() instanceof SourceFile sourceFile) {
+      return sourceFile;
     } else if (c.peekSourceCode().getParent(SourceFile.class) != null) {
       return c.peekSourceCode().getParent(SourceFile.class);
     } else {
       throw new IllegalStateException("Unable to get SourceFile on source code '"
-                                        + (c.peekSourceCode() == null ? "[NULL]" : c.peekSourceCode().getKey()) + "'");
+        + (c.peekSourceCode() == null ? "[NULL]" : c.peekSourceCode().getKey()) + "'");
     }
   }
 
@@ -107,7 +120,7 @@ public class MultiLocatitionSquidCheck<G extends Grammar> extends SquidCheck<G> 
     setMultiLocationViolation(sourceFile, messages);
   }
 
-  private static enum DataKey implements MetricDef {
+  private enum DataKey implements MetricDef {
     FILE_VIOLATIONS_WITH_MULTIPLE_LOCATIONS;
 
     @Override

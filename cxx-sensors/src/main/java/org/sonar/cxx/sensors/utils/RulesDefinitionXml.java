@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -25,20 +25,20 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import javax.annotation.Nullable;
 import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.sonar.api.platform.ServerFileSystem;
 import org.sonar.api.server.rule.RulesDefinition;
-import org.sonar.api.server.rule.RulesDefinitionXmlLoader;
-import org.sonar.api.utils.log.Logger;
-import org.sonar.api.utils.log.Loggers;
 
 /**
  * {@inheritDoc}
  */
 public class RulesDefinitionXml implements RulesDefinition {
 
-  private static final Logger LOG = Loggers.get(RulesDefinitionXml.class);
+  private static final Logger LOG = LoggerFactory.getLogger(RulesDefinitionXml.class);
 
   private final ServerFileSystem fileSystem;
   private final RulesDefinitionXmlLoader xmlRuleLoader;
@@ -77,15 +77,15 @@ public class RulesDefinitionXml implements RulesDefinition {
       xmlLoader.load(repository, xmlStream, encoding);
 
       for (var userExtensionXml : getExtensions(repositoryKey, "xml")) {
-        try ( var input = java.nio.file.Files.newInputStream(userExtensionXml.toPath())) {
+        try (var input = java.nio.file.Files.newInputStream(userExtensionXml.toPath())) {
           xmlRuleLoader.load(repository, input, encoding);
         } catch (IOException | IllegalStateException e) {
-          LOG.error("Cannot load Rules Definions '{}'", e.getMessage());
+          LOG.error("Cannot load Rules Definions '{}'", e.getMessage(), e);
         }
       }
 
       // add repository key as tag to make it possible to filter in issues by tool (tag must be a-z,0-9,-,+)
-      String tag = repositoryKey.toLowerCase().replaceAll("[^a-z0-9-+]", "-");
+      String tag = repositoryKey.toLowerCase(Locale.ENGLISH).replaceAll("[^a-z0-9-+]", "-");
       for (var rule : repository.rules()) {
         prepareRule(rule);
         rule.addTags(tag);
@@ -108,11 +108,8 @@ public class RulesDefinitionXml implements RulesDefinition {
     return files;
   }
 
-  /**
-   * Can be overridden in derived repositories to set rule properties.
-   */
   public void prepareRule(NewRule rule) {
-
+    // can be overridden in derived repositories to set rule properties
   }
 
 }

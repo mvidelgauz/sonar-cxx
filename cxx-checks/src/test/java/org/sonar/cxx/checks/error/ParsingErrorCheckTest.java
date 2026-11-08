@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,46 +20,44 @@
 package org.sonar.cxx.checks.error;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import static org.hamcrest.Matchers.containsString;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.sonar.cxx.CxxAstScanner;
 import org.sonar.cxx.checks.CxxFileTesterHelper;
 import org.sonar.cxx.config.CxxSquidConfiguration;
 import org.sonar.cxx.squidbridge.api.SourceFile;
 import org.sonar.cxx.squidbridge.checks.CheckMessagesVerifier;
 
-public class ParsingErrorCheckTest {
+class ParsingErrorCheckTest {
 
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
-  public void test_syntax_error_recognition() throws UnsupportedEncodingException, IOException {
+  void testSyntaxErrorRecognition() throws IOException {
     var squidConfig = new CxxSquidConfiguration();
     squidConfig.add(CxxSquidConfiguration.SONAR_PROJECT_PROPERTIES, CxxSquidConfiguration.ERROR_RECOVERY_ENABLED,
-                    "false");
+      "false");
 
     var tester = CxxFileTesterHelper.create("src/test/resources/checks/parsingError1.cc", ".");
     SourceFile file = CxxAstScanner
       .scanSingleInputFileConfig(tester.asInputFile(), squidConfig, new ParsingErrorCheck());
 
     CheckMessagesVerifier.verify(file.getCheckMessages())
-      .next().atLine(4).withMessageThat(containsString("Parse error"))
+      .next().atLine(4).withMessageContaining("Parse error")
       .noMore();
   }
 
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
-  public void test_syntax_error_pperror() throws UnsupportedEncodingException, IOException {
+  void testSyntaxErrorPperror() throws IOException {
     var squidConfig = new CxxSquidConfiguration();
     squidConfig.add(CxxSquidConfiguration.SONAR_PROJECT_PROPERTIES, CxxSquidConfiguration.ERROR_RECOVERY_ENABLED,
-                    "false");
+      "false");
 
     var tester = CxxFileTesterHelper.create("src/test/resources/checks/parsingError2.cc", ".");
     SourceFile file = CxxAstScanner
       .scanSingleInputFileConfig(tester.asInputFile(), squidConfig, new ParsingErrorCheck());
 
     CheckMessagesVerifier.verify(file.getCheckMessages())
-      .next().atLine(2).withMessageThat(containsString("Parse error"))
+      .next().atLine(2).withMessageContaining("Parse error")
       .noMore();
   }
 

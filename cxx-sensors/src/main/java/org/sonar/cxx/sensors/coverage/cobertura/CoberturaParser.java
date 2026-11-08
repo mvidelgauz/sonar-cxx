@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -21,15 +21,14 @@ package org.sonar.cxx.sensors.coverage.cobertura;
 
 import java.io.File;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 import javax.xml.stream.XMLStreamException;
 import org.codehaus.staxmate.in.SMHierarchicCursor;
 import org.codehaus.staxmate.in.SMInputCursor;
-import org.sonar.api.utils.log.Logger;
-import org.sonar.api.utils.log.Loggers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.sonar.cxx.sensors.coverage.CoverageMeasures;
 import org.sonar.cxx.sensors.coverage.CoverageParser;
 import org.sonar.cxx.sensors.utils.EmptyReportException;
@@ -41,25 +40,27 @@ import org.sonar.cxx.sensors.utils.StaxParser;
  */
 public class CoberturaParser implements CoverageParser {
 
-  private static final Logger LOG = Loggers.get(CoberturaParser.class);
+  private static final Logger LOG = LoggerFactory.getLogger(CoberturaParser.class);
   private static final Pattern CONDITION_PATTERN = Pattern.compile("\\((.*?)\\)");
 
-  private Path baseDir = Paths.get(".");
+  private Path baseDir = Path.of(".");
 
   /**
    * Join two paths
    *
-   * path1    | path2    | result
-   * ---------|----------|-------
-   * empty    | empty    | empty
-   * empty    | absolute | absolute path2
-   * empty    | relative | relative path2
-   * absolute | empty    | empty
-   * relative | empty    | empty
-   * absolute | absolute | absolute path2
-   * absolute | relative | absolute path1 + relative path2
-   * relative | absolute | absolute path2
-   * relative | relative | relative path1 + relative path2
+   * <pre>
+   * | path1    | path2    | result                          |
+   * |--------_-|----------|---------------------------------|
+   * | empty    | empty    | empty                           |
+   * | empty    | absolute | absolute path2                  |
+   * | empty    | relative | relative path2                  |
+   * | absolute | empty    | empty                           |
+   * | relative | empty    | empty                           |
+   * | absolute | absolute | absolute path2                  |
+   * | absolute | relative | absolute path1 + relative path2 |
+   * | relative | absolute | absolute path2                  |
+   * | relative | relative | relative path1 + relative path2 |
+   * </pre>
    *
    * @param path1 first path
    * @param path2 second path to be joined to first path
@@ -72,18 +73,18 @@ public class CoberturaParser implements CoverageParser {
     if (!path1.isAbsolute()) {
       var root = path1.getRoot();
       if (root != null && !root.toString().endsWith(File.separator)) { // special case drive letter only, e.g. c:
-        path1 = Paths.get(path1.toString(), File.separator);
+        path1 = Path.of(path1.toString(), File.separator);
       } else {
-        path1 = Paths.get(".", path1.toString());
+        path1 = Path.of(".", path1.toString());
       }
     }
     if (!path2.isAbsolute()) {
-      path2 = Paths.get(".", path2.toString());
+      path2 = Path.of(".", path2.toString());
     }
 
     var result = path1.resolve(path2).normalize();
     if (!result.isAbsolute()) {
-      result = Paths.get(".", result.toString());
+      result = Path.of(".", result.toString());
     }
 
     return result.toString();
@@ -94,10 +95,13 @@ public class CoberturaParser implements CoverageParser {
 
     while (line.getNext() != null) {
       var lineId = Integer.parseInt(line.getAttrValue("number"));
-      var noHits = Long.parseLong(line.getAttrValue("hits"));
-      if (noHits > Integer.MAX_VALUE) {
-        LOG.warn("Truncating the actual number of hits ({}) to the maximum number supported by SonarQube ({})",
-                 noHits, Integer.MAX_VALUE);
+      int noHits;
+      try {
+        noHits = Integer.parseInt(line.getAttrValue("hits"));
+      } catch (NumberFormatException e) {
+        LOG.warn(
+          "CoverageParser: Truncating the actual number of hits to the maximum number supported by SonarQube", e
+        );
         noHits = Integer.MAX_VALUE;
       }
       builder.setHits(lineId, (int) noHits);
@@ -121,7 +125,7 @@ public class CoberturaParser implements CoverageParser {
   public Map<String, CoverageMeasures> parse(File report) {
     var coverageData = new HashMap<String, CoverageMeasures>();
     try {
-      baseDir = Paths.get(".");
+      baseDir = Path.of(".");
 
       var sourceParser = new StaxParser((SMHierarchicCursor rootCursor) -> {
         try {
@@ -154,7 +158,7 @@ public class CoberturaParser implements CoverageParser {
       String sourceValue = source.getElemStringValue().trim();
       if (!sourceValue.isEmpty()) {
         // join with . to handle also special cases like drive letter only, e.g. C:
-        baseDir = Paths.get(sourceValue, ".").normalize();
+        baseDir = Path.of(sourceValue, ".").normalize();
         break;
       }
     }
@@ -170,13 +174,9 @@ public class CoberturaParser implements CoverageParser {
   private void collectFileMeasures(SMInputCursor clazz, Map<String, CoverageMeasures> coverageData)
     throws XMLStreamException {
     while (clazz.getNext() != null) {
-      String normalPath = join(baseDir, Paths.get(clazz.getAttrValue("filename")));
+      String normalPath = join(baseDir, Path.of(clazz.getAttrValue("filename")));
       if (!normalPath.isEmpty()) {
-        CoverageMeasures builder = coverageData.get(normalPath);
-        if (builder == null) {
-          builder = CoverageMeasures.create();
-          coverageData.put(normalPath, builder);
-        }
+        CoverageMeasures builder = coverageData.computeIfAbsent(normalPath, k -> CoverageMeasures.create());
         collectFileData(clazz, builder);
       }
     }

@@ -1,6 +1,8 @@
+#!/usr/bin/env python3
+
 # -*- coding: utf-8 -*-
 # SonarQube C++ Community Plugin (cxx plugin)
-# Copyright (C) 2010-2021 SonarOpenCommunity
+# Copyright (C) 2010-2026 SonarOpenCommunity
 # http://github.com/SonarOpenCommunity/sonar-cxx
 #
 # This program is free software; you can redistribute it and/or
@@ -30,10 +32,10 @@ from utils_createrules import get_cdata_capable_xml_etree
 
 SEVERITY_MAP = {
 
-    # last update: llvmorg-14-init-8123-ga875e6e1225a (git describe)
+    # last update: llvmorg-16-init-15404-g61be26154924 (git describe)
     # rule keys are in alphabetical order
 
-    "abseil-no-namespace": {"type": "CODE_SMELL", "severity": "INFO"},    
+    "abseil-no-namespace": {"type": "CODE_SMELL", "severity": "INFO"},
     "abseil-redundant-strcat-calls": {"type": "CODE_SMELL", "severity": "MINOR"},
     "abseil-str-cat-append": {"type": "CODE_SMELL", "severity": "MINOR"},
     "abseil-string-find-startswith": {"type": "CODE_SMELL", "severity": "MINOR"},
@@ -285,6 +287,34 @@ SEVERITY_MAP = {
 
 }
 
+deprecated_diag_keys = {
+    'c++11-compat': ['c++0x-compat'],
+    'c++11-extensions': ['c++0x-extensions'],
+    'c++11-narrowing': ['c++0x-narrowing'],
+    'c++14-compat': ['c++1y-compat'],
+    'c++14-extensions': ['c++1y-extensions'],
+    'c++17-compat': ['c++1z-compat'],
+    'c++17-compat-mangling': ['c++1z-compat-mangling'],
+    'c++17-extensions': ['c++1z-extensions'],
+    'c++20-compat': ['c++2a-compat'],
+    'c++20-compat-pedantic': ['c++2a-compat-pedantic'],
+    'c++20-extensions': ['c++2a-extensions'],
+    'c++23-compat': ['c++2b-compat'],
+    'c++23-extensions': ['c++2b-extensions'],
+    'c++26-compat' :['c++2c-compat'],
+    'c++26-extensions': ['c++2c-extensions'],
+    'pre-c++14-compat': ['pre-c++1y-compat'],
+    'pre-c++14-compat-pedantic': ['pre-c++1y-compat-pedantic'],
+    'pre-c++17-compat': ['pre-c++1z-compat'],
+    'pre-c++17-compat-pedantic': ['pre-c++1z-compat-pedantic'],
+    'pre-c++20-compat': ['pre-c++2a-compat'],
+    'pre-c++20-compat-pedantic': ['pre-c++2a-compat-pedantic'],
+    'pre-c++23-compat': ['pre-c++2b-compat'],
+    'pre-c++23-compat-pedantic': ['pre-c++2b-compat-pedantic'],
+    'pre-c++26-compat': ['pre-c++2c-compat'],
+    'pre-c++26-compat-pedantic': ['pre-c++2c-compat-pedantic']
+}
+
 et = get_cdata_capable_xml_etree()
 
 CLANG_TIDY_DOC_URL_BASE = "http://clang.llvm.org/extra/clang-tidy/checks/"
@@ -292,7 +322,7 @@ CLANG_TIDY_DOC_URL_BASE = "http://clang.llvm.org/extra/clang-tidy/checks/"
 
 def fix_local_urls(html, filename):
     # replace local ancors
-    html = re.sub("href=\"(?!http)#", "href=\"" +
+    html = re.sub("href=\"(?!http)(.*\\.html)??#", "href=\"" +
                   CLANG_TIDY_DOC_URL_BASE + filename + ".html#", html)
     # replace local urls
     html = re.sub("href=\"(?!http)", "href=\"" + CLANG_TIDY_DOC_URL_BASE, html)
@@ -301,25 +331,27 @@ def fix_local_urls(html, filename):
 
 def rstfile_to_description(path, filename, fix_urls):
     html = subprocess.check_output(
-        ['pandoc', path, '--no-highlight', '-f', 'rst', '-t', 'html5'])
+        ['pandoc', path, '--wrap=none', '--no-highlight', '-f', 'rst', '-t', 'html5']).decode('utf-8')
     footer = """<h2>References</h2>
 <p><a href="%s%s.html" target="_blank">clang.llvm.org</a></p>""" % (CLANG_TIDY_DOC_URL_BASE, filename)
     if fix_urls:
         html = fix_local_urls(html, filename)
 
-    html = html.decode('utf-8').replace('\r\n', '\n')    
+    html = html.replace('\r\n', '\n')
     return html + footer
 
 
 def rstfile_to_rule(path, fix_urls):
+    sys.stderr.write("[INFO] convert: '{}'\n".format(path))
     rule = et.Element('rule')
 
     filename_with_extension = os.path.basename(path)
     filename = os.path.splitext(filename_with_extension)[0]
+    containing_folder = os.path.basename(os.path.dirname(path))
 
-    key = filename
-    name = filename
-    description = rstfile_to_description(path, filename, fix_urls)
+    key = containing_folder + '-' + filename
+    name = key
+    description = rstfile_to_description(path, containing_folder + '/' + filename, fix_urls)
 
     default_issue_type = "CODE_SMELL"
     default_issue_severity = "INFO"
@@ -334,17 +366,52 @@ def rstfile_to_rule(path, fix_urls):
     if custom_severity:
         default_issue_severity = custom_severity["severity"]
         default_issue_type = custom_severity["type"]
-        
-    et.SubElement(rule, 'severity').text = default_issue_severity
-    et.SubElement(rule, 'type').text = default_issue_type   
-    if default_issue_severity != 'INFO':
-        et.SubElement(rule, 'remediationFunction').text = 'LINEAR'
-        et.SubElement(rule, 'remediationFunctionGapMultiplier').text = '5min'
-                
+
+    if default_issue_severity != 'MAJOR': # MAJOR is the default
+        et.SubElement(rule, 'severity').text = default_issue_severity
+    if default_issue_type != 'CODE_SMELL': # CODE_SMELL is the default
+        et.SubElement(rule, 'type').text = default_issue_type
+
     return rule
 
 
+def add_old_clangtidy_rules(rules):
+    rule = et.Element('rule')
+    et.SubElement(rule, 'key').text = 'clang-analyzer-core.DynamicTypePropagation'
+    et.SubElement(rule, 'name').text = 'clang-analyzer-core.DynamicTypePropagation'
+    et.SubElement(rule, 'description').append(CDATA("""<div class="title">
+<p>clang-tidy - clang-analyzer-core.DynamicTypePropagation</p>
+</div>
+<h1 id="clang-analyzer-core.dynamictypepropagation">clang-analyzer-core.DynamicTypePropagation</h1>
+<p>Generate dynamic type information</p>
+<h2>References</h2>
+<p><a href="https://releases.llvm.org/17.0.1/tools/clang/tools/extra/docs/clang-tidy/checks/clang-analyzer/core.DynamicTypePropagation.html" target="_blank">clang.llvm.org</a></p>"""))
+    et.SubElement(rule, 'severity').text = "INFO"
+    rules.append(rule)
+
+    rule = et.Element('rule')
+    et.SubElement(rule, 'key').text = 'cert-dcl21-cpp'
+    et.SubElement(rule, 'name').text = 'cert-dcl21-cpp'
+    et.SubElement(rule, 'description').append(CDATA("""<div class="title">
+<p>clang-tidy - cert-dcl21-cpp</p>
+</div>
+<h1 id="cert-dcl21-cpp">cert-dcl21-cpp</h1>
+<div class="note">
+<div class="title">
+<p>Note</p>
+</div>
+<p>This check is deprecated since it's no longer part of the CERT standard. It will be removed in <code class="interpreted-text" role="program">clang-tidy</code> version 19.</p>
+</div>
+<p>This check flags postfix <code>operator++</code> and <code>operator--</code> declarations if the return type is not a const object. This also warns if the return type is a reference type.</p>
+<p>The object returned by a postfix increment or decrement operator is supposed to be a snapshot of the object's value prior to modification. With such an implementation, any modifications made to the resulting object from calling operator++(int) would be modifying a temporary object. Thus, such an implementation of a postfix increment or decrement operator should instead return a const object, prohibiting accidental mutation of a temporary object. Similarly, it is unexpected for the postfix operator to return a reference to its previous state, and any subsequent modifications would be operating on a stale object.</p>
+<p>This check corresponds to the CERT C++ Coding Standard recommendation DCL21-CPP. Overloaded postfix increment and decrement operators should return a const object. However, all of the CERT recommendations have been removed from public view, and so their justification for the behavior of this check requires an account on their wiki to view.</p>
+<h2>References</h2>
+<p><a href="https://releases.llvm.org/18.1.0/tools/clang/tools/extra/docs/clang-tidy/checks/cert/dcl21-cpp.html" target="_blank">clang.llvm.org</a></p>"""))
+    rules.append(rule)
+
+
 def rstfiles_to_rules_xml(directory, fix_urls):
+    sys.stderr.write("[INFO] read .rst files '{}'\n".format(directory))
     rules = et.Element('rules')
     for subdir, _, files in os.walk(directory):
         for f in files:
@@ -352,12 +419,18 @@ def rstfiles_to_rules_xml(directory, fix_urls):
             if ext == ".rst" and f != "list.rst":
                 rst_file_path = os.path.join(subdir, f)
                 rules.append(rstfile_to_rule(rst_file_path, fix_urls))
+
+    add_old_clangtidy_rules(rules)
+
+    rules[:] = sorted(rules, key=lambda rule: rule.find('key').text.casefold())
+
+    sys.stderr.write("[INFO] write .xml file ...\n")
     write_rules_xml(rules, sys.stdout)
 
 
 def contains_required_fields(entry_value):
     FIELDS = ["!name", "!anonymous", "!superclasses",
-              "Class", "DefaultSeverity", "Text"]
+              "Class", "DefaultSeverity", "Summary"]
     for field in FIELDS:
         if field not in entry_value:
             return False
@@ -365,23 +438,24 @@ def contains_required_fields(entry_value):
 
 def create_template_rules(rules):
     rule_key = "CustomRuleTemplate"
-    rule_name = "Template for custom Custom rules"
-    rule_severity = SEVERITY["SEV_Warning"]["sonarqube_severity"] 
-    rule_description = """<p>Follow these steps to make your custom Custom rules available in SonarQube:</p>
+    rule_name = "Rule template for Clang-Tidy custom rules"
+    rule_severity = SEVERITY["SEV_Warning"]["sonarqube_severity"]
+    rule_description = """
+      <p>Follow these steps to make your custom rules available in SonarQube:</p>
 <ol>
   <ol>
     <li>Create a new rule in SonarQube by "copying" this rule template and specify the <code>CheckId</code> of your custom rule, a title, a description, and a default severity.</li>
     <li>Enable the newly created rule in your quality profile</li>
   </ol>
-  <li>Relaunch an analysis on your projects, et voila, your custom rules are executed!</li>
-</ol>"""
-    
+  <li>Relaunch an analysis on your projects, et voilà, your custom rules are executed!</li>
+</ol>
+      """
+
     rule = et.Element('rule')
     et.SubElement(rule, 'key').text = rule_key
     et.SubElement(rule, 'cardinality').text = "MULTIPLE"
     name = et.SubElement(rule, 'name').text=rule_name
     et.SubElement(rule, 'description').append(CDATA(rule_description))
-    et.SubElement(rule, 'severity').text = rule_severity
     rules.append(rule)
 
 def create_clang_default_rules(rules):
@@ -389,8 +463,10 @@ def create_clang_default_rules(rules):
     rule_key = "clang-diagnostic-error"
     rule_name = "clang-diagnostic-error"
     rule_type = DIAG_CLASS["CLASS_ERROR"]["sonarqube_type"]
-    rule_severity = SEVERITY["SEV_Remark"]["sonarqube_severity"] 
-    rule_description = "<p>Default compiler diagnostic for errors without an explicit check name. Compiler error, e.g header file not found.</p>"
+    rule_severity = SEVERITY["SEV_Remark"]["sonarqube_severity"]
+    rule_description = """
+      <p>Default compiler diagnostic for errors without an explicit check name. Compiler error, e.g header file not found.</p>
+      """
 
     rule = et.Element('rule')
     et.SubElement(rule, 'key').text = rule_key
@@ -399,37 +475,38 @@ def create_clang_default_rules(rules):
     et.SubElement(rule, 'severity').text = rule_severity
     et.SubElement(rule, 'type').text = rule_type
     rules.append(rule)
-  
+
     # defaults clang warning (not associated with any activation switch): warning
     rule_key = "clang-diagnostic-warning"
     rule_name = "clang-diagnostic-warning"
     rule_type = DIAG_CLASS["CLASS_WARNING"]["sonarqube_type"]
-    rule_severity = SEVERITY["SEV_Warning"]["sonarqube_severity"] 
-    rule_description = "<p>Default compiler diagnostic for warnings without an explicit check name.</p>"
+    rule_severity = SEVERITY["SEV_Warning"]["sonarqube_severity"]
+    rule_description = """
+      <p>Default compiler diagnostic for warnings without an explicit check name.</p>
+      """
 
     rule = et.Element('rule')
     et.SubElement(rule, 'key').text = rule_key
     et.SubElement(rule, 'name').text = rule_name
     et.SubElement(rule, 'description').append(CDATA(rule_description))
-    et.SubElement(rule, 'severity').text = rule_severity
-    et.SubElement(rule, 'type').text = rule_type
     rules.append(rule)
 
     # defaults clang issue (not associated with any activation switch): all other levels
     rule_key = "clang-diagnostic-unknown"
     rule_name = "clang-diagnostic-unknown"
     rule_type = DIAG_CLASS["CLASS_REMARK"]["sonarqube_type"]
-    rule_severity = SEVERITY["SEV_Remark"]["sonarqube_severity"] 
-    rule_description = "<p>(Unkown) compiler diagnostic without an explicit check name.</p>"
+    rule_severity = SEVERITY["SEV_Remark"]["sonarqube_severity"]
+    rule_description = """
+      <p>(Unknown) compiler diagnostic without an explicit check name.</p>
+      """
 
     rule = et.Element('rule')
     et.SubElement(rule, 'key').text = rule_key
     et.SubElement(rule, 'name').text = rule_name
     et.SubElement(rule, 'description').append(CDATA(rule_description))
     et.SubElement(rule, 'severity').text = rule_severity
-    et.SubElement(rule, 'type').text = rule_type
     rules.append(rule)
-    
+
 def collect_warnings(data, diag_group_id, warnings_in_group):
     diag_group = data[diag_group_id]
 
@@ -465,7 +542,7 @@ DIAG_CLASS = {"CLASS_EXTENSION": {"weight": 0, "sonarqube_type": "CODE_SMELL", "
               "CLASS_REMARK": {"weight": 0, "sonarqube_type": "CODE_SMELL", "printable": "remark"},
               "CLASS_WARNING": {"weight": 0, "sonarqube_type": "CODE_SMELL", "printable": "warning"},
               "CLASS_ERROR": {"weight": 1, "sonarqube_type": "BUG", "printable": "error"},
-              "CLASS_FATAL_ERROR": {"weight": 1, "sonarqube_type": "BUG", "printable": "fatal error"}              
+              "CLASS_FATAL_ERROR": {"weight": 1, "sonarqube_type": "BUG", "printable": "fatal error"}
               }
 
 # see Severity in JSON
@@ -498,11 +575,11 @@ def calculate_rule_type_and_severity(diagnostics):
 def generate_description(diag_group_name, diagnostics):
     html_lines = ["<p>Diagnostic text:</p>", "<ul>"]
     all_diagnostics_are_remarks = True
-    for diagnostic in sorted(diagnostics, key=lambda k: k['Text']):
+    for diagnostic in sorted(diagnostics, key=lambda k: k['Summary']):
         diag_class = diagnostic["Class"]["def"]
         all_diagnostics_are_remarks = all_diagnostics_are_remarks and (
             diag_class == "CLASS_REMARK")
-        diag_text = diagnostic["Text"]
+        diag_text = diagnostic["Summary"]
         diag_class_printable = DIAG_CLASS[diag_class]["printable"]
         diag_text_escaped = html.escape(diag_text, quote=False)
         html_lines.append("<li>%s: %s</li>" %
@@ -515,14 +592,275 @@ def generate_description(diag_group_name, diagnostics):
     return "\n".join(html_lines)
 
 
+def add_old_diagnostics_rules(rules):
+    rule = et.Element('rule')
+    et.SubElement(rule, 'key').text = 'clang-diagnostic-auto-import'
+    et.SubElement(rule, 'name').text = 'clang-diagnostic-auto-import'
+    et.SubElement(rule, 'description').append(CDATA("""<p>Diagnostic text:</p>
+<ul>
+<li>warning: treating #%select{include|import|include_next|__include_macros}0 as an import of module '%1'</li>
+</ul>
+<h2>References</h2>
+<p><a href="http://clang.llvm.org/docs/DiagnosticsReference.html#wauto-import" target="_blank">Diagnostic flags in Clang</a></p>"""))
+    et.SubElement(rule, 'severity').text = "INFO"
+    rules.append(rule)
+
+    rule = et.Element('rule')
+    et.SubElement(rule, 'key').text = 'clang-diagnostic-deprecated-experimental-coroutine'
+    et.SubElement(rule, 'name').text = 'clang-diagnostic-deprecated-experimental-coroutine'
+    et.SubElement(rule, 'description').append(CDATA("""<p>Diagnostic text:</p>
+<ul>
+<li>warning: support for std::experimental::%0 will be removed in LLVM 15; use std::%0 instead</li>
+</ul>
+<h2>References</h2>
+<p><a href="https://releases.llvm.org/16.0.0/tools/clang/docs/DiagnosticsReference.html#wdeprecated-experimental-coroutine" target="_blank">Diagnostic flags in Clang</a></p>"""))
+    et.SubElement(rule, 'severity').text = "INFO"
+    rules.append(rule)
+
+    rule = et.Element('rule')
+    et.SubElement(rule, 'key').text = 'clang-diagnostic-export-unnamed'
+    et.SubElement(rule, 'name').text = 'clang-diagnostic-export-unnamed'
+    et.SubElement(rule, 'description').append(CDATA("""<p>Diagnostic text:</p>
+<ul>
+<li>warning: ISO C++20 does not permit %select{an empty|a static_assert}0 declaration to appear in an export block</li>
+<li>warning: ISO C++20 does not permit a declaration that does not introduce any names to be exported</li>
+</ul>
+<h2>References</h2>
+<p><a href="http://clang.llvm.org/docs/DiagnosticsReference.html#wexport-unnamed" target="_blank">Diagnostic flags in Clang</a></p>"""))
+    et.SubElement(rule, 'severity').text = "INFO"
+    rules.append(rule)
+
+    rule = et.Element('rule')
+    et.SubElement(rule, 'key').text = 'clang-diagnostic-gnu-empty-initializer'
+    et.SubElement(rule, 'name').text = 'clang-diagnostic-gnu-empty-initializer'
+    et.SubElement(rule, 'description').append(CDATA("""<p>Diagnostic text:</p>
+<ul>
+<li>warning: use of GNU empty initializer extension</li>
+</ul>
+<h2>References</h2>
+<p><a href="http://clang.llvm.org/docs/DiagnosticsReference.html#wgnu-empty-initializer" target="_blank">Diagnostic flags in Clang</a></p>"""))
+    et.SubElement(rule, 'severity').text = "INFO"
+    rules.append(rule)
+
+    rule = et.Element('rule')
+    et.SubElement(rule, 'key').text = 'clang-diagnostic-ignored-pragma-optimize'
+    et.SubElement(rule, 'name').text = 'clang-diagnostic-ignored-pragma-optimize'
+    et.SubElement(rule, 'description').append(CDATA("""<p>Diagnostic text:</p>
+<ul>
+<li>warning: '#pragma optimize' is not supported</li>
+</ul>
+<h2>References</h2>
+<p><a href="http://clang.llvm.org/docs/DiagnosticsReference.html#wignored-pragma-optimize" target="_blank">Diagnostic flags in Clang</a></p>"""))
+    et.SubElement(rule, 'severity').text = "INFO"
+    rules.append(rule)
+
+    rule = et.Element('rule')
+    et.SubElement(rule, 'key').text = 'clang-diagnostic-return-std-move'
+    et.SubElement(rule, 'name').text = 'clang-diagnostic-return-std-move'
+    et.SubElement(rule, 'description').append(CDATA("""<p>Diagnostic text:</p>
+<ul>
+<li>warning: local variable %0 will be copied despite being %select{returned|thrown}1 by name</li>
+</ul>
+<h2>References</h2>
+<p><a href="http://clang.llvm.org/docs/DiagnosticsReference.html#wreturn-std-move" target="_blank">Diagnostic flags in Clang</a></p>"""))
+    et.SubElement(rule, 'severity').text = "INFO"
+    rules.append(rule)
+
+    rule = et.Element('rule')
+    et.SubElement(rule, 'key').text = 'clang-diagnostic-requires-expression'
+    et.SubElement(rule, 'name').text = 'clang-diagnostic-requires-expression'
+    et.SubElement(rule, 'description').append(CDATA("""<p>Diagnostic text:</p>
+<ul>
+<li>warning: this requires expression will only be checked for syntactic validity; did you intend to place it in a nested requirement? (add another 'requires' before the expression)</li>
+</ul>
+<h2>References</h2>
+<p><a href="https://releases.llvm.org/13.0.0/tools/clang/docs/DiagnosticsReference.html#wrequires-expression" target="_blank">Diagnostic flags in Clang</a></p>"""))
+    et.SubElement(rule, 'severity').text = "INFO"
+    rules.append(rule)
+
+    rule = et.Element('rule')
+    et.SubElement(rule, 'key').text = 'clang-diagnostic-concepts-ts-compat'
+    et.SubElement(rule, 'name').text = 'clang-diagnostic-concepts-ts-compat'
+    et.SubElement(rule, 'description').append(CDATA("""<p>Diagnostic text:</p>
+<ul>
+<li>warning: ISO C++20 does not permit the 'bool' keyword after 'concept'</li>
+</ul>
+<h2>References</h2>
+<p><a href="https://releases.llvm.org/15.0.0/tools/clang/docs/DiagnosticsReference.html#wconcepts-ts-compat" target="_blank">Diagnostic flags in Clang</a></p>"""))
+    et.SubElement(rule, 'severity').text = "INFO"
+    rules.append(rule)
+
+    rule = et.Element('rule')
+    et.SubElement(rule, 'key').text = 'clang-diagnostic-interrupt-service-routine'
+    et.SubElement(rule, 'name').text = 'clang-diagnostic-interrupt-service-routine'
+    et.SubElement(rule, 'description').append(CDATA("""<p>Diagnostic text:</p>
+<ul>
+<li>warning: interrupt service routine should only call a function with attribute 'no_caller_saved_registers'</li>
+</ul>
+<h2>References</h2>
+<p><a href="https://releases.llvm.org/17.0.1/tools/clang/docs/DiagnosticsReference.html#winterrupt-service-routine" target="_blank">Diagnostic flags in Clang</a></p>"""))
+    et.SubElement(rule, 'severity').text = "INFO"
+    rules.append(rule)
+
+    rule = et.Element('rule')
+    et.SubElement(rule, 'key').text = 'clang-diagnostic-enum-constexpr-conversion'
+    et.SubElement(rule, 'name').text = 'clang-diagnostic-enum-constexpr-conversion'
+    et.SubElement(rule, 'description').append(CDATA("""<p>Diagnostic text:</p>
+<ul>
+<li>warning: integer value %0 is outside the valid range of values [%1, %2] for the enumeration type %3</li>
+</ul>
+<h2>References</h2>
+<p><a href="https://releases.llvm.org/19.1.0/tools/clang/docs/DiagnosticsReference.html#wenum-constexpr-conversion" target="_blank">Diagnostic flags in Clang</a></p>"""))
+    et.SubElement(rule, 'severity').text = "CRITICAL"
+    rules.append(rule)
+
+    rule = et.Element('rule')
+    et.SubElement(rule, 'key').text = 'clang-diagnostic-export-using-directive'
+    et.SubElement(rule, 'name').text = 'clang-diagnostic-export-using-directive'
+    et.SubElement(rule, 'description').append(CDATA("""<p>Diagnostic text:</p>
+<ul>
+<li>warning: ISO C++20 does not permit using directive to be exported</li>
+</ul>
+<h2>References</h2>
+<p><a href="https://releases.llvm.org/16.0.0/tools/clang/docs/DiagnosticsReference.html#wexport-using-directive" target="_blank">Diagnostic flags in Clang</a></p>"""))
+    et.SubElement(rule, 'severity').text = "INFO"
+    rules.append(rule)
+
+    rule = et.Element('rule')
+    et.SubElement(rule, 'key').text = 'clang-diagnostic-fixed-enum-extension'
+    et.SubElement(rule, 'name').text = 'clang-diagnostic-fixed-enum-extension'
+    et.SubElement(rule, 'description').append(CDATA("""<p>Diagnostic text:</p>
+<ul>
+<li>warning: enumeration types with a fixed underlying type are a Clang extension</li>
+</ul>
+<h2>References</h2>
+<p><a href="https://releases.llvm.org/19.1.0/tools/clang/docs/DiagnosticsReference.html#wfixed-enum-extension" target="_blank">Diagnostic flags in Clang</a></p>"""))
+    et.SubElement(rule, 'severity').text = "INFO"
+    rules.append(rule)
+
+    rule = et.Element('rule')
+    et.SubElement(rule, 'key').text = 'clang-diagnostic-higher-precision-fp'
+    et.SubElement(rule, 'name').text = 'clang-diagnostic-higher-precision-fp'
+    et.SubElement(rule, 'description').append(CDATA("""<p>Diagnostic text:</p>
+<ul>
+<li>warning: higher precision floating-point type size has the same size than floating-point type size</li>
+</ul>
+<h2>References</h2>
+<p><a href="https://releases.llvm.org/19.1.0/tools/clang/docs/DiagnosticsReference.html#whigher-precision-fp" target="_blank">Diagnostic flags in Clang</a></p>"""))
+    et.SubElement(rule, 'severity').text = "INFO"
+    rules.append(rule)
+
+    rule = et.Element('rule')
+    et.SubElement(rule, 'key').text = 'clang-diagnostic-overriding-t-option'
+    et.SubElement(rule, 'name').text = 'clang-diagnostic-overriding-t-option'
+    et.SubElement(rule, 'description').append(CDATA("""<p>Diagnostic text:</p>
+<ul>
+<li>warning: overriding '%0' option with '%1'</li>
+</ul>
+<h2>References</h2>
+<p><a href="https://releases.llvm.org/17.0.1/tools/clang/docs/DiagnosticsReference.html#woverriding-t-option" target="_blank">Diagnostic flags in Clang</a></p>"""))
+    et.SubElement(rule, 'severity').text = "INFO"
+    rules.append(rule)
+
+    rule = et.Element('rule')
+    et.SubElement(rule, 'key').text = 'clang-diagnostic-c++23-default-comp-relaxed-constexpr'
+    et.SubElement(rule, 'name').text = 'clang-diagnostic-c++23-default-comp-relaxed-constexpr'
+    et.SubElement(rule, 'description').append(CDATA("""<p>Diagnostic text:</p>
+<ul>
+<li>warning: defaulted definition of %select{%sub{select_defaulted_comparison_kind}1|three-way comparison operator}0 that is declared %select{constexpr|consteval}2 but%select{|for which the corresponding implicit 'operator==' }0 invokes a non-constexpr comparison function is a C++23 extension</li>
+</ul>
+<h2>References</h2>
+<p><a href="https://releases.llvm.org/18.1.0/tools/clang/docs/DiagnosticsReference.html#wc-23-default-comp-relaxed-constexpr" target="_blank">Diagnostic flags in Clang</a></p>"""))
+    et.SubElement(rule, 'severity').text = "INFO"
+    rules.append(rule)
+
+    rule = et.Element('rule')
+    et.SubElement(rule, 'key').text = 'clang-diagnostic-deprecated-static-analyzer-flag'
+    et.SubElement(rule, 'name').text = 'clang-diagnostic-deprecated-static-analyzer-flag'
+    et.SubElement(rule, 'description').append(CDATA("""<p>Diagnostic text:</p>
+<ul>
+<li>warning: analyzer option '%0' is deprecated. This flag will be removed in %1, and passing this option will be an error.</li>
+<li>warning: analyzer option '%0' is deprecated. This flag will be removed in %1, and passing this option will be an error. Use '%2' instead.</li>
+</ul>
+<h2>References</h2>
+<p><a href="https://releases.llvm.org/18.1.0/tools/clang/docs/DiagnosticsReference.html#wdeprecated-static-analyzer-flag" target="_blank">Diagnostic flags in Clang</a></p>"""))
+    et.SubElement(rule, 'severity').text = "INFO"
+    rules.append(rule)
+
+    rule = et.Element('rule')
+    et.SubElement(rule, 'key').text = 'clang-diagnostic-generic-type-extension'
+    et.SubElement(rule, 'name').text = 'clang-diagnostic-generic-type-extension'
+    et.SubElement(rule, 'description').append(CDATA("""<p>Diagnostic text:</p>
+<ul>
+<li>warning: passing a type argument as the first operand to '_Generic' is a Clang extension</li>
+</ul>
+<h2>References</h2>
+<p><a href="https://releases.llvm.org/18.1.0/tools/clang/docs/DiagnosticsReference.html#wgeneric-type-extension" target="_blank">Diagnostic flags in Clang</a></p>"""))
+    et.SubElement(rule, 'severity').text = "INFO"
+    rules.append(rule)
+
+    rule = et.Element('rule')
+    et.SubElement(rule, 'key').text = 'clang-diagnostic-gnu-binary-literal'
+    et.SubElement(rule, 'name').text = 'clang-diagnostic-gnu-binary-literal'
+    et.SubElement(rule, 'description').append(CDATA("""<p>Diagnostic text:</p>
+<ul>
+<li>warning: binary integer literals are a GNU extension</li>
+</ul>
+<h2>References</h2>
+<p><a href="http://clang.llvm.org/docs/DiagnosticsReference.html#wgnu-binary-literal" target="_blank">Diagnostic flags in Clang</a></p>"""))
+    et.SubElement(rule, 'severity').text = "INFO"
+    rules.append(rule)
+
+    rule = et.Element('rule')
+    et.SubElement(rule, 'key').text = 'clang-diagnostic-gnu-offsetof-extensions'
+    et.SubElement(rule, 'name').text = 'clang-diagnostic-gnu-offsetof-extensions'
+    et.SubElement(rule, 'description').append(CDATA("""<p>Diagnostic text:</p>
+<ul>
+<li>warning: defining a type within '%select{__builtin_offsetof|offsetof}0' is a Clang extension</li>
+</ul>
+<h2>References</h2>
+<p><a href="http://clang.llvm.org/docs/DiagnosticsReference.html#wgnu-offsetof-extensions" target="_blank">Diagnostic flags in Clang</a></p>"""))
+    et.SubElement(rule, 'severity').text = "INFO"
+    rules.append(rule)
+
+    rule = et.Element('rule')
+    et.SubElement(rule, 'key').text = 'clang-diagnostic-knl-knm-isa-support-removed'
+    et.SubElement(rule, 'name').text = 'clang-diagnostic-knl-knm-isa-support-removed'
+    et.SubElement(rule, 'description').append(CDATA("""<p>Diagnostic text:</p>
+<ul>
+<li>warning: KNL, KNM related Intel Xeon Phi CPU's specific ISA's supports will be removed in LLVM 19.</li>
+</ul>
+<h2>References</h2>
+<p><a href="https://releases.llvm.org/18.1.0/tools/clang/docs/DiagnosticsReference.html#wknl-knm-isa-support-removed" target="_blank">Diagnostic flags in Clang</a></p>"""))
+    et.SubElement(rule, 'severity').text = "INFO"
+    rules.append(rule)
+
+    rule = et.Element('rule')
+    et.SubElement(rule, 'key').text = 'clang-diagnostic-undefined-arm-streaming'
+    et.SubElement(rule, 'name').text = 'clang-diagnostic-undefined-arm-streaming'
+    et.SubElement(rule, 'description').append(CDATA("""<p>Diagnostic text:</p>
+<ul>
+<li>warning: builtin call has undefined behaviour when called from a %0 function</li>
+</ul>
+<h2>References</h2>
+<p><a href="https://releases.llvm.org/18.1.0/tools/clang/docs/DiagnosticsReference.html#wundefined-arm-streaming" target="_blank">Diagnostic flags in Clang</a></p>"""))
+    et.SubElement(rule, 'severity').text = "INFO"
+    rules.append(rule)
+
+
 def diagnostics_to_rules_xml(json_file):
     rules = et.Element('rules')
-    
+
     # add a template rule
     create_template_rules(rules)
-    # add clang default warnings 
+    # add clang default warnings
     create_clang_default_rules(rules)
-    
+
+    all_deprecated_keys = []
+    for _, v in deprecated_diag_keys.items():
+        for deprecated_diag_key in v:
+            all_deprecated_keys.append(deprecated_diag_key)
+
     with open(json_file) as f:
         data = json.load(f)
         diag_groups = data["!instanceof"]["DiagGroup"]
@@ -535,6 +873,9 @@ def diagnostics_to_rules_xml(json_file):
             collect_warnings(data, diag_group_id, warnings_in_group)
 
             if not warnings_in_group:
+                continue
+
+            if data[diag_group_id]["GroupName"] in all_deprecated_keys:
                 continue
 
             # for each DiagGroup calculate the rule type and severity
@@ -551,14 +892,20 @@ def diagnostics_to_rules_xml(json_file):
             rule = et.Element('rule')
             et.SubElement(rule, 'key').text = rule_key
             et.SubElement(rule, 'name').text = rule_name
+            if data[diag_group_id]["GroupName"] in deprecated_diag_keys:
+                for deprecated_diag_key in deprecated_diag_keys[data[diag_group_id]["GroupName"]]:
+                    et.SubElement(rule, 'deprecatedKey').text = "clang-diagnostic-" + deprecated_diag_key
             et.SubElement(rule, 'description').append(CDATA(rule_description))
-            et.SubElement(rule, 'severity').text = rule_severity
-            et.SubElement(rule, 'type').text = rule_type                       
-            if rule_severity != 'INFO':
-                et.SubElement(rule, 'remediationFunction').text = 'LINEAR'
-                et.SubElement(rule, 'remediationFunctionGapMultiplier').text = '5min'
-                        
+            if rule_severity != 'MAJOR': # MAJOR is the default
+                et.SubElement(rule, 'severity').text = rule_severity
+            if rule_type != 'CODE_SMELL': # CODE_SMELL is the default
+                et.SubElement(rule, 'type').text = rule_type
+
             rules.append(rule)
+
+    add_old_diagnostics_rules(rules)
+
+    rules[:] = sorted(rules, key=lambda rule: rule.find('key').text.lower())
 
     write_rules_xml(rules, sys.stdout)
 

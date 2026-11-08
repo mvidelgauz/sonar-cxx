@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,42 +19,47 @@
  */
 package org.sonar.plugins.cxx;
 
-import com.sonar.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.Grammar;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import javax.annotation.CheckForNull;
-import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.Before;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.sonar.api.batch.rule.CheckFactory;
-import org.sonar.api.batch.rule.internal.ActiveRulesBuilder;
-import org.sonar.api.batch.rule.internal.NewActiveRule;
-import org.sonar.api.config.internal.MapSettings;
-import org.sonar.api.resources.Language;
+import org.sonar.scanner.plugin.api.impl.rule.ActiveRulesBuilder;
+import org.sonar.scanner.plugin.api.impl.rule.NewActiveRule;
 import org.sonar.api.rule.RuleKey;
 import org.sonar.api.server.rule.RulesDefinition;
 import org.sonar.check.Rule;
 import org.sonar.cxx.squidbridge.SquidAstVisitor;
+import org.sonar.cxx.squidbridge.api.CxxCustomRuleRepository;
 import org.sonar.cxx.squidbridge.checks.SquidCheck;
 
-public class CxxChecksTest {
+class CxxChecksTest {
 
   private static final String DEFAULT_REPOSITORY_KEY = "DefaultRuleRepository";
   private static final String DEFAULT_RULE_KEY = "MyRule";
   private static final String CUSTOM_REPOSITORY_KEY = "CustomRuleRepository";
   private static final String CUSTOM_RULE_KEY = "MyCustomRule";
+  private static final String REPOSITORY_KEY_CONSTANT = "ThirdPartyRuleRepository";
+  private static final String RULE_KEY_CONSTANT = "MyThirdPartyRule";
 
   private MyCustomPlSqlRulesDefinition customRulesDefinition;
   private CheckFactory checkFactory;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     var activeRules = new ActiveRulesBuilder()
       .addRule(new NewActiveRule.Builder()
         .setRuleKey(RuleKey.of(DEFAULT_REPOSITORY_KEY, DEFAULT_RULE_KEY))
         .build())
       .addRule(new NewActiveRule.Builder()
         .setRuleKey(RuleKey.of(CUSTOM_REPOSITORY_KEY, CUSTOM_RULE_KEY))
+        .build())
+      .addRule(new NewActiveRule.Builder()
+        .setRuleKey(RuleKey.of(REPOSITORY_KEY_CONSTANT, RULE_KEY_CONSTANT))
         .build())
       .build();
     checkFactory = new CheckFactory(activeRules);
@@ -66,7 +71,7 @@ public class CxxChecksTest {
 
   @SuppressWarnings("rawtypes")
   @Test
-  public void shouldReturnDefaultChecks() {
+  void shouldReturnDefaultChecks() {
     var checks = CxxChecks.createCxxCheck(checkFactory);
     checks.addChecks(DEFAULT_REPOSITORY_KEY, new ArrayList<>(Collections.singletonList(MyRule.class)));
 
@@ -79,7 +84,7 @@ public class CxxChecksTest {
   }
 
   @Test
-  public void shouldReturnCustomChecks() {
+  void shouldReturnCustomChecks() {
     var checks = CxxChecks.createCxxCheck(checkFactory);
     checks.addCustomChecks(new CustomCxxRulesDefinition[]{customRulesDefinition});
 
@@ -92,15 +97,35 @@ public class CxxChecksTest {
   }
 
   @Test
-  public void shouldWorkWithoutCustomChecks() {
+  void shouldWorkWithoutCustomChecks() {
     var checks = CxxChecks.createCxxCheck(checkFactory);
     checks.addCustomChecks(null);
     assertThat(checks.all()).isEmpty();
   }
 
+  @Test
+  void shouldReturnChecksFromCustomRuleRepository() {
+    var checks = CxxChecks.createCxxCheck(checkFactory);
+    checks.addCustomRuleRepositories(new CxxCustomRuleRepository[]{new MyThirdPartyRuleRepository()});
+
+    SquidAstVisitor<Grammar> thirdPartyCheck = check(checks, REPOSITORY_KEY_CONSTANT, RULE_KEY_CONSTANT);
+
+    assertThat(checks.all()).hasSize(1);
+    assertThat(checks.ruleKey(thirdPartyCheck)).isNotNull();
+    assertThat(checks.ruleKey(thirdPartyCheck).rule()).isEqualTo(RULE_KEY_CONSTANT);
+    assertThat(checks.ruleKey(thirdPartyCheck).repository()).isEqualTo(REPOSITORY_KEY_CONSTANT);
+  }
+
+  @Test
+  void shouldWorkWithoutCustomRuleRepositories() {
+    var checks = CxxChecks.createCxxCheck(checkFactory);
+    checks.addCustomRuleRepositories(null);
+    assertThat(checks.all()).isEmpty();
+  }
+
   @SuppressWarnings("rawtypes")
   @Test
-  public void shouldNotReturnRuleKeyIfCheckDoesNotExists() {
+  void shouldNotReturnRuleKeyIfCheckDoesNotExists() {
     var checks = CxxChecks.createCxxCheck(checkFactory);
     checks.addChecks(DEFAULT_REPOSITORY_KEY, new ArrayList<>(Collections.singletonList(MyRule.class)));
     assertThat(checks.ruleKey(new MyCustomRule())).isNull();
@@ -131,8 +156,6 @@ public class CxxChecksTest {
 
   public static class MyCustomPlSqlRulesDefinition extends CustomCxxRulesDefinition {
 
-    private static final Language LANGUAGE = new CxxLanguage(new MapSettings().asConfig());
-
     @Override
     public String repositoryName() {
       return "Custom Rule Repository";
@@ -149,9 +172,22 @@ public class CxxChecksTest {
       return new Class[]{MyCustomRule.class};
     }
 
+  }
+
+  @Rule(key = RULE_KEY_CONSTANT, name = "This is a third-party rule", description = "desc")
+  public static class MyThirdPartyRule extends SquidCheck<Grammar> {
+  }
+
+  public static class MyThirdPartyRuleRepository implements CxxCustomRuleRepository {
+
     @Override
-    public Language getLanguage() {
-      return LANGUAGE;
+    public String repositoryKey() {
+      return REPOSITORY_KEY_CONSTANT;
+    }
+
+    @Override
+    public List<Class<?>> checkClasses() {
+      return List.of(MyThirdPartyRule.class);
     }
   }
 

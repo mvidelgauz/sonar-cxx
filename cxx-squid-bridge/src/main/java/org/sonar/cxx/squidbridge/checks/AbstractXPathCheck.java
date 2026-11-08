@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -21,13 +21,14 @@
  * fork of SSLR Squid Bridge: https://github.com/SonarSource/sslr-squid-bridge/tree/2.6.1
  * Copyright (C) 2010 SonarSource / mailto: sonarqube@googlegroups.com / license: LGPL v3
  */
-package org.sonar.cxx.squidbridge.checks;
+package org.sonar.cxx.squidbridge.checks; // cxx: in use
 
 import com.google.common.base.Strings;
-import com.sonar.sslr.api.AstNode;
-import com.sonar.sslr.api.Grammar;
-import com.sonar.sslr.xpath.api.AstNodeXPathQuery;
+import com.sonar.cxx.sslr.api.AstNode;
+import com.sonar.cxx.sslr.api.Grammar;
+import com.sonar.cxx.sslr.xpath.api.AstNodeXPathQuery;
 import java.util.List;
+import javax.annotation.Nullable;
 
 public abstract class AbstractXPathCheck<G extends Grammar> extends SquidCheck<G> {
 
@@ -47,22 +48,20 @@ public abstract class AbstractXPathCheck<G extends Grammar> extends SquidCheck<G
         query = AstNodeXPathQuery.create(getXPathQuery());
       } catch (RuntimeException e) {
         throw new IllegalStateException("Unable to initialize the XPath engine, perhaps because of an invalid query: "
-                                        + xpath,
-                                        e);
+          + xpath, e);
       }
     }
   }
 
   @Override
-  public void visitFile(AstNode fileNode) {
+  public void visitFile(@Nullable AstNode fileNode) {
     if (query != null && fileNode != null) {
       List<Object> objects = query.selectNodes(fileNode);
 
       for (var object : objects) {
-        if (object instanceof AstNode) {
-          var astNode = (AstNode) object;
+        if (object instanceof AstNode astNode) {
           getContext().createLineViolation(this, getMessage(), astNode.getTokenLine());
-        } else if (object instanceof Boolean && (Boolean) object) {
+        } else if (object instanceof Boolean value && Boolean.TRUE.equals(value)) {
           getContext().createFileViolation(this, getMessage());
         }
       }

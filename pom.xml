@@ -7,12 +7,12 @@
   <parent>
     <groupId>org.sonarsource.parent</groupId>
     <artifactId>parent</artifactId>
-    <version>59.0.29</version>
+    <version>88.0.0.3367</version>
   </parent>
 
   <groupId>org.sonarsource.sonarqube-plugins.cxx</groupId>
   <artifactId>cxx</artifactId>
-  <version>2.0.7-SNAPSHOT</version>
+  <version>2.4.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Cxx</name>
@@ -32,185 +32,175 @@
 
   <developers>
     <developer>
+      <id>guwirth</id>
+      <name>Guenter Wirth</name>
+    </developer>
+    <developer>
       <id>wenns</id>
       <name>Waleri Enns</name>
-      <email>wen@contact.de</email>
     </developer>
     <developer>
       <name>Francois Dorin</name>
-      <email>f.dorin@free.fr</email>
     </developer>
     <developer>
       <id>jmecosta</id>
       <name>Jorge Costa</name>
-      <email>jmecosta@gmail.com</email>
     </developer>
     <developer>
       <name>Vincent Hardion</name>
-      <email>vincent.hardion@gmail.com</email>
     </developer>
     <developer>
       <name>Mathias Cocheril</name>
-      <email>mathias.cocheril-ext@sgcib.com</email>
     </developer>
     <developer>
       <name>JP Chemali</name>
-      <email>jshemali@hotmail.com</email>
     </developer>
     <developer>
       <name>Sylvain Hellegouarch</name>
-      <email>sh@defuze.org</email>
     </developer>
     <developer>
       <name>Przemyslaw Kociolek</name>
-      <email>przemyslaw.kociolek@sabre.com</email>
     </developer>
     <developer>
       <name>Patrick Gansterer</name>
-      <email>paroga@paroga.com</email>
     </developer>
     <developer>
       <id>Bertk</id>
       <name>Bert Kandert</name>
-      <email>bert.k@hotmail.com</email>
     </developer>
     <developer>
       <name>Wolfgang Buckel</name>
-      <email>wolfgang.buckel@siemens.com</email>
     </developer>
     <developer>
       <name>keithmarsh</name>
-      <email>bitbucket@keithmarsh.com</email>
-    </developer>
-    <developer>
-      <id>guwirth</id>
-      <name>Günter Wirth</name>
-      <email>guenter.wirth@etas.com</email>
     </developer>
     <developer>
       <id>Typz</id>
       <name>Francois Ferrand</name>
-      <email>thetypz@gmail.com</email>
     </developer>
     <developer>
       <id>lcintrat</id>
       <name>Ludovic Cintrat</name>
-      <email>lcintrat@gmail.com</email>
     </developer>
     <developer>
       <id>Zetten</id>
       <name>Peter van Zetten</name>
-      <email>peter.vanzetten@gmail.com</email>
     </developer>
     <developer>
       <id>cbagwell</id>
       <name>Chris Bagwell</name>
-      <email>chris@cnpbagwell.com</email>
     </developer>
     <developer>
       <id>mjdetullio</id>
       <name>Matthew DeTullio</name>
-      <email/>
     </developer>
     <developer>
       <id>felipebz</id>
       <name>Felipe Zorzo</name>
-      <email/>
     </developer>
     <developer>
       <id>selltc</id>
-      <name/>
-      <email/>
+      <name>selltc</name>
     </developer>
     <developer>
       <id>wichtounet</id>
       <name>Baptiste Wicht</name>
-      <email/>
     </developer>
     <developer>
       <id>arnaudsylvestre</id>
       <name>Arnaud SYLVESTRE</name>
-      <email>Arnaud.Sylvestre@gmail.com</email>
     </developer>
     <developer>
       <id>BobSilent</id>
       <name>BobSilent</name>
-      <email/>
     </developer>
     <developer>
       <id>Kochise</id>
       <name>Kochise</name>
-      <email/>
     </developer>
     <developer>
       <id>gyorb</id>
       <name>gyorb</name>
-      <email/>
     </developer>
     <developer>
       <id>nathanaelg</id>
       <name>nathanaelg</name>
-      <email/>
     </developer>
     <developer>
       <id>gena01</id>
       <name>gena01</name>
-      <email/>
     </developer>
     <developer>
       <id>MarcAntoineCRUE</id>
       <name>MarcAntoineCRUE</name>
-      <email/>
     </developer>
     <developer>
       <id>Pasick</id>
       <name>Pasick</name>
-      <email/>
     </developer>
     <developer>
       <id>stefanweiser</id>
       <name>stefanweiser</name>
-      <email/>
     </developer>
     <developer>
       <id>ericlemes</id>
       <name>Eric Lemes</name>
-      <email/>
     </developer>
     <developer>
       <id>ivangalkin</id>
       <name>ivangalkin</name>
-      <email/>
     </developer>
     <developer>
       <id>rufinio</id>
       <name>rufinio</name>
-      <email/>
     </developer>
     <developer>
       <id>moriarty</id>
       <name>Alex Moriarty</name>
-      <email/>
     </developer>
     <developer>
       <id>bloodlee</id>
       <name>Bloodlee</name>
-      <email/>
     </developer>
     <developer>
       <id>rudolfgrauberger</id>
       <name>Rudolf Grauberger</name>
-      <email/>
     </developer>
     <developer>
       <id>stalb</id>
       <name>Stéphane Talbot</name>
-      <email/>
     </developer>
     <developer>
       <id>tisoft</id>
       <name>Markus Heberling</name>
-      <email>markus@tisoft.de</email>
+    </developer>
+    <developer>
+      <id>cmorve-te</id>
+      <name>Cristian Morales Vega</name>
+    </developer>
+    <developer>
+      <id>agebert</id>
+      <name>Alfred Gebert</name>
+    </developer>
+    <developer>
+      <id>Nekto89</id>
+      <name>Marian Klymov</name>
+    </developer>
+    <developer>
+      <id>jenspopp</id>
+      <name>jenspopp</name>      
+    </developer>
+    <developer>
+      <id>opajonk</id>
+      <name>Oliver Pajonk</name>
+    </developer>
+    <developer>
+      <id>smileQiny</id>
+      <name>Smile Qy</name>
+    </developer>
+    <developer>
+      <id>kragens</id>
+      <name>kragens</name>
     </developer>
   </developers>
 
@@ -225,6 +215,7 @@
   </contributors>
 
   <modules>
+    <module>cxx-sslr</module>
     <module>cxx-squid-bridge</module>
     <module>cxx-squid</module>
     <module>cxx-checks</module>
@@ -245,119 +236,184 @@
     <url>https://github.com/SonarOpenCommunity/sonar-cxx/issues?state=open</url>
   </issueManagement>
   <ciManagement>
-    <system>Travis-CI</system>
-    <url>https://travis-ci.org/SonarOpenCommunity/sonar-cxx/</url>
+    <system>GitHub Actions</system>
+    <url>https://github.com/SonarOpenCommunity/sonar-cxx/actions</url>
   </ciManagement>
 
   <properties>
     <license.title>C++ Community Plugin (cxx plugin)</license.title>
     <license.owner>SonarOpenCommunity</license.owner>
     <license.mailto>http://github.com/SonarOpenCommunity/sonar-cxx</license.mailto>
+    <license.name>GNU LGPL v3</license.name>
+
+    <!-- properties for SonarQube Cloud analysis -->
+    <sonar.organization>sonaropencommunity</sonar.organization>
+    <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+
     <maven.test.redirectTestOutputToFile>true</maven.test.redirectTestOutputToFile>
     <sonar.artifact.path>target/${project.artifactId}-${project.version}.jar</sonar.artifact.path>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <animal.sniffer.skip>true</animal.sniffer.skip>
     <aggregate.report.dir>integration-tests/target/site/jacoco-aggregate/jacoco.xml</aggregate.report.dir>
-    <!-- versions -->
-    <sonar.version>7.9</sonar.version>
-    <java.version>11</java.version>
-    <maven.compiler.version>3.8.1</maven.compiler.version>
-    <sslr.version>1.24.0.633</sslr.version>
-    <!-- we depend on API ${sonar.version} but we keep backward compatibility with LTS -->
-    <sonarQubeMinVersion>7.9</sonarQubeMinVersion>
+
+    <!-- we depend on API ${sonar.plugin.api.version} but we keep backward compatibility to SonarQube Server LTS
+         !!!Change below only if this changes for LTS version: https://github.com/SonarSource/sonar-plugin-api!!!
+           
+         The API version is stable for the lifetime of the LTA as the Sonar Plugin API is developed
+         alongside newer versions of the Sonar products and changes / fixes are only backported
+         to the LTA - but no (breaking) changes to the Sonar Plugin API.
+         -->
+    <sonar.version>26.9.0.129388</sonar.version>
+    <sonar.plugin.api.version>14.0.0.4498</sonar.plugin.api.version>
+    
+    <!-- ensure that version fits to 'sonar.plugin.api.version'.
+         Compare changes in mvn repository: version should use same 'sonar-plugin-api' https://mvnrepository.com/artifact/org.sonarsource.scanner.engine/plugin-api-scanner-impl
+         -->
+    <sonar.scanner.version>13.15.0.6376</sonar.scanner.version>
+
+    <!-- dependencies -->
+    <ant.version>1.10.18</ant.version>
+    <asm.version>9.11.1</asm.version>
+    <assertj-core.version>3.27.7</assertj-core.version>
+    <commons-io.version>2.22.0</commons-io.version>
+    <commons-lang.version>2.6</commons-lang.version>
+    <cucumber.version>2.0.1</cucumber.version>
+    <dd-plist.version>1.30</dd-plist.version>
+    <gherkin.version>42.0.1</gherkin.version>
+    <gson.version>2.15.0</gson.version>
+    <guava.version>33.8.0-jre</guava.version>
+    <jackson-databind.version>2.22.4</jackson-databind.version>
+    <jaxen.version>2.0.6</jaxen.version>
+    <jdom2.version>2.0.6.1</jdom2.version>
+    <jsr305.version>3.0.2</jsr305.version>
+    <junit-jupiter.version>6.1.3</junit-jupiter.version>
+    <mockito-all.version>1.10.19</mockito-all.version>
+    <mockito-core.version>5.24.0</mockito-core.version>
+    <sonar-colorizer.version>5.1</sonar-colorizer.version>
+    <staxmate.version>2.4.2</staxmate.version>
+    <stax2-api.version>4.3.2</stax2-api.version>
+    <tag-expressions.version>11.0.1</tag-expressions.version>
+    <woodstox-core.version>7.3.0</woodstox-core.version>
+
+    <!-- plugins -->
+    <java.version>21</java.version>
+    <jython-standalone.version>2.7.4</jython-standalone.version>
+    <lifecycle-mapping.version>1.0.0</lifecycle-mapping.version>
+    <maven-compiler.version>3.16.0</maven-compiler.version>
+    <maven-dependency.version>3.11.0</maven-dependency.version>
+    <maven-jacoco.version>0.8.16</maven-jacoco.version>
+    <maven-jar.version>3.5.1</maven-jar.version>
+    <maven-license.version>5.1.2</maven-license.version>
+    <maven-project.version>2.2.1</maven-project.version>
+    <maven-python-test.version>1.0</maven-python-test.version>
+    <maven-shade.version>3.6.2</maven-shade.version>
+    <maven-sonar.version>5.8.0.7211</maven-sonar.version>
+
   </properties>
 
   <dependencyManagement>
     <dependencies>
 
       <dependency>
-        <groupId>org.sonarsource.sonarqube</groupId>
+        <groupId>org.sonarsource.api.plugin</groupId>
         <artifactId>sonar-plugin-api</artifactId>
-        <version>${sonar.version}</version>
+        <version>${sonar.plugin.api.version}</version>
         <scope>provided</scope>
       </dependency>
       <dependency>
-        <groupId>commons-io</groupId>
-        <artifactId>commons-io</artifactId>
-        <version>2.11.0</version>
+        <groupId>org.sonarsource.api.plugin</groupId>
+        <artifactId>sonar-plugin-api-test-fixtures</artifactId>
+        <version>${sonar.plugin.api.version}</version>
       </dependency>
       <dependency>
-        <groupId>commons-lang</groupId>
-        <artifactId>commons-lang</artifactId>
-        <version>2.6</version>
+        <groupId>org.sonarsource.scanner.engine</groupId>
+        <artifactId>plugin-api-scanner-impl</artifactId>
+        <version>${sonar.scanner.version}</version>
+        <scope>test</scope>
       </dependency>
+      <dependency>
+        <groupId>org.sonarsource.scanner.engine</groupId>
+        <artifactId>sensor-test-fixtures</artifactId>
+        <version>${sonar.scanner.version}</version>
+        <scope>test</scope>
+      </dependency> 
       <dependency>
         <groupId>org.sonarsource.sonarqube</groupId>
         <artifactId>sonar-testing-harness</artifactId>
         <version>${sonar.version}</version>
+        <scope>test</scope>
       </dependency>
 
       <dependency>
-        <groupId>org.sonarsource.sslr</groupId>
-        <artifactId>sslr-core</artifactId>
-        <version>${sslr.version}</version>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>2.0.20</version>
+        <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.sonarsource.sslr</groupId>
-        <artifactId>sslr-xpath</artifactId>
-        <version>${sslr.version}</version>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-classic</artifactId>
+        <version>1.6.6</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>commons-io</groupId>
+        <artifactId>commons-io</artifactId>
+        <version>${commons-io.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.sonarsource.sslr</groupId>
-        <artifactId>sslr-testing-harness</artifactId>
-        <version>${sslr.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>cglib</groupId>
-            <artifactId>cglib-nodep</artifactId>
-          </exclusion>
-        </exclusions>
+        <groupId>commons-lang</groupId>
+        <artifactId>commons-lang</artifactId>
+        <version>${commons-lang.version}</version>
       </dependency>
       <dependency>
-        <groupId>junit</groupId>
-        <artifactId>junit</artifactId>
-        <version>4.13.2</version>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter</artifactId>
+        <version>${junit-jupiter.version}</version>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.assertj</groupId>
         <artifactId>assertj-core</artifactId>
-        <version>3.22.0</version>
+        <version>${assertj-core.version}</version>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.mockito</groupId>
         <artifactId>mockito-core</artifactId>
-        <version>3.11.2</version>
+        <version>${mockito-core.version}</version>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.apache.maven</groupId>
         <artifactId>maven-project</artifactId>
-        <version>2.2.1</version>
+        <version>${maven-project.version}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.ant</groupId>
         <artifactId>ant</artifactId>
-        <version>1.10.12</version>
+        <version>${ant.version}</version>
       </dependency>
       <dependency>
         <groupId>org.jdom</groupId>
         <artifactId>jdom2</artifactId>
-        <version>2.0.6</version>
-      </dependency>
-      <dependency>
-        <groupId>org.hamcrest</groupId>
-        <artifactId>hamcrest-all</artifactId>
-        <version>1.3</version>
+        <version>${jdom2.version}</version>
       </dependency>
       <dependency>
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
-        <version>30.1.1-jre</version>
+        <version>${guava.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.code.findbugs</groupId>
+        <artifactId>jsr305</artifactId>
+        <version>${jsr305.version}</version>
       </dependency>
       <dependency>
         <groupId>com.google.code.gson</groupId>
         <artifactId>gson</artifactId>
-        <version>2.8.9</version>
-        <scope>compile</scope>
+        <version>${gson.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -369,7 +425,7 @@
         <plugin>
           <groupId>org.eclipse.m2e</groupId>
           <artifactId>lifecycle-mapping</artifactId>
-          <version>1.0.0</version>
+          <version>${lifecycle-mapping.version}</version>
           <configuration>
             <lifecycleMappingMetadata>
               <pluginExecutions>
@@ -393,12 +449,12 @@
         <plugin>
           <groupId>com.mycila</groupId>
           <artifactId>license-maven-plugin</artifactId>
-          <version>4.1</version>
+          <version>${maven-license.version}</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>${maven.compiler.version}</version>
+          <version>${maven-compiler.version}</version>
           <configuration>
             <encoding>UTF-8</encoding>
             <showDeprecation>true</showDeprecation>
@@ -409,17 +465,17 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-dependency-plugin</artifactId>
-          <version>3.2.0</version>
+          <version>${maven-dependency.version}</version>
         </plugin>
         <plugin>
           <groupId>org.sonarsource.scanner.maven</groupId>
           <artifactId>sonar-maven-plugin</artifactId>
-          <version>3.9.0.2155</version>
+          <version>${maven-sonar.version}</version>
         </plugin>
         <plugin>
           <groupId>org.jacoco</groupId>
           <artifactId>jacoco-maven-plugin</artifactId>
-          <version>0.8.7</version>
+          <version>${maven-jacoco.version}</version>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -433,7 +489,18 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
       </plugin>
-    </plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.6.1</version>
+        <configuration>
+          <argLine>
+            @{argLine}
+            --add-opens=java.base/java.lang=ALL-UNNAMED
+            --add-opens=java.base/java.util=ALL-UNNAMED
+          </argLine>
+        </configuration>
+      </plugin>    </plugins>
   </build>
   <!-- BEGIN: Specific to mapping unit tests and covered code -->
   <profiles>

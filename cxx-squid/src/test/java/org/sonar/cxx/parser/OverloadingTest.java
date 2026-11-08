@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,12 +19,12 @@
  */
 package org.sonar.cxx.parser;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class OverloadingTest extends ParserBaseTestHelper {
+class OverloadingTest extends ParserBaseTestHelper {
 
   @Test
-  public void operatorFunctionId_reallife() {
+  void operatorFunctionIdReallife() {
     setRootRule(CxxGrammarImpl.operatorFunctionId);
 
     assertThatParser()
@@ -32,7 +32,7 @@ public class OverloadingTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void operator() {
+  void operator() {
     setRootRule(CxxGrammarImpl.operator);
 
     assertThatParser()
@@ -46,7 +46,7 @@ public class OverloadingTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void literalOperatorId_reallife() {
+  void literalOperatorIdReallife() {
     setRootRule(CxxGrammarImpl.literalOperatorId);
 
     assertThatParser()

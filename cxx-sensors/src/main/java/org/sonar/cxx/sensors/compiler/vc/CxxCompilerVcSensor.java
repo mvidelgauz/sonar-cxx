@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -23,10 +23,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import org.sonar.api.batch.sensor.SensorDescriptor;
 import org.sonar.api.config.PropertyDefinition;
-import org.sonar.api.resources.Qualifiers;
 import org.sonar.cxx.sensors.compiler.CxxCompilerSensor;
+import org.sonar.cxx.sensors.utils.CxxReportSensor;
 
 public class CxxCompilerVcSensor extends CxxCompilerSensor {
 
@@ -35,24 +36,21 @@ public class CxxCompilerVcSensor extends CxxCompilerSensor {
   public static final String REPORT_REGEX_DEF = "sonar.cxx.vc.regex";
   public static final String REPORT_ENCODING_DEF = "sonar.cxx.vc.encoding";
   public static final String DEFAULT_ENCODING_DEF = StandardCharsets.UTF_8.name();
-  public static final String DEFAULT_REGEX_DEF
-                               = "(?>[^>]*+>)?(?<file>(?>[^\\\\]{1,260}\\\\)*[^\\\\]{1,260})"
-                                   + "\\((?<line>\\d{1,5})\\)\\x20?:\\x20warning\\x20(?<id>C\\d{4,5}):"
-                                   + "\\x20?(?<message>.*)";
+  public static final String DEFAULT_REGEX_DEF = """
+    (?>[^>]*+>)?(?<file>(?>[^\\\\]{1,260}\\\\)*[^\\\\]{1,260})\\((?<line>\\d{1,5})\\)\\x20?:\
+    \\x20warning\\x20(?<id>C\\d{4,5}):\\x20?(?<message>.*)""";
 
   public static List<PropertyDefinition> properties() {
-    var category = "CXX External Analyzers";
     var subcategory = "Visual C++";
     return Collections.unmodifiableList(Arrays.asList(
       PropertyDefinition.builder(REPORT_PATH_KEY)
         .name("Visual C++ Compiler Report(s)")
-        .description(
-          "Comma-separated paths (absolute or relative to the project base directory) to `*.log` files with"
-            + " `Visual Studio` warnings. Ant patterns are accepted for relative paths."
-        )
-        .category(category)
+        .description("""
+                     Comma-separated paths (absolute or relative to the project base directory) to `*.log` files with \
+                     `Visual Studio` warnings. Ant patterns are accepted for relative paths.""")
+        .category(CxxReportSensor.CATEGORY)
         .subCategory(subcategory)
-        .onQualifiers(Qualifiers.PROJECT)
+        .onConfigScopes(Set.of(PropertyDefinition.ConfigScope.PROJECT))
         .multiValues(true)
         .build(),
       PropertyDefinition.builder(REPORT_ENCODING_DEF)
@@ -61,19 +59,18 @@ public class CxxCompilerVcSensor extends CxxCompilerSensor {
         .description(
           "Defines the encoding to be used to read the files from `sonar.cxx.vc.reportPaths` (default is `UTF-8`)."
         )
-        .category(category)
+        .category(CxxReportSensor.CATEGORY)
         .subCategory(subcategory)
-        .onQualifiers(Qualifiers.PROJECT)
+        .onConfigScopes(Set.of(PropertyDefinition.ConfigScope.PROJECT))
         .build(),
       PropertyDefinition.builder(REPORT_REGEX_DEF)
         .name("VC Regular Expression")
-        .description(
-          "Java regular expressions to parse the `Visual Studio` warnings. You can use the named-capturing groups"
-            + " `<file>`, `<line>`, `<column>`, `<id>` and `<message>`."
-        )
-        .category(category)
+        .description("""
+                     Java regular expressions to parse the `Visual Studio` warnings. You can use the named-capturing \
+                     groups `<file>`, `<line>`, `<column>`, `<id>` and `<message>`.""")
+        .category(CxxReportSensor.CATEGORY)
         .subCategory(subcategory)
-        .onQualifiers(Qualifiers.PROJECT)
+        .onConfigScopes(Set.of(PropertyDefinition.ConfigScope.PROJECT))
         .build()
     ));
   }

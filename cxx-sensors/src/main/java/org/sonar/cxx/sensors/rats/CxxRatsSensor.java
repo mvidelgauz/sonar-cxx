@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import javax.annotation.Nullable;
 import javax.xml.XMLConstants;
 import org.jdom2.Element;
@@ -33,9 +34,8 @@ import org.jdom2.input.sax.XMLReaders;
 import org.sonar.api.batch.sensor.SensorDescriptor;
 import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.resources.Qualifiers;
-import org.sonar.api.utils.log.Logger;
-import org.sonar.api.utils.log.Loggers;
 import org.sonar.cxx.sensors.utils.CxxIssuesReportSensor;
+import org.sonar.cxx.sensors.utils.CxxReportSensor;
 import org.sonar.cxx.sensors.utils.InvalidReportException;
 import org.sonar.cxx.utils.CxxReportIssue;
 
@@ -45,22 +45,19 @@ import org.sonar.cxx.utils.CxxReportIssue;
 public class CxxRatsSensor extends CxxIssuesReportSensor {
 
   public static final String REPORT_PATH_KEY = "sonar.cxx.rats.reportPaths";
-
-  private static final Logger LOG = Loggers.get(CxxRatsSensor.class);
   private static final String MISSING_RATS_TYPE = "fixed size global buffer";
 
   public static List<PropertyDefinition> properties() {
     return Collections.unmodifiableList(Arrays.asList(
       PropertyDefinition.builder(REPORT_PATH_KEY)
         .name("RATS Report(s)")
-        .description(
-          "Comma-separated paths (absolute or relative to the project base directory) to `*.xml` files with"
-            + " `RATS` issues. Ant patterns are accepted for relative paths."
-            + " In the SonarQube UI, enter one entry per field."
-        )
-        .category("CXX External Analyzers")
+        .description("""
+          Comma-separated paths (absolute or relative to the project base directory) to `*.xml` files with \
+          `RATS` issues. Ant patterns are accepted for relative paths. In the SonarQube UI, enter one \
+          entry per field.""")
+        .category(CxxReportSensor.CATEGORY)
         .subCategory("RATS")
-        .onQualifiers(Qualifiers.PROJECT)
+        .onConfigScopes(Set.of(PropertyDefinition.ConfigScope.PROJECT))
         .multiValues(true)
         .build()
     ));

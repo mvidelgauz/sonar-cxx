@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -23,109 +23,117 @@
  */
 package org.sonar.cxx.squidbridge.api;
 
-import static org.fest.assertions.Assertions.assertThat;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import org.junit.Before;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class SourceCodeTest {
+class SourceCodeTest {
 
-  private SourceProject prj;
-  private SourcePackage pac;
-  private SourcePackage pac2;
-  private SourceCode cla;
-  private SourceCode cla2;
+  private SourceProject sourceProject;
+  private SourceFile sourceFile1;
+  private SourceFile sourceFile2;
+  private SourceCode sourceClass1;
+  private SourceCode sourceClass2;
 
-  @Before
-  public void before() {
-    prj = new SourceProject("dummy project");
-    pac = new SourcePackage("org.sonar");
-    pac2 = new SourcePackage("org.sonar2");
-    pac2 = new SourcePackage("org.sonar2");
-    cla = new SourceClass("org.sonar.Toto", "Toto");
-    cla2 = new SourceClass("org.sonar2.Tata", "Tata");
-    prj.addChild(pac);
-    prj.addChild(pac2);
-    pac.addChild(cla);
-    pac.addChild(cla2);
+  @BeforeEach
+  void setUp() {
+    sourceProject = new SourceProject("ProjectKey", "Demo");
+    sourceFile1 = new SourceFile("src/test/FileName1.cpp", "FileName1.cpp");
+    sourceFile2 = new SourceFile("src/test/FileName2.cpp", "FileName2.cpp");
+    sourceClass1 = new SourceClass("ClassName1:1", "ClassName1");
+    sourceClass2 = new SourceClass("ClassName2:1", "ClassName2");
+    sourceProject.addChild(sourceFile1);
+    sourceProject.addChild(sourceFile2);
+    sourceFile1.addChild(sourceClass1);
+    sourceFile1.addChild(sourceClass2);
   }
 
   @Test
-  public void testAddChild() {
-    prj.addChild(pac);
-    assertEquals(pac.getParent(), prj);
-    assertTrue(prj.getChildren().contains(pac));
+  void testAddChild() {
+    sourceProject.addChild(sourceFile1);
+    assertThat(sourceFile1.getParent()).isEqualTo(sourceProject);
+    assertThat(sourceProject.getChildren()).contains(sourceFile1);
   }
 
   @Test
-  public void testEqualsAndHashCode() {
-    assertThat(prj).isNotEqualTo(pac);
-    assertThat(prj.hashCode()).isNotEqualTo(pac.hashCode());
-    assertThat(prj).isNotEqualTo(new Object());
+  void testEqualsAndHashCode() {
+    assertThat(sourceProject).isNotEqualTo(sourceFile1);
+    assertThat(sourceProject.hashCode()).isNotEqualTo(sourceFile1.hashCode());
+    assertThat(sourceProject).isNotEqualTo(new Object());
 
-    SourceCode samePac = new SourcePackage("org.sonar");
-    assertThat(pac).isEqualTo(samePac);
-    assertThat(pac.hashCode()).isEqualTo(samePac.hashCode());
+    var sameFile = new SourceFile("src/test/FileName1.cpp", "FileName1.cpp");
+    assertThat(sourceFile1)
+      .isEqualTo(sameFile)
+      .hasSameHashCodeAs(sameFile);
   }
 
   @Test
-  public void testContains() {
-    assertThat(prj.hasChild(pac), is(true));
-    assertThat(prj.hasChild(cla), is(true));
+  void testContains() {
+    assertThat(sourceProject.hasChild(sourceFile1)).isTrue();
+    assertThat(sourceProject.hasChild(sourceClass1)).isTrue();
+    assertThat(sourceProject.hasChild(sourceClass2)).isTrue();
   }
 
   @Test
-  public void testIsType() {
-    var pacFrom = new SourcePackage("org.from");
-    assertFalse(pacFrom.isType(SourceCode.class));
-    assertFalse(pacFrom.isType(SourceClass.class));
-    assertTrue(pacFrom.isType(SourcePackage.class));
+  void testIsType() {
+    assertThat(sourceFile2)
+      .isNotExactlyInstanceOf(SourceCode.class)
+      .isNotExactlyInstanceOf(SourceClass.class)
+      .isExactlyInstanceOf(SourceFile.class);
   }
 
   @Test
-  public void testGetParentByType() {
-    var pacFrom = new SourcePackage("org.from");
-    var fileFrom = new SourceFile("org.from.From.java", "From.java");
-    var classFrom = new SourceClass("org.from.From", "From");
-    pacFrom.addChild(fileFrom);
+  void testGetParentByType() {
+    var fileFrom = new SourceFile("src/test/FileName4.cpp", "FileName4.cpp");
+    var classFrom = new SourceClass("ClassName3:1", "ClassName3");
+    var methodFrom = new SourceFunction(classFrom, "methodSignature", null, 1);
     fileFrom.addChild(classFrom);
-    assertEquals(pacFrom, classFrom.getParent(SourcePackage.class));
+    classFrom.addChild(methodFrom);
+    assertThat(fileFrom).isEqualTo(methodFrom.getParent(SourceFile.class));
   }
 
   @Test
-  public void testGetAncestorByType() {
-    var file = new SourceFile("org.from.From.java", "From.java");
-    var class1 = new SourceClass("org.from.From", "From");
-    var class2 = new SourceClass("org.from.From$Foo", "From$Foo");
-    var method = new SourceMethod(class2, "foo()", 10);
+  void testGetAncestorByType() {
+    var file = new SourceFile("src/test/FileName5.cpp", "FileName5.cpp");
+    var class1 = new SourceClass("ClassName3:1", "ClassName3");
+    var class2 = new SourceClass("ClassName4:1", "ClassName4");
+    var method = new SourceFunction(class2, "methodSignature", null, 10);
     file.addChild(class1);
     class1.addChild(class2);
     class2.addChild(method);
 
-    assertEquals(file, class1.getAncestor(SourceFile.class));
-    assertEquals(class1, class2.getAncestor(SourceClass.class));
-    assertEquals(file, class2.getAncestor(SourceFile.class));
-    assertEquals(class1, method.getAncestor(SourceClass.class));
-    assertEquals(file, method.getAncestor(SourceFile.class));
+    assertThat(file).isEqualTo(class1.getAncestor(SourceFile.class));
+    assertThat(class1).isEqualTo(class2.getAncestor(SourceClass.class));
+    assertThat(file).isEqualTo(class2.getAncestor(SourceFile.class));
+    assertThat(class1).isEqualTo(method.getAncestor(SourceClass.class));
+    assertThat(file).isEqualTo(method.getAncestor(SourceFile.class));
   }
 
   @Test
-  public void testHasAmongParents() {
-    assertTrue(cla.hasAmongParents(prj));
-    assertTrue(cla.hasAmongParents(pac));
-    assertFalse(prj.hasAmongParents(cla));
+  void testHasAmongParents() {
+    assertThat(sourceClass1.hasAmongParents(sourceProject)).isTrue();
+    assertThat(sourceClass1.hasAmongParents(sourceFile1)).isTrue();
+    assertThat(sourceProject.hasAmongParents(sourceClass1)).isFalse();
   }
 
   @Test
-  public void getCheckMessages() {
-    SourceCode foo = new SourceFile("Foo.java");
-    assertThat(foo.getCheckMessages().size(), is(0));
+  void getCheckMessages() {
+    SourceCode foo = new SourceFile("src/test/FileName3.cpp", "FileName3.cpp");
+    assertThat(foo.getCheckMessages()).isEmpty();
 
     foo.log(new CheckMessage(null, "message"));
-    assertThat(foo.getCheckMessages().size(), is(1));
+    assertThat(foo.getCheckMessages()).hasSize(1);
+  }
+
+  @Test
+  void keyTest() {
+    var file1 = new SourceFile("src/test/FileName.cpp", "FileName.cpp");
+    var class1 = new SourceClass(file1, "classKey", null, 10);
+    file1.addChild(class1);
+    var method1 = new SourceFunction(class1, "methodKey", null, 20);
+    class1.addChild(method1);
+    assertThat(file1.getKey()).isEqualTo("src/test/FileName.cpp");
+    assertThat(class1.getKey()).isEqualTo("src/test/FileName.cpp@classKey:10");
+    assertThat(method1.getKey()).isEqualTo("src/test/FileName.cpp@classKey:10@methodKey:20");
   }
 }

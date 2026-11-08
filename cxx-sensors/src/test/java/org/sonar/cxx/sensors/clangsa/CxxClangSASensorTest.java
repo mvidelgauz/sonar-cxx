@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,94 +20,71 @@
 package org.sonar.cxx.sensors.clangsa;
 
 import com.google.common.collect.Iterables;
-import java.util.Collections;
-import org.apache.commons.lang.RandomStringUtils;
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 import org.assertj.core.api.SoftAssertions;
-import org.junit.Before;
-import org.junit.Test;
-import org.sonar.api.batch.fs.internal.DefaultFileSystem;
-import org.sonar.api.batch.fs.internal.TestInputFileBuilder;
-import org.sonar.api.batch.sensor.internal.DefaultSensorDescriptor;
-import org.sonar.api.batch.sensor.internal.SensorContextTester;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.sonar.scanner.plugin.api.impl.fs.DefaultFileSystem;
+import org.sonar.scanner.plugin.api.impl.sensor.DefaultSensorDescriptor;
+import com.sonarsource.scanner.engine.sensor.test.fixtures.SensorContextTester;
 import org.sonar.api.batch.sensor.issue.Issue;
 import org.sonar.api.batch.sensor.issue.Issue.Flow;
 import org.sonar.api.batch.sensor.issue.IssueLocation;
-import org.sonar.api.config.internal.MapSettings;
+import org.sonar.scanner.plugin.api.impl.config.MapSettings;
 import org.sonar.cxx.sensors.utils.CxxReportSensor;
 import org.sonar.cxx.sensors.utils.TestUtils;
+import static org.sonar.cxx.sensors.utils.TestUtils.createTestInputFile;
 
-public class CxxClangSASensorTest {
+class CxxClangSASensorTest {
 
   private DefaultFileSystem fs;
   private final MapSettings settings = new MapSettings();
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     fs = TestUtils.mockFileSystem();
     settings.setProperty(CxxReportSensor.ERROR_RECOVERY_KEY, true);
   }
 
   @Test
-  public void shouldIgnoreIssuesIfResourceNotFound() {
+  void shouldIgnoreIssuesIfResourceNotFound() {
     var context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(CxxClangSASensor.REPORT_PATH_KEY, "clangsa-reports/clangsa-empty.plist");
     context.setSettings(settings);
 
-    var sensor = new CxxClangSASensor();
+    var sensor = new CxxClangSASensor().setWebApi(null);
     sensor.execute(context);
 
     assertThat(context.allIssues()).isEmpty();
   }
 
   @Test
-  public void shouldReportCorrectViolations() {
+  void shouldReportCorrectViolations() {
     var context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(CxxClangSASensor.REPORT_PATH_KEY, "clangsa-reports/clangsa-report.plist");
     context.setSettings(settings);
 
-    /*
-     * 2 issues
-     */
-    var testFile0 = TestInputFileBuilder.create("ProjectKey", "src/lib/component0.cc").setLanguage("cxx")
-      .initMetadata("asd\nasdghzui\nasd\nasd\nasdghtlout\nasdghtkouilh\nasd\nasdkhgkjgkjhgjg\nasd\n").build();
-    /*
-     * 1 issue
-     */
-    var testFile1 = TestInputFileBuilder.create("ProjectKey", "src/lib/component1.cc").setLanguage("cxx")
-      .initMetadata("asd\nasdas\nasdaghtzutiojklmg\n").build();
+    context.fileSystem().add(createTestInputFile("src/lib/component0.cc", 9));
+    context.fileSystem().add(createTestInputFile("src/lib/component1.cc", 3));
 
-    context.fileSystem().add(testFile0);
-    context.fileSystem().add(testFile1);
-
-    var sensor = new CxxClangSASensor();
+    var sensor = new CxxClangSASensor().setWebApi(null);
     sensor.execute(context);
 
     assertThat(context.allIssues()).hasSize(3);
   }
 
   @Test
-  public void shouldReportCorrectFlows() {
+  void shouldReportCorrectFlows() {
     var context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(CxxClangSASensor.REPORT_PATH_KEY,
-                         "clangsa-reports/clangsa-report.plist");
+      "clangsa-reports/clangsa-report.plist");
     context.setSettings(settings);
 
-    /*
-     * 2 issues
-     */
-    var testFile0 = TestInputFileBuilder.create("ProjectKey", "src/lib/component0.cc").setLanguage("cxx")
-      .setContents(generateTestFileContents(100, 80)).build();
-    /*
-     * 1 issue
-     */
-    var testFile1 = TestInputFileBuilder.create("ProjectKey", "src/lib/component1.cc").setLanguage("cxx")
-      .setContents(generateTestFileContents(100, 80)).build();
-
+    var testFile0 = createTestInputFile("src/lib/component0.cc", 100);
     context.fileSystem().add(testFile0);
-    context.fileSystem().add(testFile1);
+    context.fileSystem().add(createTestInputFile("src/lib/component1.cc", 100));
 
-    var sensor = new CxxClangSASensor();
+    var sensor = new CxxClangSASensor().setWebApi(null);
     sensor.execute(context);
 
     assertThat(context.allIssues()).hasSize(3);
@@ -150,24 +127,23 @@ public class CxxClangSASensorTest {
   }
 
   @Test
-  public void invalidReportReportsNoIssues() {
+  void invalidReportReportsNoIssues() {
     var context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(CxxClangSASensor.REPORT_PATH_KEY, "clangsa-reports/clangsa-reportXYZ.plist");
     context.setSettings(settings);
 
-    context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "src/lib/component1.cc")
-      .setLanguage("cxx").initMetadata("asd\nasdas\nasda\n").build());
+    context.fileSystem().add(createTestInputFile("src/lib/component1.cc", 3));
 
-    var sensor = new CxxClangSASensor();
+    var sensor = new CxxClangSASensor().setWebApi(null);
     sensor.execute(context);
 
     assertThat(context.allIssues()).isEmpty();
   }
 
   @Test
-  public void sensorDescriptor() {
+  void sensorDescriptor() {
     var descriptor = new DefaultSensorDescriptor();
-    var sensor = new CxxClangSASensor();
+    var sensor = new CxxClangSASensor().setWebApi(null);
     sensor.describe(descriptor);
 
     var softly = new SoftAssertions();
@@ -175,11 +151,6 @@ public class CxxClangSASensorTest {
     softly.assertThat(descriptor.languages()).containsOnly("cxx", "cpp", "c++", "c");
     softly.assertThat(descriptor.ruleRepositories()).containsOnly(CxxClangSARuleRepository.KEY);
     softly.assertAll();
-  }
-
-  private String generateTestFileContents(int linesNum, int lineLen) {
-    String line = RandomStringUtils.randomAscii(lineLen);
-    return String.join("\n", Collections.nCopies(linesNum, line));
   }
 
 }

@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,13 +20,13 @@
 package org.sonar.cxx.sensors.infer;
 
 import com.google.gson.Gson;
-import static org.junit.Assert.assertEquals;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
-public class InferParserTest {
+class InferParserTest {
 
   @Test
-  public void shouldParseImportantInformation() {
+  void shouldParseImportantInformation() {
     var expected = new InferParser.InferIssue();
     expected.setBugType("TotoType");
     expected.setFile("path/to/toto.c");
@@ -38,7 +38,7 @@ public class InferParserTest {
     var gson = new Gson();
     InferParser.InferIssue value = gson.fromJson(json, InferParser.InferIssue.class);
 
-    assertEquals(expected.toString(), value.toString());
+    assertThat(value).hasToString(expected.toString());
   }
 
 }

@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,12 +19,12 @@
  */
 package org.sonar.cxx.parser;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class TemplatesTest extends ParserBaseTestHelper {
+class TemplatesTest extends ParserBaseTestHelper {
 
   @Test
-  public void templateDeclaration() {
+  void templateDeclaration() {
     setRootRule(CxxGrammarImpl.templateDeclaration);
 
     mockRule(CxxGrammarImpl.templateHead);
@@ -37,7 +37,7 @@ public class TemplatesTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void templateDeclaration_reallife() {
+  void templateDeclarationReallife() {
     setRootRule(CxxGrammarImpl.templateDeclaration);
 
     assertThatParser()
@@ -55,7 +55,7 @@ public class TemplatesTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void templateHead() {
+  void templateHead() {
     setRootRule(CxxGrammarImpl.templateHead);
 
     mockRule(CxxGrammarImpl.templateParameterList);
@@ -68,14 +68,18 @@ public class TemplatesTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void templateHead_reallife() {
+  void templateHeadReallife() {
     setRootRule(CxxGrammarImpl.templateHead);
 
-    assertThatParser().matches("template<typename T> requires Addable<T>");
+    assertThatParser()
+      .matches("template<typename T> requires Addable<T>")
+      // issue #2317
+      .matches("template <typename T, size_t s = sizeof(T)*2 >")
+      .matches("template <typename T, size_t s = 1>2 >");
   }
 
   @Test
-  public void templateParameterList() {
+  void templateParameterList() {
     setRootRule(CxxGrammarImpl.templateParameterList);
 
     mockRule(CxxGrammarImpl.templateParameter);
@@ -86,7 +90,7 @@ public class TemplatesTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void templateParameter() {
+  void templateParameter() {
     setRootRule(CxxGrammarImpl.templateParameter);
 
     mockRule(CxxGrammarImpl.typeParameter);
@@ -98,7 +102,7 @@ public class TemplatesTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void templateParameter_reallife() {
+  void templateParameterReallife() {
     setRootRule(CxxGrammarImpl.templateParameter);
 
     // type-parameter: type-parameter-key ...opt identifieropt
@@ -126,11 +130,16 @@ public class TemplatesTest extends ParserBaseTestHelper {
       .matches("template<typename = float> typename = foo::foo")
       // parameter-declaration
       .matches("auto ... vs")
-      .matches("auto** pp0");
+      .matches("auto** pp0")
+      // issue #2317
+      .matches("size_t s = 15")
+      .matches("size_t s = sizeof(T)*2")
+      .matches("values v = v::ok")
+      .matches("T::type n = 0");
   }
 
   @Test
-  public void requiresClause() {
+  void requiresClause() {
     setRootRule(CxxGrammarImpl.requiresClause);
 
     mockRule(CxxGrammarImpl.constraintLogicalOrExpression);
@@ -139,7 +148,7 @@ public class TemplatesTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void constraintLogicalOrExpression() {
+  void constraintLogicalOrExpression() {
     setRootRule(CxxGrammarImpl.constraintLogicalOrExpression);
 
     mockRule(CxxGrammarImpl.constraintLogicalAndExpression);
@@ -150,7 +159,7 @@ public class TemplatesTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void constraintLogicalAndExpression() {
+  void constraintLogicalAndExpression() {
     setRootRule(CxxGrammarImpl.constraintLogicalAndExpression);
 
     mockRule(CxxGrammarImpl.primaryExpression);
@@ -161,7 +170,7 @@ public class TemplatesTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void typeParameter() {
+  void typeParameter() {
     setRootRule(CxxGrammarImpl.typeParameter);
 
     mockRule(CxxGrammarImpl.typeParameterKey);
@@ -190,7 +199,7 @@ public class TemplatesTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void simpleTemplateId_reallife() {
+  void simpleTemplateIdReallife() {
     setRootRule(CxxGrammarImpl.simpleTemplateId);
 
     assertThatParser()
@@ -209,7 +218,7 @@ public class TemplatesTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void typeConstraint() {
+  void typeConstraint() {
     setRootRule(CxxGrammarImpl.typeConstraint);
 
     mockRule(CxxGrammarImpl.nestedNameSpecifier);
@@ -226,7 +235,7 @@ public class TemplatesTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void templateId() {
+  void templateId() {
     setRootRule(CxxGrammarImpl.templateId);
 
     mockRule(CxxGrammarImpl.simpleTemplateId);
@@ -243,7 +252,7 @@ public class TemplatesTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void templateId_reallife() {
+  void templateIdReallife() {
     setRootRule(CxxGrammarImpl.templateId);
 
     assertThatParser()
@@ -252,7 +261,7 @@ public class TemplatesTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void templateArgumentList() {
+  void templateArgumentList() {
     setRootRule(CxxGrammarImpl.templateArgumentList);
 
     mockRule(CxxGrammarImpl.templateArgument);
@@ -265,17 +274,20 @@ public class TemplatesTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void conceptDefinition() {
+  void conceptDefinition() {
     setRootRule(CxxGrammarImpl.conceptDefinition);
 
     mockRule(CxxGrammarImpl.conceptName);
     mockRule(CxxGrammarImpl.constraintExpression);
+    mockRule(CxxGrammarImpl.attributeSpecifierSeq);
 
-    assertThatParser().matches("concept conceptName = constraintExpression ;");
+    assertThatParser()
+      .matches("concept conceptName = constraintExpression ;")
+      .matches("concept conceptName attributeSpecifierSeq = constraintExpression ;");
   }
 
   @Test
-  public void typenameSpecifier() {
+  void typenameSpecifier() {
     setRootRule(CxxGrammarImpl.typenameSpecifier);
 
     mockRule(CxxGrammarImpl.nestedNameSpecifier);
@@ -289,7 +301,7 @@ public class TemplatesTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void deductionGuide() {
+  void deductionGuide() {
     setRootRule(CxxGrammarImpl.deductionGuide);
 
     mockRule(CxxGrammarImpl.explicitSpecifier);

@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,13 +19,13 @@
  */
 package org.sonar.cxx.visitors;
 
-import com.sonar.sslr.api.AstNode;
-import com.sonar.sslr.api.AstVisitor;
-import com.sonar.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.AstNode;
+import com.sonar.cxx.sslr.api.AstVisitor;
+import com.sonar.cxx.sslr.api.Grammar;
 import java.util.List;
 import org.sonar.cxx.api.CxxMetric;
 import org.sonar.cxx.parser.CxxGrammarImpl;
-import org.sonar.cxx.preprocessor.CppPunctuator;
+import org.sonar.cxx.preprocessor.PPPunctuator;
 import org.sonar.cxx.squidbridge.SquidAstVisitor;
 
 /**
@@ -43,8 +43,8 @@ public class CxxLinesOfCodeInFunctionBodyVisitor<GRAMMAR extends Grammar> extend
 
   @Override
   public void visitNode(AstNode node) {
-    List<AstNode> allChilds = node.getDescendants(CxxGrammarImpl.statement, CppPunctuator.CURLBR_LEFT,
-                                                  CppPunctuator.CURLBR_RIGHT);
+    List<AstNode> allChilds = node.getDescendants(CxxGrammarImpl.statement, PPPunctuator.CURLBR_LEFT,
+                                                  PPPunctuator.CURLBR_RIGHT);
     var lines = 1;
     int firstLine = node.getTokenLine();
     if (allChilds != null && !allChilds.isEmpty()) {

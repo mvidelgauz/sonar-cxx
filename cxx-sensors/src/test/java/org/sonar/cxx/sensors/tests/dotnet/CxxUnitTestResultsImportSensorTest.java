@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -23,28 +23,28 @@ package org.sonar.cxx.sensors.tests.dotnet;
 // SonarQube .NET Tests Library
 // Copyright (C) 2014-2017 SonarSource SA
 // mailto:info AT sonarsource DOT com
-import static org.assertj.core.api.Assertions.assertThat;
+import java.io.File;
+import static org.assertj.core.api.Assertions.*;
 import org.assertj.core.api.SoftAssertions;
 import static org.assertj.core.groups.Tuple.tuple;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import static org.mockito.ArgumentMatchers.same;
 import org.mockito.Mockito;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import org.sonar.api.batch.sensor.internal.DefaultSensorDescriptor;
-import org.sonar.api.batch.sensor.internal.SensorContextTester;
+import org.sonar.scanner.plugin.api.impl.sensor.DefaultSensorDescriptor;
+import com.sonarsource.scanner.engine.sensor.test.fixtures.SensorContextTester;
 import org.sonar.api.measures.CoreMetrics;
 
-public class CxxUnitTestResultsImportSensorTest {
+class CxxUnitTestResultsImportSensorTest {
 
-  @Rule
-  public TemporaryFolder temp = new TemporaryFolder();
+  @TempDir
+  File tempDir;
 
   @Test
-  public void sensorDescriptor() {
+  void sensorDescriptor() {
     var descriptor = new DefaultSensorDescriptor();
     var sensor = new CxxUnitTestResultsImportSensor(mock(CxxUnitTestResultsAggregator.class));
     sensor.describe(descriptor);
@@ -56,8 +56,8 @@ public class CxxUnitTestResultsImportSensorTest {
   }
 
   @Test
-  public void analyze() throws Exception {
-    var context = SensorContextTester.create(temp.newFolder());
+  void analyze() {
+    var context = SensorContextTester.create(tempDir);
     UnitTestResults results = mock(UnitTestResults.class);
     when(results.tests()).thenReturn(42);
     when(results.passedPercentage()).thenReturn(84d);
@@ -69,7 +69,7 @@ public class CxxUnitTestResultsImportSensorTest {
     CxxUnitTestResultsAggregator unitTestResultsAggregator = mock(CxxUnitTestResultsAggregator.class);
     UnitTestConfiguration unitTestConf = mock(UnitTestConfiguration.class);
     when(unitTestResultsAggregator.aggregate(Mockito.any(WildcardPatternFileProvider.class),
-                                             Mockito.any(UnitTestResults.class), same(unitTestConf)))
+      Mockito.any(UnitTestResults.class), same(unitTestConf)))
       .thenReturn(results);
 
     var sensor = new CxxUnitTestResultsImportSensor(unitTestResultsAggregator);
@@ -77,7 +77,7 @@ public class CxxUnitTestResultsImportSensorTest {
     sensor.analyze(results, unitTestConf);
 
     verify(unitTestResultsAggregator).aggregate(Mockito.any(WildcardPatternFileProvider.class), Mockito.eq(results),
-                                                same(unitTestConf));
+      same(unitTestConf));
 
     assertThat(context.measures("projectKey"))
       .extracting("metric.key", "value")
@@ -90,8 +90,8 @@ public class CxxUnitTestResultsImportSensorTest {
   }
 
   @Test
-  public void should_not_save_metrics_with_empty_results() throws Exception {
-    var context = SensorContextTester.create(temp.newFolder());
+  void shouldNotSaveMetricsWithEmptyResults() {
+    var context = SensorContextTester.create(tempDir);
 
     CxxUnitTestResultsAggregator unitTestResultsAggregator = mock(CxxUnitTestResultsAggregator.class);
     UnitTestConfiguration unitTestConf = mock(UnitTestConfiguration.class);
@@ -102,7 +102,7 @@ public class CxxUnitTestResultsImportSensorTest {
     when(results.errors()).thenReturn(3);
     when(results.executionTime()).thenReturn(null);
     when(unitTestResultsAggregator.aggregate(Mockito.any(WildcardPatternFileProvider.class),
-                                             Mockito.any(UnitTestResults.class), same(unitTestConf)))
+      Mockito.any(UnitTestResults.class), same(unitTestConf)))
       .thenReturn(results);
 
     var sensor = new CxxUnitTestResultsImportSensor(unitTestResultsAggregator);
@@ -110,7 +110,7 @@ public class CxxUnitTestResultsImportSensorTest {
     sensor.analyze(results, unitTestConf);
 
     verify(unitTestResultsAggregator).aggregate(Mockito.any(WildcardPatternFileProvider.class), Mockito.eq(results),
-                                                same(unitTestConf));
+      same(unitTestConf));
 
     assertThat(context.measures("projectKey"))
       .extracting("metric.key", "value")

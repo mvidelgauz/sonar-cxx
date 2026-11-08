@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,15 +19,15 @@
  */
 package org.sonar.cxx.parser;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author jmecosta
  */
-public class LamdaExpressionsTest extends ParserBaseTestHelper {
+class LamdaExpressionsTest extends ParserBaseTestHelper {
 
   @Test
-  public void lambdaExpression() {
+  void lambdaExpression() {
     setRootRule(CxxGrammarImpl.lambdaExpression);
 
     mockRule(CxxGrammarImpl.lambdaIntroducer);
@@ -35,16 +35,20 @@ public class LamdaExpressionsTest extends ParserBaseTestHelper {
     mockRule(CxxGrammarImpl.compoundStatement);
     mockRule(CxxGrammarImpl.templateParameterList);
     mockRule(CxxGrammarImpl.requiresClause);
+    mockRule(CxxGrammarImpl.attributeSpecifierSeq);
 
     assertThatParser()
-      .matches("lambdaIntroducer compoundStatement")
-      .matches("lambdaIntroducer < templateParameterList > compoundStatement")
-      .matches("lambdaIntroducer < templateParameterList > requiresClause compoundStatement")
-      .matches("lambdaIntroducer lambdaDeclarator compoundStatement");
+      .matches("lambdaIntroducer lambdaDeclarator compoundStatement")
+      .matches("lambdaIntroducer attributeSpecifierSeq lambdaDeclarator compoundStatement")
+      .matches("lambdaIntroducer < templateParameterList > lambdaDeclarator compoundStatement")
+      .matches("lambdaIntroducer < templateParameterList > requiresClause lambdaDeclarator compoundStatement")
+      .matches("lambdaIntroducer < templateParameterList > attributeSpecifierSeq lambdaDeclarator compoundStatement")
+      .matches(
+        "lambdaIntroducer < templateParameterList > requiresClause attributeSpecifierSeq lambdaDeclarator compoundStatement");
   }
 
   @Test
-  public void lambdaExpression_reallife() {
+  void lambdaExpressionReallife() {
     setRootRule(CxxGrammarImpl.lambdaExpression);
 
     assertThatParser()
@@ -74,11 +78,16 @@ public class LamdaExpressionsTest extends ParserBaseTestHelper {
       .matches("[](const auto& m) { return m.size(); }")
       .matches("[value = 1] { return value; }")
       .matches("[value = std::move(ptr)] { return *value; }")
-      .matches("[&r = x, y = x+1] { r += 2; return y+2; }");
+      .matches("[&r = x, y = x+1] { r += 2; return y+2; }")
+      // C++23
+      .matches("[] mutable { }")
+      .matches("[] static { }")
+      .matches("[][[noreturn]]() { throw; }")
+      .matches("[][[nodiscard, vendor::attr]]()->int { return 42; }");
   }
 
   @Test
-  public void lambdaIntroducer() {
+  void lambdaIntroducer() {
     setRootRule(CxxGrammarImpl.lambdaIntroducer);
     mockRule(CxxGrammarImpl.lambdaCapture);
 
@@ -88,7 +97,7 @@ public class LamdaExpressionsTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void lambdaIntroducer_reallife() {
+  void lambdaIntroducerReallife() {
     setRootRule(CxxGrammarImpl.lambdaIntroducer);
 
     assertThatParser()
@@ -101,7 +110,7 @@ public class LamdaExpressionsTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void lambdaCapture() {
+  void lambdaCapture() {
     setRootRule(CxxGrammarImpl.lambdaCapture);
 
     mockRule(CxxGrammarImpl.captureDefault);
@@ -114,7 +123,7 @@ public class LamdaExpressionsTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void captureDefault() {
+  void captureDefault() {
     setRootRule(CxxGrammarImpl.captureDefault);
 
     assertThatParser()
@@ -123,7 +132,7 @@ public class LamdaExpressionsTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void captureList() {
+  void captureList() {
     setRootRule(CxxGrammarImpl.captureList);
     mockRule(CxxGrammarImpl.capture);
 
@@ -133,7 +142,7 @@ public class LamdaExpressionsTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void capture() {
+  void capture() {
     setRootRule(CxxGrammarImpl.capture);
 
     mockRule(CxxGrammarImpl.simpleCapture);
@@ -145,7 +154,7 @@ public class LamdaExpressionsTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void simpleCapture() {
+  void simpleCapture() {
     setRootRule(CxxGrammarImpl.simpleCapture);
 
     assertThatParser()
@@ -158,7 +167,7 @@ public class LamdaExpressionsTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void initCapture() {
+  void initCapture() {
     setRootRule(CxxGrammarImpl.initCapture);
     mockRule(CxxGrammarImpl.initializer);
 
@@ -170,7 +179,7 @@ public class LamdaExpressionsTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void initCapture_reallife() {
+  void initCaptureReallife() {
     setRootRule(CxxGrammarImpl.initCapture);
 
     assertThatParser()
@@ -182,9 +191,10 @@ public class LamdaExpressionsTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void lambdaDeclarator() {
+  void lambdaDeclarator() {
     setRootRule(CxxGrammarImpl.lambdaDeclarator);
 
+    mockRule(CxxGrammarImpl.lambdaSpecifierSeq);
     mockRule(CxxGrammarImpl.parameterDeclarationClause);
     mockRule(CxxGrammarImpl.noexceptSpecifier);
     mockRule(CxxGrammarImpl.attributeSpecifierSeq);
@@ -192,32 +202,28 @@ public class LamdaExpressionsTest extends ParserBaseTestHelper {
     mockRule(CxxGrammarImpl.requiresClause);
 
     assertThatParser()
-      .matches("( parameterDeclarationClause ) ") // all opt out
-
-      .matches("( parameterDeclarationClause ) mutable") // mutable in
-
-      .matches("( parameterDeclarationClause ) noexceptSpecifier") // noexceptSpecifier in
-
-      .matches("( parameterDeclarationClause ) attributeSpecifierSeq") // attributeSpecifierSeq in
-
-      .matches("( parameterDeclarationClause ) trailingReturnType") // trailingReturnType in
-
-      .matches("( parameterDeclarationClause ) mutable noexceptSpecifier") // complex 1
-
-      .matches("( parameterDeclarationClause ) mutable noexceptSpecifier attributeSpecifierSeq") // complex 2
-
+      .matches("lambdaSpecifierSeq")
+      .matches("lambdaSpecifierSeq noexceptSpecifier")
+      .matches("lambdaSpecifierSeq attributeSpecifierSeq")
+      .matches("lambdaSpecifierSeq trailingReturnType")
+      .matches("lambdaSpecifierSeq noexceptSpecifier attributeSpecifierSeq")
+      .matches("lambdaSpecifierSeq noexceptSpecifier trailingReturnType")
+      .matches("lambdaSpecifierSeq attributeSpecifierSeq trailingReturnType")
+      .matches("lambdaSpecifierSeq noexceptSpecifier attributeSpecifierSeq trailingReturnType")
+      .matches("lambdaSpecifierSeq noexceptSpecifier attributeSpecifierSeq trailingReturnType")
+      .matches("noexceptSpecifier")
+      .matches("noexceptSpecifier attributeSpecifierSeq")
+      .matches("noexceptSpecifier trailingReturnType")
+      .matches("noexceptSpecifier attributeSpecifierSeq trailingReturnType")
+      .matches("( parameterDeclarationClause )")
+      .matches("( parameterDeclarationClause ) lambdaSpecifierSeq")
+      .matches("( parameterDeclarationClause ) lambdaSpecifierSeq noexceptSpecifier")
+      .matches("( parameterDeclarationClause ) lambdaSpecifierSeq noexceptSpecifier attributeSpecifierSeq")
       .matches(
-        "( parameterDeclarationClause ) mutable noexceptSpecifier attributeSpecifierSeq trailingReturnType") // complex
-      // 3
-
-      .matches("( parameterDeclarationClause ) noexceptSpecifier attributeSpecifierSeq") // complex 4
-
-      .matches("( parameterDeclarationClause ) noexceptSpecifier attributeSpecifierSeq trailingReturnType") // complex 5
-
-      .matches("( parameterDeclarationClause ) attributeSpecifierSeq trailingReturnType") // complex 6
-
+        "( parameterDeclarationClause ) lambdaSpecifierSeq noexceptSpecifier attributeSpecifierSeq trailingReturnType")
       .matches(
-        "( parameterDeclarationClause ) noexceptSpecifier attributeSpecifierSeq trailingReturnType requiresClause");
+        "( parameterDeclarationClause ) lambdaSpecifierSeq noexceptSpecifier attributeSpecifierSeq trailingReturnType requiresClause")
+      .matches("trailingReturnType");
   }
 
 }

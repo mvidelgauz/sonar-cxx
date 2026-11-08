@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -21,7 +21,7 @@
  * fork of SSLR Squid Bridge: https://github.com/SonarSource/sslr-squid-bridge/tree/2.6.1
  * Copyright (C) 2010 SonarSource / mailto: sonarqube@googlegroups.com / license: LGPL v3
  */
-package org.sonar.cxx.squidbridge.checks;
+package org.sonar.cxx.squidbridge.checks; // cxx: in use
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Ordering;
@@ -30,20 +30,17 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Locale;
 import javax.annotation.Nullable;
-import org.hamcrest.Matcher;
 import org.sonar.cxx.squidbridge.api.CheckMessage;
 
 /**
- * Helper class for testing checks without having to deploy them on a Sonar instance.
- * It can be used as following:
+ * Helper class for testing checks without having to deploy them on a Sonar instance. It can be used as following:
  * <pre>{@code
  * CheckMessagesVerifier.verify(messages)
  *   .next().atLine(1).withMessage("foo")
  *   .next().atLine(2).withMessage("bar")
  *   .noMore();
- * }</pre>
- * Strictly speaking this is just a wrapper over collection of {@link CheckMessage},
- * which guarantees order of traversal.
+ * }</pre> Strictly speaking this is just a wrapper over collection of {@link CheckMessage}, which guarantees order of
+ * traversal.
  *
  * @see CheckMessagesVerifierRule
  * @since sslr-squid-bridge 2.1
@@ -53,24 +50,21 @@ public final class CheckMessagesVerifier {
   private final Iterator<CheckMessage> iterator;
   private CheckMessage current;
 
-  private static final Comparator<CheckMessage> ORDERING = new Comparator<CheckMessage>() {
-    @Override
-    public int compare(CheckMessage left, CheckMessage right) {
-      if (Objects.equal(left.getLine(), right.getLine())) {
-        return left.getDefaultMessage().compareTo(right.getDefaultMessage());
-      } else if (left.getLine() == null) {
-        return -1;
-      } else if (right.getLine() == null) {
-        return 1;
-      } else {
-        return left.getLine().compareTo(right.getLine());
-      }
-    }
-  };
-
   private CheckMessagesVerifier(Collection<CheckMessage> messages) {
     iterator = Ordering.from(ORDERING).sortedCopy(messages).iterator();
   }
+
+  private static final Comparator<CheckMessage> ORDERING = (CheckMessage left, CheckMessage right) -> {
+    if (Objects.equal(left.getLine(), right.getLine())) {
+      return left.getDefaultMessage().compareTo(right.getDefaultMessage());
+    } else if (left.getLine() == null) {
+      return -1;
+    } else if (right.getLine() == null) {
+      return 1;
+    } else {
+      return left.getLine().compareTo(right.getLine());
+    }
+  };
 
   public static CheckMessagesVerifier verify(Collection<CheckMessage> messages) {
     return new CheckMessagesVerifier(messages);
@@ -114,12 +108,12 @@ public final class CheckMessagesVerifier {
     return this;
   }
 
-  /**
-   * Note that this method requires JUnit and Hamcrest.
-   */
-  public CheckMessagesVerifier withMessageThat(Matcher<String> matcher) {
+  public CheckMessagesVerifier withMessageContaining(String subStr) {
     checkStateOfCurrent();
     String actual = current.getText(Locale.ENGLISH);
+    if (!actual.contains(subStr)) {
+      throw assertionError("a string containing \"" + subStr + "\"", "\"" + actual + "\"");
+    }
     return this;
   }
 

@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,12 +19,12 @@
  */
 package org.sonar.cxx.parser;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class SpecialMemberFunctionsTest extends ParserBaseTestHelper {
+class SpecialMemberFunctionsTest extends ParserBaseTestHelper {
 
   @Test
-  public void ctorInitializer_reallife() {
+  void ctorInitializerReallife() {
     setRootRule(CxxGrammarImpl.ctorInitializer);
 
     assertThatParser()
@@ -32,7 +32,7 @@ public class SpecialMemberFunctionsTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void memInitializerList() {
+  void memInitializerList() {
     setRootRule(CxxGrammarImpl.memInitializerList);
 
     mockRule(CxxGrammarImpl.memInitializer);
@@ -45,7 +45,7 @@ public class SpecialMemberFunctionsTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void memInitializer() {
+  void memInitializer() {
     setRootRule(CxxGrammarImpl.memInitializer);
 
     mockRule(CxxGrammarImpl.memInitializerId);
@@ -59,7 +59,7 @@ public class SpecialMemberFunctionsTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void memInitializer_reallife() {
+  void memInitializerReallife() {
     setRootRule(CxxGrammarImpl.memInitializer);
 
     assertThatParser()
@@ -67,7 +67,7 @@ public class SpecialMemberFunctionsTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void memInitializerId_reallife() {
+  void memInitializerIdReallife() {
     setRootRule(CxxGrammarImpl.memInitializerId);
 
     assertThatParser()

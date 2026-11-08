@@ -24,18 +24,26 @@
                             <xs:element name="name" type="xs:string" />
                             <xs:element name="description" type="xs:string" />
                             <!--
-                            Optional format of description. Supported values are HTML (default) and MARKDOWN.
+                            Optional format of description. Supported values are HTML.
                             -->
                             <xs:element name="descriptionFormat" minOccurs="0" maxOccurs="1">
                                 <xs:simpleType>
                                     <xs:restriction base="xs:string">
                                         <xs:enumeration value="HTML" />
-                                        <xs:enumeration value="MARKDOWN"/>
                                     </xs:restriction>
                                 </xs:simpleType>
                             </xs:element>
                             <xs:element name="tag" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
                             <xs:element name="internalKey" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                            <!--
+                            Optional deprecated rules keys for this rule. See org.sonar.api.server.rule.RulesDefinition.Rule.deprecatedRuleKeys
+                            If you want to rename the key of a rule register the rule's previous key. This will allow SonarQube to support
+                            "issue re-keying" for this rule. If the key of an existing rule is changed without declaring deprecated keys, existing
+                            issues for this rule, created under the rule's previous key, will be closed and new ones will be created under the
+                            issue's new key. Several deprecated keys can be provided to allow SonarQube to support several key changes across
+                            multiple versions of a plugin.
+                            -->
+                            <xs:element name="deprecatedKey" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
                             <!--
                             Default severity when enabling the rule in a Quality profile.
                             Possible values are INFO, MINOR, MAJOR (default), CRITICAL, BLOCKER.
@@ -60,6 +68,20 @@
                                         <xs:enumeration value="BUG"/>
                                         <xs:enumeration value="CODE_SMELL"/>
                                         <xs:enumeration value="VULNERABILITY"/>
+                                    </xs:restriction>
+                                </xs:simpleType>
+                            </xs:element>
+                            <!--
+                            There are three possible rule statuses: BETA, READY (default), and DEPRECATED. Sometimes, rules are first issued
+                            in BETA status and then moved to READY. Most rules are in READY status; READY to be used in production. When Sonar
+                            developers realize that a rule no longer makes sense, they first deprecate the rule, then eventually drop it.
+                            -->
+                            <xs:element name="status" minOccurs="0" maxOccurs="1">
+                                <xs:simpleType>
+                                    <xs:restriction base="xs:string">
+                                        <xs:enumeration value="BETA"/>
+                                        <xs:enumeration value="READY"/>
+                                        <xs:enumeration value="DEPRECATED"/>
                                     </xs:restriction>
                                 </xs:simpleType>
                             </xs:element>

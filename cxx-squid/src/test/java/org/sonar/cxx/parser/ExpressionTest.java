@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,12 +19,12 @@
  */
 package org.sonar.cxx.parser;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class ExpressionTest extends ParserBaseTestHelper {
+class ExpressionTest extends ParserBaseTestHelper {
 
   @Test
-  public void primaryExpression() {
+  void primaryExpression() {
     setRootRule(CxxGrammarImpl.primaryExpression);
 
     mockRule(CxxGrammarImpl.LITERAL);
@@ -46,7 +46,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void primaryExpression_reallife() {
+  void primaryExpressionReallife() {
     setRootRule(CxxGrammarImpl.primaryExpression);
 
     assertThatParser()
@@ -56,7 +56,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void foldExpression() {
+  void foldExpression() {
     setRootRule(CxxGrammarImpl.foldExpression);
 
     mockRule(CxxGrammarImpl.castExpression);
@@ -69,7 +69,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void requiresExpression() {
+  void requiresExpression() {
     setRootRule(CxxGrammarImpl.requiresExpression);
 
     mockRule(CxxGrammarImpl.requirementParameterList);
@@ -81,18 +81,17 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void requirementParameterList() {
+  void requirementParameterList() {
     setRootRule(CxxGrammarImpl.requirementParameterList);
 
     mockRule(CxxGrammarImpl.parameterDeclarationClause);
 
     assertThatParser()
-      .matches("( )")
       .matches("( parameterDeclarationClause )");
   }
 
   @Test
-  public void requirementBody() {
+  void requirementBody() {
     setRootRule(CxxGrammarImpl.requirementBody);
 
     mockRule(CxxGrammarImpl.requirementSeq);
@@ -102,7 +101,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void requirementSeq() {
+  void requirementSeq() {
     setRootRule(CxxGrammarImpl.requirementSeq);
 
     mockRule(CxxGrammarImpl.requirement);
@@ -114,7 +113,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void requirement() {
+  void requirement() {
     setRootRule(CxxGrammarImpl.requirement);
 
     mockRule(CxxGrammarImpl.simpleRequirement);
@@ -130,7 +129,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void simpleRequirement() {
+  void simpleRequirement() {
     setRootRule(CxxGrammarImpl.simpleRequirement);
 
     mockRule(CxxGrammarImpl.expression);
@@ -140,7 +139,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void typeRequirement() {
+  void typeRequirement() {
     setRootRule(CxxGrammarImpl.typeRequirement);
 
     mockRule(CxxGrammarImpl.nestedNameSpecifier);
@@ -152,7 +151,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void compoundRequirement() {
+  void compoundRequirement() {
     setRootRule(CxxGrammarImpl.compoundRequirement);
 
     mockRule(CxxGrammarImpl.expression);
@@ -165,17 +164,15 @@ public class ExpressionTest extends ParserBaseTestHelper {
       .matches("{ expression } noexcept returnTypeRequirement ;");
   }
 
-  public void returnTypeRequirement() {
+  @Test
+  void returnTypeRequirement() {
     setRootRule(CxxGrammarImpl.returnTypeRequirement);
-
     mockRule(CxxGrammarImpl.typeConstraint);
-
-    assertThatParser()
-      .matches("-> typeConstraint");
+    assertThatParser().matches("-> typeConstraint");
   }
 
   @Test
-  public void nestedRequirement() {
+  void nestedRequirement() {
     setRootRule(CxxGrammarImpl.nestedRequirement);
 
     mockRule(CxxGrammarImpl.constraintExpression);
@@ -185,7 +182,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void idExpression_reallife() {
+  void idExpressionReallife() {
     setRootRule(CxxGrammarImpl.idExpression);
 
     assertThatParser()
@@ -195,7 +192,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void unqualifiedId() {
+  void unqualifiedId() {
     setRootRule(CxxGrammarImpl.unqualifiedId);
 
     mockRule(CxxGrammarImpl.operatorFunctionId);
@@ -216,7 +213,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void unqualifiedId_reallife() {
+  void unqualifiedIdReallife() {
     setRootRule(CxxGrammarImpl.unqualifiedId);
 
     assertThatParser()
@@ -225,7 +222,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void qualifiedId() {
+  void qualifiedId() {
     setRootRule(CxxGrammarImpl.qualifiedId);
 
     mockRule(CxxGrammarImpl.nestedNameSpecifier);
@@ -237,7 +234,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void qualifiedId_reallife() {
+  void qualifiedIdReallife() {
     setRootRule(CxxGrammarImpl.qualifiedId);
 
     assertThatParser()
@@ -245,7 +242,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void nestedNameSpecifier() {
+  void nestedNameSpecifier() {
     setRootRule(CxxGrammarImpl.nestedNameSpecifier);
 
     mockRule(CxxGrammarImpl.typeName);
@@ -284,7 +281,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void postfixExpression() {
+  void postfixExpression() {
     setRootRule(CxxGrammarImpl.postfixExpression);
 
     mockRule(CxxGrammarImpl.primaryExpression);
@@ -296,7 +293,6 @@ public class ExpressionTest extends ParserBaseTestHelper {
     mockRule(CxxGrammarImpl.expression);
     mockRule(CxxGrammarImpl.idExpression);
     mockRule(CxxGrammarImpl.typeId);
-    mockRule(CxxGrammarImpl.exprOrBracedInitList);
     mockRule(CxxGrammarImpl.cudaKernel);
 
     assertThatParser()
@@ -313,7 +309,8 @@ public class ExpressionTest extends ParserBaseTestHelper {
       .matches("const_cast < typeId > ( expression )")
       .matches("typeid ( expression )")
       .matches("typeid ( typeId )")
-      .matches("primaryExpression [ exprOrBracedInitList ]")
+      .matches("primaryExpression [ ]") // C++23
+      .matches("primaryExpression [ expressionList ]") // C++23
       .matches("primaryExpression ( )")
       .matches("primaryExpression ( expressionList )")
       .matches("primaryExpression . idExpression")
@@ -327,7 +324,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void postfixExpression_reallife() {
+  void postfixExpressionReallife() {
     setRootRule(CxxGrammarImpl.postfixExpression);
 
     assertThatParser()
@@ -337,15 +334,18 @@ public class ExpressionTest extends ParserBaseTestHelper {
       .matches("::foo()")
       .matches("obj.foo<int>()")
       .matches("typeid(int)")
+      .matches("f(std::shared_ptr<A<int>>(p))") // fix #2286
       // C++/CLI
       .matches("G::typeid")
       .matches("int::typeid")
       // CUDA
-      .matches("kernel<<<gridDim,blockDim,0>>>(d_data, height, width)");
+      .matches("kernel<<<gridDim,blockDim,0>>>(d_data, height, width)")
+      // C++23
+      .matches("array[a, b]");
   }
 
   @Test
-  public void expressionList_reallife() {
+  void expressionListReallife() {
     setRootRule(CxxGrammarImpl.expressionList);
 
     assertThatParser()
@@ -353,7 +353,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void unaryExpression() {
+  void unaryExpression() {
     setRootRule(CxxGrammarImpl.unaryExpression);
 
     mockRule(CxxGrammarImpl.postfixExpression);
@@ -375,7 +375,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void unaryExpression_reallife() {
+  void unaryExpressionReallife() {
     setRootRule(CxxGrammarImpl.unaryExpression);
 
     assertThatParser()
@@ -384,7 +384,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void newExpression() {
+  void newExpression() {
     setRootRule(CxxGrammarImpl.newExpression);
 
     mockRule(CxxGrammarImpl.newPlacement);
@@ -398,17 +398,26 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void newExpression_reallife() {
+  void newExpressionReallife() {
     setRootRule(CxxGrammarImpl.newExpression);
 
     assertThatParser()
       .matches("new Table()")
       .matches("new Table")
-      .matches("new(Table)");
+      .matches("new(Table)")
+      .matches("new double[n][5]")
+      .matches("new (int (*[10])())")
+      .matches("new (std::nothrow) char[8]")
+      .matches("new A{1, 2}")
+      .matches("new auto('a')")
+      .matches("new double[]{1,2,3}")
+      .matches("new std::integral auto(1)")
+      .matches("new(buf) T")
+      .matches("::new(p)A(1,2,3)");
   }
 
   @Test
-  public void newDeclarator() {
+  void newDeclarator() {
     setRootRule(CxxGrammarImpl.newDeclarator);
 
     mockRule(CxxGrammarImpl.ptrOperator);
@@ -423,7 +432,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void noptrNewDeclarator() {
+  void noptrNewDeclarator() {
     setRootRule(CxxGrammarImpl.noptrNewDeclarator);
 
     mockRule(CxxGrammarImpl.expression);
@@ -438,7 +447,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void newInitializer() {
+  void newInitializer() {
     setRootRule(CxxGrammarImpl.newInitializer);
 
     mockRule(CxxGrammarImpl.expressionList);
@@ -451,7 +460,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void deleteExpression() {
+  void deleteExpression() {
     setRootRule(CxxGrammarImpl.deleteExpression);
 
     mockRule(CxxGrammarImpl.castExpression);
@@ -462,7 +471,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void expression() {
+  void expression() {
     setRootRule(CxxGrammarImpl.expression);
     mockRule(CxxGrammarImpl.assignmentExpression);
 
@@ -473,7 +482,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void expression_reallife() {
+  void expressionReallife() {
     setRootRule(CxxGrammarImpl.expression);
 
     assertThatParser()
@@ -496,7 +505,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void assignmentExpression() {
+  void assignmentExpression() {
     setRootRule(CxxGrammarImpl.assignmentExpression);
 
     mockRule(CxxGrammarImpl.conditionalExpression);
@@ -514,7 +523,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void assignmentExpression_reallife() {
+  void assignmentExpressionReallife() {
     setRootRule(CxxGrammarImpl.assignmentExpression);
 
     assertThatParser()
@@ -525,7 +534,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void logicalOrExpression() {
+  void logicalOrExpression() {
     setRootRule(CxxGrammarImpl.logicalOrExpression);
     mockRule(CxxGrammarImpl.logicalAndExpression);
 
@@ -536,7 +545,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void logicalOrExpression_reallife() {
+  void logicalOrExpressionReallife() {
     setRootRule(CxxGrammarImpl.logicalOrExpression);
 
     assertThatParser()
@@ -544,7 +553,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void conditionalExpression() {
+  void conditionalExpression() {
     setRootRule(CxxGrammarImpl.conditionalExpression);
 
     mockRule(CxxGrammarImpl.logicalOrExpression);
@@ -557,7 +566,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void constantExpression() {
+  void constantExpression() {
     setRootRule(CxxGrammarImpl.constantExpression);
 
     mockRule(CxxGrammarImpl.conditionalExpression);
@@ -567,7 +576,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void constantExpression_reallife() {
+  void constantExpressionReallife() {
     setRootRule(CxxGrammarImpl.constantExpression);
 
     assertThatParser()
@@ -575,7 +584,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void logicalAndExpression() {
+  void logicalAndExpression() {
     setRootRule(CxxGrammarImpl.logicalAndExpression);
     mockRule(CxxGrammarImpl.inclusiveOrExpression);
 
@@ -586,7 +595,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void inclusiveOrExpression() {
+  void inclusiveOrExpression() {
     setRootRule(CxxGrammarImpl.inclusiveOrExpression);
     mockRule(CxxGrammarImpl.exclusiveOrExpression);
 
@@ -597,7 +606,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void exclusiveOrExpression() {
+  void exclusiveOrExpression() {
     setRootRule(CxxGrammarImpl.exclusiveOrExpression);
     mockRule(CxxGrammarImpl.andExpression);
 
@@ -608,7 +617,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void andExpression() {
+  void andExpression() {
     setRootRule(CxxGrammarImpl.andExpression);
     mockRule(CxxGrammarImpl.equalityExpression);
 
@@ -619,7 +628,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void equalityExpression() {
+  void equalityExpression() {
     setRootRule(CxxGrammarImpl.equalityExpression);
     mockRule(CxxGrammarImpl.relationalExpression);
 
@@ -631,7 +640,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void relationalExpression() {
+  void relationalExpression() {
     setRootRule(CxxGrammarImpl.relationalExpression);
     mockRule(CxxGrammarImpl.compareExpression);
 
@@ -644,7 +653,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void shiftExpression() {
+  void shiftExpression() {
     setRootRule(CxxGrammarImpl.shiftExpression);
     mockRule(CxxGrammarImpl.additiveExpression);
 
@@ -655,7 +664,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void compareExpression() {
+  void compareExpression() {
     setRootRule(CxxGrammarImpl.compareExpression);
     mockRule(CxxGrammarImpl.shiftExpression);
 
@@ -665,7 +674,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void additiveExpression() {
+  void additiveExpression() {
     setRootRule(CxxGrammarImpl.additiveExpression);
     mockRule(CxxGrammarImpl.multiplicativeExpression);
 
@@ -676,7 +685,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void multiplicativeExpression() {
+  void multiplicativeExpression() {
     setRootRule(CxxGrammarImpl.multiplicativeExpression);
     mockRule(CxxGrammarImpl.pmExpression);
 
@@ -688,7 +697,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void multiplicativeExpression_reallive() {
+  void multiplicativeExpressionReallife() {
     setRootRule(CxxGrammarImpl.multiplicativeExpression);
 
     assertThatParser()
@@ -696,7 +705,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void pmExpression() {
+  void pmExpression() {
     setRootRule(CxxGrammarImpl.pmExpression);
     mockRule(CxxGrammarImpl.castExpression);
 
@@ -707,7 +716,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void castExpression() {
+  void castExpression() {
     setRootRule(CxxGrammarImpl.pmExpression);
 
     mockRule(CxxGrammarImpl.unaryExpression);
@@ -723,7 +732,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void castExpression_reallife() {
+  void castExpressionReallife() {
     setRootRule(CxxGrammarImpl.castExpression);
 
     assertThatParser()
@@ -744,7 +753,7 @@ public class ExpressionTest extends ParserBaseTestHelper {
   }
 
   @Test
-  public void yieldExpression() {
+  void yieldExpression() {
     setRootRule(CxxGrammarImpl.yieldExpression);
 
     mockRule(CxxGrammarImpl.assignmentExpression);

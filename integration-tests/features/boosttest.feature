@@ -1,4 +1,3 @@
-@SqApi79
 Feature: Providing test execution measures
   As a CXX Plugin user, I want to import the Boost.Test execution reports into SonarQube
 
@@ -33,10 +32,7 @@ Feature: Providing test execution measures
     When I run sonar-scanner with "-X -Dsonar.cxx.xslt.1.inputs=btest_test_simple-test_suite.xml -Dsonar.cxx.xunit.reportPaths=btest_test_simple-test_suite.after_xslt"
     Then the analysis finishes successfully
     And the analysis in server has completed
-    And the analysis log contains no error/warning messages except those matching:
-      """
-      .*WARN.*Unable to get a valid mac address, will use a dummy address
-      """
+    And the analysis log contains no error/warning messages
     And the following metrics have following values:
       | metric               | value |
       | tests                | 1     |
@@ -55,10 +51,7 @@ Feature: Providing test execution measures
     When I run sonar-scanner with "-X -Dsonar.cxx.xslt.1.inputs=btest_test_nested-test_suite.xml -Dsonar.cxx.xunit.reportPaths=btest_test_nested-test_suite.after_xslt"
     Then the analysis finishes successfully
     And the analysis in server has completed
-    And the analysis log contains no error/warning messages except those matching:
-      """
-      .*WARN.*Unable to get a valid mac address, will use a dummy address
-      """
+    And the analysis log contains no error/warning messages
     And the following metrics have following values:
       | metric               | value |
       | tests                | 4     |
@@ -78,8 +71,8 @@ Feature: Providing test execution measures
     And the analysis in server has completed
     And the analysis log contains no error/warning messages except those matching:
       """
-      .*WARN.*Unable to get a valid mac address, will use a dummy address
       .*WARN.*cannot find the sources for '.*'
+      .*WARN.*Preprocessor:.*
       """
     And the following metrics have following values:
       | metric               | value |

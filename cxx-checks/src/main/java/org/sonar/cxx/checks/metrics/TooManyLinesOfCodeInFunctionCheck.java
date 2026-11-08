@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,8 +19,8 @@
  */
 package org.sonar.cxx.checks.metrics;
 
-import com.sonar.sslr.api.AstNode;
-import com.sonar.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.AstNode;
+import com.sonar.cxx.sslr.api.Grammar;
 import org.sonar.check.Priority;
 import org.sonar.check.Rule;
 import org.sonar.check.RuleProperty;
@@ -33,9 +33,9 @@ import org.sonar.cxx.squidbridge.checks.SquidCheck;
 import org.sonar.cxx.tag.Tag;
 
 @Rule(key = "TooManyLinesOfCodeInFunction",
-      name = "Avoid too many code lines in a single function",
-      priority = Priority.MAJOR,
-      tags = {Tag.BRAIN_OVERLOAD})
+  name = "Avoid too many code lines in a single function",
+  priority = Priority.MAJOR,
+  tags = {Tag.BRAIN_OVERLOAD})
 @ActivatedByDefault
 @SqaleConstantRemediation("1h")
 
@@ -59,10 +59,12 @@ public class TooManyLinesOfCodeInFunctionCheck extends SquidCheck<Grammar> {
     var sourceFunction = (SourceFunction) getContext().peekSourceCode();
     var lineCount = sourceFunction.getInt(CxxMetric.LINES_OF_CODE_IN_FUNCTION_BODY);
     if (lineCount > max) {
-      getContext().createLineViolation(this,
-                                       "The number of code lines in this function is {0,number,integer} which is greater than "
-                                       + "{1,number,integer} authorized.",
-                                       node, lineCount, max);
+      getContext().createLineViolation(
+        this,
+        """
+        The number of code lines in this function is {0,number,integer} which is greater than \
+        {1,number,integer} authorized.""",
+        node, lineCount, max);
     }
   }
 

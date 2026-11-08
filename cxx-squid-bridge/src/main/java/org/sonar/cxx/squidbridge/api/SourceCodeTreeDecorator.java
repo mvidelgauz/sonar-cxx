@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -25,19 +25,34 @@ package org.sonar.cxx.squidbridge.api;
 
 import org.sonar.cxx.squidbridge.measures.MetricDef;
 
+/**
+ * Decorator to add a metric definition to SourceCode tree nodes.
+ */
 public class SourceCodeTreeDecorator {
 
   private final SourceProject project;
 
+  /**
+   * Create a new SourceCodeTreeDecorator with the given SourceProject as root.
+   *
+   * @param project project node (root) of the SourceCode tree
+   *
+   * @see SourceCode
+   */
   public SourceCodeTreeDecorator(SourceProject project) {
     this.project = project;
   }
 
+  /**
+   * Add the given metric definition to all descendants of the SourceProject node in the SourceCode tree.
+   *
+   * @param metrics metric definition to add
+   */
   public void decorateWith(MetricDef... metrics) {
     decorateWith(project, metrics);
   }
 
-  private void decorateWith(SourceCode sourceCode, MetricDef... metrics) {
+  private static void decorateWith(SourceCode sourceCode, MetricDef... metrics) {
     if (sourceCode.hasChildren()) {
       for (var child : sourceCode.getChildren()) {
         decorateWith(child, metrics);

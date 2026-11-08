@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,41 +19,42 @@
  */
 package org.sonar.plugins.cxx;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.sonar.api.batch.sensor.internal.SensorContextTester;
-import org.sonar.api.config.internal.MapSettings;
-import org.sonar.api.utils.log.LogTester;
-import org.sonar.api.utils.log.LoggerLevel;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.io.TempDir;
+import org.slf4j.event.Level;
+import com.sonarsource.scanner.engine.sensor.test.fixtures.SensorContextTester;
+import org.sonar.scanner.plugin.api.impl.config.MapSettings;
+import org.sonar.api.testfixtures.log.LogTesterJUnit5;
 
-public class DroppedPropertiesSensorTest {
+class DroppedPropertiesSensorTest {
 
-  @Rule
-  public TemporaryFolder tmp = new TemporaryFolder();
+  @TempDir
+  File tempDir;
 
-  @Rule
-  public LogTester logTester = new LogTester();
+  @RegisterExtension
+  private final LogTesterJUnit5 logTester = new LogTesterJUnit5();
 
   @Test
-  public void testNoMsg() throws Exception {
-    var contextTester = SensorContextTester.create(tmp.newFolder());
+  void testNoMsg() {
+    var contextTester = SensorContextTester.create(tempDir);
     var mapSettings = new MapSettings().setProperty("sonar.cxx.xxx", "value");
     contextTester.setSettings(mapSettings);
     List<String> analysisWarnings = new ArrayList<>();
     var sensor = new DroppedPropertiesSensor(analysisWarnings::add);
     sensor.execute(contextTester);
 
-    assertThat(logTester.logs(LoggerLevel.WARN)).isEmpty();
+    assertThat(logTester.logs(Level.WARN)).isEmpty();
     assertThat(analysisWarnings).isEmpty();
   }
 
   @Test
-  public void testNoLongerSupported() throws Exception {
-    var contextTester = SensorContextTester.create(tmp.newFolder());
+  void testNoLongerSupported() {
+    var contextTester = SensorContextTester.create(tempDir);
     var mapSettings = new MapSettings().setProperty("sonar.cxx.cppncss.reportPaths", "value");
     contextTester.setSettings(mapSettings);
     List<String> analysisWarnings = new ArrayList<>();
@@ -61,13 +62,13 @@ public class DroppedPropertiesSensorTest {
     sensor.execute(contextTester);
 
     var msg = "CXX property 'sonar.cxx.cppncss.reportPaths' is no longer supported.";
-    assertThat(logTester.logs(LoggerLevel.WARN)).contains(msg);
+    assertThat(logTester.logs(Level.WARN)).contains(msg);
     assertThat(analysisWarnings).containsExactly(msg);
   }
 
   @Test
-  public void testNoLongerSupportedWithInfo() throws Exception {
-    var contextTester = SensorContextTester.create(tmp.newFolder());
+  void testNoLongerSupportedWithInfo() {
+    var contextTester = SensorContextTester.create(tempDir);
     var mapSettings = new MapSettings().setProperty("sonar.cxx.suffixes.sources", "value");
     contextTester.setSettings(mapSettings);
     List<String> analysisWarnings = new ArrayList<>();
@@ -75,8 +76,8 @@ public class DroppedPropertiesSensorTest {
     sensor.execute(contextTester);
 
     var msg = "CXX property 'sonar.cxx.suffixes.sources' is no longer supported."
-            + " Use key 'sonar.cxx.file.suffixes' instead.";
-    assertThat(logTester.logs(LoggerLevel.WARN)).contains(msg);
+      + " Use key 'sonar.cxx.file.suffixes' instead.";
+    assertThat(logTester.logs(Level.WARN)).contains(msg);
     assertThat(analysisWarnings).containsExactly(msg);
   }
 

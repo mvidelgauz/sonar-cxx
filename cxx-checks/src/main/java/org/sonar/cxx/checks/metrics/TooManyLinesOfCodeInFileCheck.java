@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,8 +19,9 @@
  */
 package org.sonar.cxx.checks.metrics;
 
-import com.sonar.sslr.api.AstNode;
-import com.sonar.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.AstNode;
+import com.sonar.cxx.sslr.api.Grammar;
+import javax.annotation.Nullable;
 import org.sonar.check.Priority;
 import org.sonar.check.Rule;
 import org.sonar.check.RuleProperty;
@@ -54,11 +55,12 @@ public class TooManyLinesOfCodeInFileCheck extends SquidCheck<Grammar> {
   }
 
   @Override
-  public void leaveFile(AstNode astNode) {
+  public void leaveFile(@Nullable AstNode astNode) {
     var linesOfCode = ChecksHelper.getRecursiveMeasureInt(getContext().peekSourceCode(), CxxMetric.LINES_OF_CODE);
     if (linesOfCode > max) {
-      getContext().createFileViolation(this, "This file has {0} lines of code, which is greater than {1} authorized. "
-                                               + "Split it into smaller files.", linesOfCode, max);
+      getContext().createFileViolation(this,
+        "This file has {0} lines of code, which is greater than {1} authorized. Split it into smaller files.",
+        linesOfCode, max);
     }
   }
 

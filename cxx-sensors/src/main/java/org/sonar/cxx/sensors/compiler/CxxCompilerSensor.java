@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -26,8 +26,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
-import org.sonar.api.utils.log.Logger;
-import org.sonar.api.utils.log.Loggers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.sonar.cxx.sensors.utils.CxxIssuesReportSensor;
 import org.sonar.cxx.sensors.utils.InvalidReportException;
 import org.sonar.cxx.sensors.utils.TextScanner;
@@ -38,14 +38,14 @@ import org.sonar.cxx.utils.CxxReportIssue;
  */
 public abstract class CxxCompilerSensor extends CxxIssuesReportSensor {
 
-  private static final Logger LOG = Loggers.get(CxxCompilerSensor.class);
+  private static final Logger LOG = LoggerFactory.getLogger(CxxCompilerSensor.class);
   private final Set<String> notExistingGroupName = new HashSet<>();
 
   @Override
   protected void processReport(File report) {
 
-    final String reportEncoding = getEncoding();
-    final String reportRegEx = getRegex();
+    String reportEncoding = getEncoding();
+    String reportRegEx = getRegex();
 
     if (reportRegEx.isEmpty()) {
       LOG.error("processReport terminated because of empty custom regular expression");
@@ -57,10 +57,10 @@ public abstract class CxxCompilerSensor extends CxxIssuesReportSensor {
       return;
     }
 
-    try ( var scanner = new TextScanner(report, reportEncoding)) {
+    try (var scanner = new TextScanner(report, reportEncoding)) {
       var pattern = Pattern.compile(reportRegEx);
       LOG.debug("Processing '{}' report '{}', Encoding='{}', Pattern='{}'",
-                getCompilerKey(), report, scanner.encoding(), pattern);
+        getCompilerKey(), report, scanner.encoding(), pattern);
 
       while (scanner.hasNextLine()) {
         var matcher = pattern.matcher(scanner.nextLine());
@@ -117,8 +117,8 @@ public abstract class CxxCompilerSensor extends CxxIssuesReportSensor {
    * @return true, if valid
    */
   protected boolean isInputValid(@Nullable String filename,
-                                 @Nullable String line, @Nullable String column,
-                                 @Nullable String id, String msg) {
+    @Nullable String line, @Nullable String column,
+    @Nullable String id, String msg) {
     if ((id == null) || id.isEmpty()) {
       return false;
     }
@@ -193,7 +193,7 @@ public abstract class CxxCompilerSensor extends CxxIssuesReportSensor {
       }
     } catch (IllegalArgumentException e) {
       notExistingGroupName.add(groupName);
-      LOG.debug("named-capturing group '{}' is not used in regex.", groupName);
+      LOG.debug("named-capturing group '{}' is not used in regex.", groupName, e);
     }
     return null;
   }

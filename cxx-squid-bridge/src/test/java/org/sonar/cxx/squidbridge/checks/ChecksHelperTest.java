@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -23,15 +23,15 @@
  */
 package org.sonar.cxx.squidbridge.checks;
 
-import static org.fest.assertions.Assertions.assertThat;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
-public class ChecksHelperTest {
+class ChecksHelperTest {
 
   @Test
-  public void private_constructor() throws Exception {
+  void privateConstructor() throws Exception {
     var constructor = ChecksHelper.class.getDeclaredConstructor();
-    assertThat(constructor.isAccessible()).isFalse();
+    assertThat(constructor.canAccess(null)).isFalse();
     constructor.setAccessible(true);
     constructor.newInstance();
   }

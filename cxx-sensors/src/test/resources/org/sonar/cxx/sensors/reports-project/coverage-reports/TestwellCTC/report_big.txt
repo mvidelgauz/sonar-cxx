@@ -7319,7 +7319,7 @@ INSTRUMENTATION MODE  : multicondition
         24                259   case PROTO_GIT:
         24                260     return "git"
          0            -   261   default:
-         0            -   262     return "unkown protocol"
+         0            -   262     return "unknown protocol"
                           264 }
 
 ***TER  80 % (  8/ 10) of FUNCTION prot_name()

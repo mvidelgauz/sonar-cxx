@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -21,14 +21,14 @@ package org.sonar.cxx.sensors.utils;
 
 import java.io.File;
 import java.util.List;
-import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.Before;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.sonar.api.batch.sensor.SensorDescriptor;
-import org.sonar.api.batch.sensor.internal.SensorContextTester;
-import org.sonar.api.config.internal.MapSettings;
+import com.sonarsource.scanner.engine.sensor.test.fixtures.SensorContextTester;
+import org.sonar.scanner.plugin.api.impl.config.MapSettings;
 
-public class CxxReportSensorTest {
+class CxxReportSensorTest {
 
   private final String VALID_REPORT_PATH = "cppcheck-reports/cppcheck-result-*.xml";
   private final String VALID_REPORT_PATH_LIST = "cppcheck-reports/*empty.xml, cppcheck-reports/*V2.xml";
@@ -38,8 +38,8 @@ public class CxxReportSensorTest {
   private File baseDir;
   private final MapSettings settings = new MapSettings();
 
-  @Before
-  public void init() {
+  @BeforeEach
+  void setUp() {
     TestUtils.mockFileSystem();
     try {
       baseDir = new File(getClass().getResource("/org/sonar/cxx/sensors/reports-project/").toURI());
@@ -49,13 +49,13 @@ public class CxxReportSensorTest {
   }
 
   @Test
-  public void shouldntThrowWhenInstantiating() {
+  void shouldntThrowWhenInstantiating() {
     var sensor = new CxxReportSensorImpl(settings);
     assertThat(sensor).isNotNull();
   }
 
   @Test
-  public void getReports_shouldFindNothingIfNoKey() {
+  void getReportsShouldFindNothingIfNoKey() {
     settings.setProperty(REPORT_PATH_PROPERTY_KEY, INVALID_REPORT_PATH);
 
     var context = SensorContextTester.create(baseDir);
@@ -65,7 +65,7 @@ public class CxxReportSensorTest {
   }
 
   @Test
-  public void getReports_shouldFindNothingIfNoPath() {
+  void getReportsShouldFindNothingIfNoPath() {
     settings.setProperty(REPORT_PATH_PROPERTY_KEY, "");
     var context = SensorContextTester.create(baseDir);
     context.setSettings(settings);
@@ -74,7 +74,7 @@ public class CxxReportSensorTest {
   }
 
   @Test
-  public void getReports_shouldFindNothingIfInvalidPath() {
+  void getReportsShouldFindNothingIfInvalidPath() {
     settings.setProperty(REPORT_PATH_PROPERTY_KEY, INVALID_REPORT_PATH);
     var context = SensorContextTester.create(baseDir);
     context.setSettings(settings);
@@ -83,7 +83,7 @@ public class CxxReportSensorTest {
   }
 
   @Test
-  public void getReports_shouldFindSomething() {
+  void getReportsShouldFindSomething() {
     settings.setProperty(REPORT_PATH_PROPERTY_KEY, VALID_REPORT_PATH);
     var context = SensorContextTester.create(baseDir);
     context.setSettings(settings);
@@ -95,7 +95,7 @@ public class CxxReportSensorTest {
   }
 
   @Test
-  public void getReports_shouldFindSomethingList() {
+  void getReportsShouldFindSomethingList() {
     settings.setProperty(REPORT_PATH_PROPERTY_KEY, VALID_REPORT_PATH_LIST);
     var context = SensorContextTester.create(baseDir);
     context.setSettings(settings);

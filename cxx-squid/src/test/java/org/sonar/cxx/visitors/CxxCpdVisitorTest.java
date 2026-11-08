@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,23 +20,22 @@
 package org.sonar.cxx.visitors;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.List;
-import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.Before;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.sonar.cxx.CxxAstScanner;
 import org.sonar.cxx.CxxFileTesterHelper;
 import org.sonar.cxx.api.CxxMetric;
 import org.sonar.cxx.config.CxxSquidConfiguration;
 import org.sonar.cxx.squidbridge.api.SourceFile;
 
-public class CxxCpdVisitorTest {
+class CxxCpdVisitorTest {
 
   private SourceFile sourceFile;
 
-  @Before
-  public void scanFile() throws UnsupportedEncodingException, IOException {
+  @BeforeEach
+  void setUp() throws IOException {
     var tester = CxxFileTesterHelper.create("src/test/resources/visitors/cpd.cc", ".", "");
     var squidConfig = new CxxSquidConfiguration();
     squidConfig
@@ -48,7 +47,7 @@ public class CxxCpdVisitorTest {
   }
 
   @Test
-  public void testCpdTokens() throws Exception {
+  void testCpdTokens() {
     List<CxxCpdVisitor.CpdToken> data = (List<CxxCpdVisitor.CpdToken>) sourceFile.getData(CxxMetric.CPD_TOKENS_DATA);
     assertThat(data).hasSize(391);
   }

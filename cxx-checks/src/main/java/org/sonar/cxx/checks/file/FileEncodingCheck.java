@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,12 +19,13 @@
  */
 package org.sonar.cxx.checks.file;
 
-import com.sonar.sslr.api.AstNode;
-import com.sonar.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.AstNode;
+import com.sonar.cxx.sslr.api.Grammar;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import javax.annotation.Nullable;
 import org.sonar.check.Priority;
 import org.sonar.check.Rule;
 import org.sonar.cxx.squidbridge.annotations.ActivatedByDefault;
@@ -51,13 +52,13 @@ public class FileEncodingCheck extends SquidCheck<Grammar> implements CxxCharset
   }
 
   @Override
-  public void visitFile(AstNode astNode) {
+  public void visitFile(@Nullable AstNode astNode) {
     try {
-      Files.readAllLines(getContext().getInputFile().file().toPath(), charset);
+      Files.readAllLines(getContext().getFile().toPath(), charset);
     } catch (IOException e) {
       getContext().createFileViolation(this,
-                                       "Not all characters of the file can be encoded with the predefined charset "
-                                         + charset.name() + ".");
+        "Not all characters of the file can be encoded with the predefined charset "
+        + charset.name() + ".");
     }
   }
 

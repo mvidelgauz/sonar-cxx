@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,17 +20,16 @@
 package org.sonar.plugins.cxx;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import javax.annotation.CheckForNull;
 import org.assertj.core.util.Files;
 import org.sonar.api.batch.fs.InputFile;
-import org.sonar.api.batch.fs.internal.DefaultInputFile;
-import org.sonar.api.batch.fs.internal.TestInputFileBuilder;
+import org.sonar.scanner.plugin.api.impl.fs.DefaultInputFile;
+import com.sonarsource.scanner.engine.sensor.test.fixtures.TestInputFileBuilder;
 
-public class TestUtils {
+public final class TestUtils {
 
   public static File loadResource(String resourceName) {
     URL resource = TestUtils.class.getResource(resourceName);
@@ -67,15 +66,14 @@ public class TestUtils {
     return null;
   }
 
-  public static DefaultInputFile buildInputFile(File baseDir, String fileName) throws IOException {
+  public static DefaultInputFile buildInputFile(File baseDir, String fileName) {
     var target = new File(baseDir, fileName);
     String content = Files.contentOf(target, StandardCharsets.UTF_8);
-    var inputFile = TestInputFileBuilder.create("ProjectKey", baseDir, target)
+    return TestInputFileBuilder.create("ProjectKey", baseDir, target)
       .setContents(content)
       .setCharset(StandardCharsets.UTF_8)
       .setLanguage("cxx")
       .setType(InputFile.Type.MAIN).build();
-    return inputFile;
   }
 
   private TestUtils() {

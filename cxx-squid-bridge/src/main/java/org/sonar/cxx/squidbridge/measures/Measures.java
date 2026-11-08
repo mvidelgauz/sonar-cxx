@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -25,21 +25,23 @@ package org.sonar.cxx.squidbridge.measures;
 
 import java.util.IdentityHashMap;
 import java.util.Map;
+import javax.annotation.CheckForNull;
 
 public class Measures {
 
-  private final Map<MetricDef, Measure> measures = new IdentityHashMap<>();
+  private final Map<MetricDef, Measure> measureValues = new IdentityHashMap<>();
 
   public double getValue(MetricDef metric) {
-    var measure = measures.get(metric);
+    var measure = measureValues.get(metric);
     if (measure == null) {
       return 0;
     }
     return measure.getValue();
   }
 
+  @CheckForNull
   public Object getData(MetricDef metric) {
-    var measure = measures.get(metric);
+    var measure = measureValues.get(metric);
     if (measure == null) {
       return null;
     }
@@ -55,16 +57,11 @@ public class Measures {
   }
 
   private Measure getMeasureOrCreateIt(MetricDef metric) {
-    var measure = measures.get(metric);
-    if (measure == null) {
-      measure = new Measure(0);
-      measures.put(metric, measure);
-    }
-    return measure;
+    return measureValues.computeIfAbsent(metric, k -> new Measure(0));
   }
 
   public void removeMeasure(MetricDef metric) {
-    measures.remove(metric);
+    measureValues.remove(metric);
   }
 
   private static final class Measure {

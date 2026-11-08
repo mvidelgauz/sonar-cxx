@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -21,22 +21,26 @@ package org.sonar.cxx;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
-import static org.assertj.core.api.Assertions.assertThat;
+import java.util.List;
+import static org.assertj.core.api.Assertions.*;
 import org.assertj.core.api.SoftAssertions;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import com.sonarsource.scanner.engine.sensor.test.fixtures.TestInputFileBuilder;
 import org.sonar.cxx.api.CxxMetric;
 import org.sonar.cxx.config.CxxSquidConfiguration;
 import org.sonar.cxx.squidbridge.api.SourceFile;
 import org.sonar.cxx.squidbridge.api.SourceProject;
 import org.sonar.cxx.squidbridge.indexer.QueryByType;
 
-public class CxxAstScannerTest {
+class CxxAstScannerTest {
 
   @Test
-  public void files() throws UnsupportedEncodingException, IOException {
+  void files() throws IOException {
 
     var tester = CxxFileTesterHelper.create("src/test/resources/metrics/trivial.cc", ".", "");
     CxxFileTesterHelper.add(tester, "src/test/resources/metrics/trivial.cc", "");
@@ -51,7 +55,28 @@ public class CxxAstScannerTest {
   }
 
   @Test
-  public void comments() throws UnsupportedEncodingException, IOException {
+  void parserStackOverflowSkipsOnlyThatFile() throws IOException {
+    var depth = 20_000;
+    var nested = "int f() { return " + "(".repeat(depth) + "1" + ")".repeat(depth) + "; }\n";
+    var deep = TestInputFileBuilder.create("", "deep.cc")
+      .setProjectBaseDir(Path.of("."))
+      .setContents(nested)
+      .build();
+    var trivial = TestInputFileBuilder.create("", "trivial.cc")
+      .setProjectBaseDir(Path.of("."))
+      .setContents("int g() { return 1; }\n")
+      .build();
+
+    var scanner = CxxAstScanner.create(new CxxSquidConfiguration());
+    scanner.scanInputFiles(List.of(deep, trivial));
+
+    var project = (SourceProject) scanner.getIndex().search(new QueryByType(SourceProject.class)).iterator().next();
+    assertThat(project.getInt(CxxMetric.FILES)).isEqualTo(2);
+    assertThat(project.getInt(CxxMetric.FUNCTIONS)).isEqualTo(1);
+  }
+
+  @Test
+  void comments() throws IOException {
     var tester = CxxFileTesterHelper.create("src/test/resources/metrics/comments.cc", ".", "");
     SourceFile file = CxxAstScanner.scanSingleInputFile(tester.asInputFile());
     var softly = new SoftAssertions();
@@ -61,14 +86,14 @@ public class CxxAstScannerTest {
   }
 
   @Test
-  public void lines() throws UnsupportedEncodingException, IOException {
+  void lines() throws IOException {
     var tester = CxxFileTesterHelper.create("src/test/resources/metrics/classes.cc", ".", "");
     SourceFile file = CxxAstScanner.scanSingleInputFile(tester.asInputFile());
     assertThat(file.getInt(CxxMetric.LINES)).isEqualTo(7);
   }
 
   @Test
-  public void lines_of_code() throws UnsupportedEncodingException, IOException {
+  void linesOfCode() throws IOException {
 
     var tester = CxxFileTesterHelper.create("src/test/resources/metrics/classes.cc", ".", "");
     SourceFile file = CxxAstScanner.scanSingleInputFile(tester.asInputFile());
@@ -76,59 +101,58 @@ public class CxxAstScannerTest {
   }
 
   @Test
-  public void statements() throws UnsupportedEncodingException, IOException {
+  void statements() throws IOException {
     var tester = CxxFileTesterHelper.create("src/test/resources/metrics/statements.cc", ".", "");
     SourceFile file = CxxAstScanner.scanSingleInputFile(tester.asInputFile());
     assertThat(file.getInt(CxxMetric.STATEMENTS)).isEqualTo(4);
   }
 
   @Test
-  public void functions() throws UnsupportedEncodingException, IOException {
+  void functions() throws IOException {
     var tester = CxxFileTesterHelper.create("src/test/resources/metrics/functions.cc", ".", "");
     SourceFile file = CxxAstScanner.scanSingleInputFile(tester.asInputFile());
     assertThat(file.getInt(CxxMetric.FUNCTIONS)).isEqualTo(2);
   }
 
   @Test
-  public void classes() throws UnsupportedEncodingException, IOException {
+  void classes() throws IOException {
     var tester = CxxFileTesterHelper.create("src/test/resources/metrics/classes.cc", ".", "");
     SourceFile file = CxxAstScanner.scanSingleInputFile(tester.asInputFile());
     assertThat(file.getInt(CxxMetric.CLASSES)).isEqualTo(2);
   }
 
   @Test
-  public void complexity() throws UnsupportedEncodingException, IOException {
-    var tester = CxxFileTesterHelper.create("src/test/resources/metrics/complexity.cc", ".", "");
+  void namespaces() throws IOException {
+    var tester = CxxFileTesterHelper.create("src/test/resources/metrics/namespace.cc", ".", "");
     SourceFile file = CxxAstScanner.scanSingleInputFile(tester.asInputFile());
-    assertThat(file.getInt(CxxMetric.COMPLEXITY)).isEqualTo(14);
+    assertThat(file.getInt(CxxMetric.CLASSES)).isEqualTo(3);
+    assertThat(file.getInt(CxxMetric.FUNCTIONS)).isEqualTo(6); // = functions and methods
+  }
+
+  @ParameterizedTest
+  @CsvSource({
+    "'src/test/resources/metrics/complexity.cc', 14",
+    "'src/test/resources/metrics/complexity_alternative.cc', 14",
+    "'src/test/resources/metrics/complexity_macro.cc', 1"
+  })
+  void complexity(String source, int result) throws IOException {
+    var tester = CxxFileTesterHelper.create(source, ".", "");
+    SourceFile file = CxxAstScanner.scanSingleInputFile(tester.asInputFile());
+    assertThat(file.getInt(CxxMetric.COMPLEXITY)).isEqualTo(result);
   }
 
   @Test
-  public void complexity_alternative() throws UnsupportedEncodingException, IOException {
-    var tester = CxxFileTesterHelper.create("src/test/resources/metrics/complexity_alternative.cc", ".", "");
-    SourceFile file = CxxAstScanner.scanSingleInputFile(tester.asInputFile());
-    assertThat(file.getInt(CxxMetric.COMPLEXITY)).isEqualTo(14);
-  }
-
-  @Test
-  public void complexity_macro() throws UnsupportedEncodingException, IOException {
-    var tester = CxxFileTesterHelper.create("src/test/resources/metrics/complexity_macro.cc", ".", "");
-    SourceFile file = CxxAstScanner.scanSingleInputFile(tester.asInputFile());
-    assertThat(file.getInt(CxxMetric.COMPLEXITY)).isEqualTo(1);
-  }
-
-  @Test
-  public void error_recovery_declaration() throws UnsupportedEncodingException, IOException {
+  void errorRecoveryDeclaration() throws IOException {
     var tester = CxxFileTesterHelper.create("src/test/resources/parser/bad/error_recovery_declaration.cc", ".", "");
     SourceFile file = CxxAstScanner.scanSingleInputFile(tester.asInputFile());
     assertThat(file.getInt(CxxMetric.FUNCTIONS)).isEqualTo(2);
   }
 
   @Test
-  public void nosonar_comments() throws UnsupportedEncodingException, IOException {
+  void nosonarComments() throws IOException {
     var tester = CxxFileTesterHelper.create("src/test/resources/metrics/nosonar.cc", ".", "");
     SourceFile file = CxxAstScanner.scanSingleInputFile(tester.asInputFile());
-    assertThat(file.getNoSonarTagLines()).containsOnlyElementsOf(Arrays.asList(3, 6, 9, 11));
+    assertThat(file.getNoSonarTagLines()).containsOnly(3, 6, 9, 11);
   }
 
 }

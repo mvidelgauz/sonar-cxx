@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,10 +19,11 @@
  */
 package org.sonar.cxx.visitors;
 
-import com.sonar.sslr.api.AstNode;
-import com.sonar.sslr.api.Grammar;
-import org.sonar.api.utils.log.Logger;
-import org.sonar.api.utils.log.Loggers;
+import com.sonar.cxx.sslr.api.AstNode;
+import com.sonar.cxx.sslr.api.Grammar;
+import javax.annotation.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.sonar.cxx.api.CxxMetric;
 import org.sonar.cxx.config.CxxSquidConfiguration;
 import org.sonar.cxx.parser.CxxGrammarImpl;
@@ -32,7 +33,7 @@ import org.sonar.cxx.squidbridge.api.SourceFunction;
 
 public class CxxFunctionSizeVisitor<G extends Grammar> extends SquidAstVisitor<G> {
 
-  private static final Logger LOG = Loggers.get(CxxFunctionSizeVisitor.class);
+  private static final Logger LOG = LoggerFactory.getLogger(CxxFunctionSizeVisitor.class);
 
   private int sizeThreshold = 0;
 
@@ -42,9 +43,9 @@ public class CxxFunctionSizeVisitor<G extends Grammar> extends SquidAstVisitor<G
 
   public CxxFunctionSizeVisitor(CxxSquidConfiguration squidConfig) {
     this.sizeThreshold = squidConfig.getInt(CxxSquidConfiguration.SONAR_PROJECT_PROPERTIES,
-                                            CxxSquidConfiguration.FUNCTION_SIZE_THRESHOLD)
+      CxxSquidConfiguration.FUNCTION_SIZE_THRESHOLD)
       .orElse(20);
-    LOG.debug("'Big Functions' metric threshold (LOC): " + this.sizeThreshold);
+    LOG.debug("'Big Functions' metric threshold (LOC): {}", this.sizeThreshold);
   }
 
   @Override
@@ -65,7 +66,7 @@ public class CxxFunctionSizeVisitor<G extends Grammar> extends SquidAstVisitor<G
   }
 
   @Override
-  public void visitFile(AstNode astNode) {
+  public void visitFile(@Nullable AstNode astNode) {
     bigFunctions = 0;
     bigFunctionsLoc = 0;
     totalLoc = 0;
@@ -74,7 +75,7 @@ public class CxxFunctionSizeVisitor<G extends Grammar> extends SquidAstVisitor<G
   }
 
   @Override
-  public void leaveFile(AstNode astNode) {
+  public void leaveFile(@Nullable AstNode astNode) {
     super.leaveFile(astNode);
 
     var sourceFile = (SourceFile) getContext().peekSourceCode();

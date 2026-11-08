@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -27,102 +27,119 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Locale;
-import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.containsString;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import org.sonar.cxx.squidbridge.api.CheckMessage;
 
-public class CheckMessagesVerifierTest {
-
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
+class CheckMessagesVerifierTest {
 
   @Test
-  public void next() {
-    thrown.expect(AssertionError.class);
-    thrown.expectMessage("\nExpected violation");
-
-    CheckMessagesVerifier.verify(Collections.EMPTY_LIST)
-      .next();
+  void next() {
+    AssertionError thrown = catchThrowableOfType(AssertionError.class, () -> {
+      CheckMessagesVerifier.verify(Collections.EMPTY_LIST)
+        .next();
+    });
+    assertThat(thrown)
+      .isExactlyInstanceOf(AssertionError.class)
+      .hasMessage("\nExpected violation");
   }
 
   @Test
-  public void noMore() {
-    thrown.expect(AssertionError.class);
-    thrown.expectMessage("\nNo more violations expected\ngot: at line 1");
-
+  void noMore() {
     Collection<CheckMessage> messages = Arrays.asList(mockCheckMessage(1, "foo"));
-    CheckMessagesVerifier.verify(messages)
-      .noMore();
+
+    AssertionError thrown = catchThrowableOfType(AssertionError.class, () -> {
+      CheckMessagesVerifier.verify(messages)
+        .noMore();
+    });
+    assertThat(thrown)
+      .isExactlyInstanceOf(AssertionError.class)
+      .hasMessage("\nNo more violations expected\ngot: at line 1");
   }
 
   @Test
-  public void line() {
-    thrown.expect(AssertionError.class);
-    thrown.expectMessage("\nExpected: 2\ngot: 1");
-
+  void line() {
     Collection<CheckMessage> messages = Arrays.asList(mockCheckMessage(1, "foo"));
-    CheckMessagesVerifier.verify(messages)
-      .next().atLine(2);
+
+    AssertionError thrown = catchThrowableOfType(AssertionError.class, () -> {
+      CheckMessagesVerifier.verify(messages)
+        .next().atLine(2);
+    });
+    assertThat(thrown)
+      .isExactlyInstanceOf(AssertionError.class)
+      .hasMessage("\nExpected: 2\ngot: 1");
   }
 
   @Test
-  public void line_withoutHasNext() {
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("Prior to this method you should call next()");
-
+  void lineWithoutHasNext() {
     Collection<CheckMessage> messages = Arrays.asList(mockCheckMessage(1, "foo"));
-    CheckMessagesVerifier.verify(messages)
-      .atLine(2);
+
+    IllegalStateException thrown = catchThrowableOfType(IllegalStateException.class, () -> {
+      CheckMessagesVerifier.verify(messages)
+        .atLine(2);
+    });
+    assertThat(thrown)
+      .isExactlyInstanceOf(IllegalStateException.class)
+      .hasMessage("Prior to this method you should call next()");
   }
 
   @Test
-  public void withMessage() {
-    thrown.expect(AssertionError.class);
-    thrown.expectMessage(allOf(containsString("Expected: \"bar\""), containsString("got: \"foo\"")));
-
+  void withMessage() {
     Collection<CheckMessage> messages = Arrays.asList(mockCheckMessage(1, "foo"));
-    CheckMessagesVerifier.verify(messages)
-      .next().atLine(1).withMessage("bar");
+
+    AssertionError thrown = catchThrowableOfType(AssertionError.class, () -> {
+      CheckMessagesVerifier.verify(messages)
+        .next().atLine(1).withMessage("bar");
+    });
+    assertThat(thrown)
+      .isExactlyInstanceOf(AssertionError.class)
+      .asString().contains("Expected: \"bar\"", "got: \"foo\"");
   }
 
   @Test
-  public void withMessage_withoutHasNext() {
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("Prior to this method you should call next()");
-
+  void withMessageWithoutHasNext() {
     Collection<CheckMessage> messages = Arrays.asList(mockCheckMessage(1, "foo"));
-    CheckMessagesVerifier.verify(messages)
-      .withMessage("foo");
-  }
 
-  //@Test todo
-  public void withMessageThat() {
-    thrown.expect(AssertionError.class);
-    thrown.expectMessage("\nExpected: a string containing \"bar\"\n     got: \"foo\"");
-
-    Collection<CheckMessage> messages = Arrays.asList(mockCheckMessage(1, "foo"));
-    CheckMessagesVerifier.verify(messages)
-      .next().atLine(1).withMessageThat(containsString("bar"));
+    IllegalStateException thrown = catchThrowableOfType(IllegalStateException.class, () -> {
+      CheckMessagesVerifier.verify(messages)
+        .withMessage("foo");
+    });
+    assertThat(thrown)
+      .isExactlyInstanceOf(IllegalStateException.class)
+      .hasMessage("Prior to this method you should call next()");
   }
 
   @Test
-  public void withCost() {
-    thrown.expect(AssertionError.class);
-    thrown.expectMessage(allOf(containsString("Expected: 1.0"), containsString("got: 0.0")));
+  void withMessageContaining() {
+    Collection<CheckMessage> messages = Arrays.asList(mockCheckMessage(1, "foo"));
 
+    AssertionError thrown = catchThrowableOfType(AssertionError.class, () -> {
+      CheckMessagesVerifier.verify(messages)
+        .next().atLine(1).withMessageContaining("bar");
+    });
+    assertThat(thrown)
+      .isExactlyInstanceOf(AssertionError.class)
+      .hasMessage("\nExpected: a string containing \"bar\"\ngot: \"foo\"");
+  }
+
+  @Test
+  void withCost() {
     Collection<CheckMessage> messages = Arrays.asList(mockCheckMessage(1, "foo", 0d));
-    CheckMessagesVerifier.verify(messages)
-      .next().withCost(1d);
+
+    AssertionError thrown = catchThrowableOfType(AssertionError.class, () -> {
+      CheckMessagesVerifier.verify(messages)
+        .next().withCost(1d);
+    });
+    assertThat(thrown)
+      .isExactlyInstanceOf(AssertionError.class)
+      .asString().contains("Expected: 1.0", "got: 0.0");
   }
 
   @Test
-  public void ok() {
+  void ok() {
     Collection<CheckMessage> messages = Arrays.asList(
       mockCheckMessage(null, "b"),
       mockCheckMessage(2, "a", 1d),
@@ -131,14 +148,14 @@ public class CheckMessagesVerifierTest {
       mockCheckMessage(1, "a"));
     CheckMessagesVerifier.verify(messages)
       .next().atLine(null).withMessage("a")
-      .next().atLine(null).withMessageThat(containsString("b"))
+      .next().atLine(null).withMessageContaining("b")
       .next().atLine(1).withMessage("a")
       .next().atLine(1).withMessage("b")
       .next().atLine(2).withMessage("a").withCost(1d)
       .noMore();
   }
 
-  private static final CheckMessage mockCheckMessage(Integer line, String message, Double cost) {
+  private static CheckMessage mockCheckMessage(Integer line, String message, Double cost) {
     CheckMessage checkMessage = mock(CheckMessage.class);
     when(checkMessage.getLine()).thenReturn(line);
     when(checkMessage.getDefaultMessage()).thenReturn(message);
@@ -147,7 +164,7 @@ public class CheckMessagesVerifierTest {
     return checkMessage;
   }
 
-  private static final CheckMessage mockCheckMessage(Integer line, String message) {
+  private static CheckMessage mockCheckMessage(Integer line, String message) {
     return mockCheckMessage(line, message, null);
   }
 

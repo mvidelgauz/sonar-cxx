@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,13 +20,16 @@
 package org.sonar.cxx.sensors.infer;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.stream.JsonReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import org.sonar.api.utils.log.Logger;
-import org.sonar.api.utils.log.Loggers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.sonar.cxx.sensors.utils.CxxIssuesReportSensor;
 import org.sonar.cxx.sensors.utils.EmptyReportException;
 import org.sonar.cxx.sensors.utils.InvalidReportException;
 import org.sonar.cxx.utils.CxxReportIssue;
@@ -38,11 +41,11 @@ import org.sonar.cxx.utils.CxxReportIssue;
  */
 public class InferParser {
 
-  private static final Logger LOG = Loggers.get(InferParser.class);
+  private static final Logger LOG = LoggerFactory.getLogger(InferParser.class);
 
-  private final CxxInferSensor sensor;
+  private final CxxIssuesReportSensor sensor;
 
-  public InferParser(CxxInferSensor sensor) {
+  public InferParser(CxxIssuesReportSensor sensor) {
     this.sensor = sensor;
   }
 
@@ -50,13 +53,13 @@ public class InferParser {
     InferIssue[] inferIssues;
 
     try {
-      try ( var reader = new JsonReader(new FileReader(report))) {
+      try (var reader = new JsonReader(new FileReader(report))) {
         inferIssues = new Gson().fromJson(reader, InferIssue[].class);
         if (inferIssues == null) {
           throw new EmptyReportException("The 'Infer JSON' report is empty");
         }
       }
-    } catch (IOException e) {
+    } catch (IOException | JsonSyntaxException | JsonIOException e) {
       throw new InvalidReportException("The 'Infer JSON' report is invalid", e);
     }
 
@@ -66,7 +69,7 @@ public class InferParser {
           issue.getBugType(), issue.getFile(), String.valueOf(issue.getLine()), null, issue.getQualifier());
         sensor.saveUniqueViolation(cxxReportIssue);
       } else {
-        LOG.debug("Invalid infer issue '{}', skipping", issue.toString());
+        LOG.debug("Invalid infer issue '{}', skipping", issue);
       }
     }
   }
@@ -80,10 +83,10 @@ public class InferParser {
   public static class InferIssue {
 
     @SerializedName("bug_type")
-    private String bugType;
-    private String qualifier;
-    private long line;
-    private String file;
+    private String bugType = "";
+    private String qualifier = "";
+    private long line = 0;
+    private String file = "";
 
     public String getBugType() {
       return bugType;
@@ -120,7 +123,7 @@ public class InferParser {
     @Override
     public String toString() {
       return String.format("InferIssue [bugType=%s, file=%s, line=%d, qualifier=%s]",
-                           getBugType(), getFile(), getLine(), getQualifier());
+        getBugType(), getFile(), getLine(), getQualifier());
     }
   }
 

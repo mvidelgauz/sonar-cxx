@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,16 +20,13 @@
 package org.sonar.cxx.sensors.tests.xunit;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-
 import javax.xml.stream.XMLStreamException;
-
 import org.codehaus.staxmate.in.ElementFilter;
 import org.codehaus.staxmate.in.SMHierarchicCursor;
 import org.codehaus.staxmate.in.SMInputCursor;
@@ -86,6 +83,7 @@ public class XunitReportParser implements XmlStreamHandler {
     }
   }
 
+  @SuppressWarnings("java:S1192")
   private void parseTestCaseTag(SMInputCursor testCaseCursor, String tsName, String tsFilename) throws
     XMLStreamException {
     String classname = testCaseCursor.getAttrValue("classname");
@@ -133,18 +131,15 @@ public class XunitReportParser implements XmlStreamHandler {
 
   private TestFile getTestFile(String filename) {
     var absolute = Optional.ofNullable(CxxUtils.resolveAntPath(baseDir, filename))
-      .map(p -> Paths.get(p));
+      .map(Path::of);
 
-    var file = testFiles.get(absolute.orElse(null));
-    if (file == null) {
-      file = new TestFile(absolute.map(Object::toString).orElse(null));
-      testFiles.put(absolute.orElse(null), file);
-    }
-    
-    return file;
+    return testFiles.computeIfAbsent(
+      absolute.orElse(null),
+      k -> new TestFile(absolute.map(Object::toString).orElse(null))
+    );
   }
 
-  private String parseTestCaseName(SMInputCursor testCaseCursor) throws XMLStreamException {
+  private static String parseTestCaseName(SMInputCursor testCaseCursor) throws XMLStreamException {
     String name = testCaseCursor.getAttrValue("name");
     String classname = testCaseCursor.getAttrValue("classname");
     if (classname != null) {
@@ -153,7 +148,7 @@ public class XunitReportParser implements XmlStreamHandler {
     return name;
   }
 
-  private double parseTime(SMInputCursor testCaseCursor)
+  private static double parseTime(SMInputCursor testCaseCursor)
     throws XMLStreamException {
     var time = 0.0;
     try {

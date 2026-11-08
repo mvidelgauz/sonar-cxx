@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -23,7 +23,18 @@
  */
 package org.sonar.cxx.squidbridge.api;
 
+/**
+ * Interface for queries in SourceCode.
+ *
+ * @see SourceCode
+ */
 public interface Query {
 
+  /**
+   * Defines a test condition in derived classes.
+   *
+   * @param unit source code object to verify for a match
+   * @return true, if test condition is fulfilled
+   */
   boolean match(SourceCode unit);
 }

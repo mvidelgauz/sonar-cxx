@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,16 +19,17 @@
  */
 package org.sonar.cxx.visitors;
 
-import com.sonar.sslr.api.AstNode;
-import com.sonar.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.AstNode;
+import com.sonar.cxx.sslr.api.Grammar;
+import javax.annotation.Nullable;
 import org.sonar.cxx.parser.CxxParser;
 import org.sonar.cxx.squidbridge.SquidAstVisitor;
 
 public class CxxFileVisitor<GRAMMAR extends Grammar> extends SquidAstVisitor<GRAMMAR> {
 
   @Override
-  public void visitFile(AstNode node) {
-    CxxParser.finishedParsing(getContext().getFile());
+  public void visitFile(@Nullable AstNode node) {
+    CxxParser.finishedParsing();
   }
 
 }

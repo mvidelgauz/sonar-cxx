@@ -1,6 +1,6 @@
 /*
  * C++ Community Plugin (cxx plugin)
- * Copyright (C) 2010-2021 SonarOpenCommunity
+ * Copyright (C) SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,18 +19,18 @@
  */
 package org.sonar.cxx.visitors;
 
-import com.sonar.sslr.api.AstAndTokenVisitor;
-import com.sonar.sslr.api.AstNode;
-import com.sonar.sslr.api.Grammar;
-import com.sonar.sslr.api.Token;
-import com.sonar.sslr.api.Trivia;
+import com.sonar.cxx.sslr.api.AstAndTokenVisitor;
+import com.sonar.cxx.sslr.api.AstNode;
+import com.sonar.cxx.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.Token;
+import com.sonar.cxx.sslr.api.Trivia;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import javax.annotation.Nullable;
-import org.sonar.cxx.parser.CxxKeyword;
 import org.sonar.cxx.api.CxxMetric;
+import org.sonar.cxx.parser.CxxKeyword;
 import org.sonar.cxx.parser.CxxTokenType;
 import org.sonar.cxx.squidbridge.SquidAstVisitor;
 
@@ -81,7 +81,7 @@ public class CxxHighlighterVisitor extends SquidAstVisitor<Grammar> implements A
     }
   }
 
-  private Optional<Trivia> getTriviaWithConcatenatedLiterals(Token stringToken) {
+  private static Optional<Trivia> getTriviaWithConcatenatedLiterals(Token stringToken) {
     return stringToken.getTrivia().stream()
       .filter(t -> t.isSkippedText() && CxxTokenType.STRING.equals(t.getToken().getType())).findFirst();
   }
@@ -89,7 +89,7 @@ public class CxxHighlighterVisitor extends SquidAstVisitor<Grammar> implements A
   private TokenLocation highlight(@Nullable TokenLocation last, TokenLocation current, String typeOfText) {
     if (!current.overlaps(last)) {
       highlighting.add(new Highlight(current.startLine(), current.startLineOffset(),
-                                     current.endLine(), current.endLineOffset(), typeOfText));
+        current.endLine(), current.endLineOffset(), typeOfText));
     }
 
     return current;
@@ -110,7 +110,7 @@ public class CxxHighlighterVisitor extends SquidAstVisitor<Grammar> implements A
       this.endLineOffset = endLineOffset;
       this.typeOfText = typeOfText;
     }
-  };
+  }
 
   private static class TokenLocation {
 
@@ -145,9 +145,9 @@ public class CxxHighlighterVisitor extends SquidAstVisitor<Grammar> implements A
     public boolean overlaps(@Nullable TokenLocation other) {
       if (other != null) {
         return !(startLineOffset() > other.endLineOffset()
-                 || other.startLineOffset() > endLineOffset()
-                 || startLine() > other.endLine()
-                 || other.startLine() > endLine());
+          || other.startLineOffset() > endLineOffset()
+          || startLine() > other.endLine()
+          || other.startLine() > endLine());
       }
       return false;
     }
